@@ -1,0 +1,23 @@
+---
+title: Stopping Dynamic Actions using apex.da.cancelEvent
+tags:
+  - APEX
+  - Dynamic Actions
+date: 2014-01-13 07:00:00
+alias:
+---
+
+_Update: [Nick Buytaert](https://twitter.com/nbuytaert1) wrote a follow-up article on the <span style="font-family: Courier New, Courier, monospace;">[apex.da.resume](http://apexplained.wordpress.com/2014/01/18/the-apex-da-resume-function/)</span> function. I suggest reading it along with this article in case you need to resume a Dynamic Action (which is especially useful for plugins)._
+
+ They're a few times when you may need to stop a Dynamic Action part way through the executing all its actions. Since individual actions don't have conditions associated with them there's no supported way to do this. Thankfully there's an undocumented JavaScript (JS) function called&nbsp;<span style="font-family: Courier New, Courier, monospace;">apex.da.cancelEvent</span>. Here's an example of how to use it:
+
+Suppose you have a page with two items, <span style="font-family: inherit;">P1_X</span> and <span style="font-family: inherit;">P1_Y</span>, and a button on P1\. When the user clicks the button the Dynamic Action (DA) needs to set <span style="font-family: Courier New, Courier, monospace;">P1_X = X</span> and <span style="font-family: Courier New, Courier, monospace;">P1_Y = Y</span>. The DA setup will look like the following:
+
+<div class="separator" style="clear: both; text-align: center;">[![](http://3.bp.blogspot.com/-e6yhj7M1vgE/Uso4eh2QGGI/AAAAAAAAEj8/qT56EVu5mfE/s1600/Edit-Dynamic-Action.png)](http://3.bp.blogspot.com/-e6yhj7M1vgE/Uso4eh2QGGI/AAAAAAAAEj8/qT56EVu5mfE/s1600/Edit-Dynamic-Action.png)</div><div class="separator" style="clear: both; text-align: left;">
+</div><div class="separator" style="clear: both; text-align: left;">When you click the button P1_X and P1_Y are set to X and Y respectively.&nbsp;</div><div class="separator" style="clear: both; text-align: left;">
+</div><div class="separator" style="clear: both; text-align: left;">Now suppose that after P1_X is set you wanted to stop all other actions in the DA (in this case setting P1_Y). There's no way to declaratively do this. Instead you must use the&nbsp;<span style="font-family: Courier New, Courier, monospace;">apex.da.cancelEvent</span> function.&nbsp;</div><div class="separator" style="clear: both; text-align: left;">
+</div><div class="separator" style="clear: both; text-align: left;">Add a new JavaScript "True Action" to the existing DA with sequence 15 (so its between the two other actions). In the code section use:&nbsp;<span style="font-family: Courier New, Courier, monospace;">apex.da.cancelEvent.call(this);</span> &nbsp;Be sure to uncheck the "Fire On Page Load" option. The updated DA will look like image below (the new action is highlighted).</div><div class="separator" style="clear: both; text-align: left;">
+</div><div class="separator" style="clear: both; text-align: center;">[![](http://4.bp.blogspot.com/-Zjm1fMjGnFc/Uso_x_2VhJI/AAAAAAAAEkM/8JHhq8GPd_E/s1600/Edit-Dynamic-Action-1.png)](http://4.bp.blogspot.com/-Zjm1fMjGnFc/Uso_x_2VhJI/AAAAAAAAEkM/8JHhq8GPd_E/s1600/Edit-Dynamic-Action-1.png)</div><div class="separator" style="clear: both; text-align: left;">
+</div><div class="separator" style="clear: both; text-align: left;">If you refresh P1 and click the button associated to this DA only P1_X will be set. The third action in this DA will not be executed.</div><div class="separator" style="clear: both; text-align: left;">
+</div><div class="separator" style="clear: both; text-align: left;">The above example probably isn't the best use case for leveraging&nbsp;<span style="font-family: Courier New, Courier, monospace;">apex.da.cancelEvent</span> however it does highlight its functionality. It is useful if you create your own custom confirm notice or some other process that determines if the rest of the actions in a DA can occur.</div>
+Note: You'll notice that I used the additional <span style="font-family: Courier New, Courier, monospace;">call()</span> function when calling <span style="font-family: Courier New, Courier, monospace;">apex.da.cancelEvent</span>&nbsp;in the action. Calling it defines the value of <span style="font-family: Courier New, Courier, monospace;">this</span> in the function call as it is required in the <span style="font-family: Courier New, Courier, monospace;">cancelEvent</span> function. For more information please read the JS [<span style="font-family: Courier New, Courier, monospace;">call()</span> documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call).
