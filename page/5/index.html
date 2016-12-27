@@ -101,6 +101,8 @@
         <a href="http://www.talkapex.com/2014/06/tourkscope.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">kscope</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
+
     </footer>
   </div>
   
@@ -156,6 +158,8 @@
         <a href="http://www.talkapex.com/2014/06/presenting-at-odtug-kscope-14.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">kscope</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
+
     </footer>
   </div>
   
@@ -199,6 +203,8 @@
         <a href="http://www.talkapex.com/2014/06/get2kscope.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">kscope</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
+
     </footer>
   </div>
   
@@ -232,6 +238,7 @@
 <p>They’re two ways to handle “bucketing data” in Oracle. In the documentation Oracle describes the two types as either having equiwidth or or equiheight histograms.<br><strong><br>**</strong>Equiwidth** (<a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions115.htm#SQLRF00680" target="_blank" rel="external">NTILE</a>): Each bucket will have the same number of items in it with some buckets having at most 1 more item than other buckets. An easy way to think of this concept is to order all the items, then divide the data evenly into groups based on the number of buckets. For example, supposed you have 9 values (AAAABCDEF) and wanted to put them into 3 buckets. the buckets would be B1 = AAA, B2 = ABC, B3 = DEF. You’ll notice that the value “A” is in both buckets B1 <u>and</u>&nbsp;B2.</p>
 <p>When an uneven amount of objects need to go into the buckets, NTILE will fill the first bucket first, second bucket second, etc. For example, suppose you had 10 values (AAAABCDEFG) and wanted to fill them into 3 buckets. (<em>Note this is similar to the previous example with an additional “G”)</em>. The buckets would be B1 = AAAA, B2 = BCD, B3 = EFG.</p>
 <div><strong>Equiheight</strong> (<a href="http://docs.oracle.com/cd/E11882_01/server.112/e41084/functions234.htm#SQLRF06163" target="_blank" rel="external">WIDTH_BUCKET</a>): This will take the min and max range, divided by the number of buckets and place each value in it. For example, the salaries in the EMP table range from 801 ~ 5000. If you set the min/max range from 0~5000 3 buckets will be created. All values from 0~1,666 will go into B1, values from 1,6667~3333 into B2, and values 3334 to 5000 into B3. <em>(Note: for simplicity I took out decimals in this split).&nbsp;</em></div><div><br></div><div><br></div><div>An easy way to think of these two bucketing methods is that NTILE divides values based on the number of items. WIDTH_BUCKET divides values based on their values.</div><div><div><br></div><div>Here’s an example that highlights the difference between the two functions.&nbsp;</div><pre class="brush: sql;">with data as (<br>  – using this as data input<br>  select 3 as num_buckets<br>  from dual<br>)<br>select<br>  d.dname,<br>  e.ename,<br>  e.sal,<br>  ntile (data.num_buckets) over (order by sal asc) ntile,<br>  width_bucket(sal, 0, max(sal+1) over (), data.num_buckets) width_bucket<br>from emp e, dept d, data<br>where e.deptno = d.deptno<br>order by sal;<br><br>DNAME          ENAME      SAL        NTILE      WIDTH_BUCKET<br>————– ———- ———- ———- ————<br>RESEARCH       SMITH         801          1        1<br>SALES          JAMES         950          1        1<br>RESEARCH       ADAMS        1100          1        1<br>SALES          WARD         1250          1        1<br>SALES          MARTIN       1250          1        1<br>ACCOUNTING     MILLER       1300          2        1<br>SALES          TURNER       1500          2        1<br>SALES          ALLEN        1600          2        1<br>ACCOUNTING     CLARK        2450          2        2<br>RESEARCH       JONES        2975          2        2<br>RESEARCH       SCOTT        3000          3        2<br>RESEARCH       FORD         3000          3        2<br>SALES          BLAKE        3850          3        3<br>ACCOUNTING     KING         5000          3        3<br></pre><div>It’s important to note that WIDTH_BUCKET is not an analytic function but NTILE is. For more information read the documentation for each function. For WIDTH_BUCKET, the documentation covers what happens with values outside the min/max range (they go into bucket 0 and num_buckets+1).</div></div>
+
       
     </div>
     <footer class="article-footer">
@@ -240,7 +247,7 @@
         <a href="http://www.talkapex.com/2014/04/ntile-vs-widthbucket.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/">ORACLE</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pl-sql/">PL/SQL</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
 
     </footer>
   </div>
@@ -288,7 +295,7 @@
         <a href="http://www.talkapex.com/2014/03/running-custom-code-for-tabular-forms.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
 
     </footer>
   </div>
@@ -331,6 +338,8 @@
         <a href="http://www.talkapex.com/2014/03/oracleapexcom-part-2.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
     </footer>
   </div>
   
@@ -362,6 +371,7 @@
       
         <p>A few weeks ago the Oracle APEX team released APEX 5.0 EA1 (Early Adopter). You can try the new version of APEX at&nbsp;<a href="http://ea.oracleapex.com/" target="_blank" rel="external">ea.oracleapex.com</a>.</p>
 <div><div style="margin: 0px;">I expect that the APEX team will release an EA2 and possible EA3 version before officially launching APEX 5.0 with the final release coming around June.&nbsp;<em>Just to be clear, these are my personal estimates not any inside information.</em></div></div><br>Releasing APEX 5.0 in June would be perfect timing as it coincides with&nbsp;<a href="http://kscope14.com/" target="_blank" rel="external">Kscope 14</a>. The conference has a lot of talks specifically focused on APEX 5.0 from both the Oracle development team and some of the worlds leading experts on all things APEX. I think that this conference will be a great opportunity for people (both developers and managers) to learn about all the new features and get hands on experience with this latest version.<br><br>One of the unique aspects of Kscope is that you’ll be able to easily talk to the Oracle APEX team, Oracle ACE and ACE Directors, and other experts in the community. These are the people that write the blogs, read the books, and do the webinars that you may have read/seen. You can sit down with them and get their advice on how to integrate 5.0 and leverage it to enhance your current applications and increase ROI.<br><br>I’ll be giving a talk at&nbsp;<a href="http://kscope14.com/" target="_blank" rel="external">Kscope 14</a>&nbsp;called “APEX 5.0 - New Features Highlights”. It will cover some of the new aspects of APEX that will help both developers and the business. You can see all the&nbsp;<a href="http://kscope14.com/" target="_blank" rel="external">Kscope 14</a>&nbsp;APEX abstracts&nbsp;<a href="http://kscope14.com/component/seminar/seminarslist?Itemid=57&amp;topicsid=3" target="_blank" rel="external">here</a>. If you’re thinking of coming to the conference you should register soon as Early Bird rates end on March 25th.<br><div><br></div><div>Hope to see you at Kscope 14!</div>
+
       
     </div>
     <footer class="article-footer">
@@ -370,7 +380,7 @@
         <a href="http://www.talkapex.com/2014/03/apex-50-and-kscope-14.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">KSCOPE</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">ODTUG</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-5/">apex-5</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
 
     </footer>
   </div>
@@ -403,7 +413,7 @@
       
         <p>It’s not uncommon to reference the current user as <span style="font-family: Courier New, Courier, monospace;">USER</span> in your pl/sql code. A simple use case may be to determine the client or environment that you’re running in (ex: dev, test, prod).</p>
 <p>Referencing <span style="font-family: Courier New, Courier, monospace;">USER</span> will have some slight side effects when running the code in APEX as the current <span style="font-family: Courier New, Courier, monospace;">USER</span> is actually <span style="font-family: Courier New, Courier, monospace;">APEX_PUBLIC_USER</span> (or what ever user you configured). This can cause issues in your application. To resolve it, simply reference <span style="font-family: Courier New, Courier, monospace;">sys_context(‘userenv’,’current_schema’)</span> instead.</p>
-<p>Example: </p>
+<p>Example:</p>
 <p><pre class="brush: sql;">– Via SQL*Plus<br>select user, sys_context(‘userenv’,’current_schema’)<br>from dual;</pre></p>
 <p>USER        SYS_CONTEXT(‘USERENV</p>
 <hr>
@@ -419,6 +429,8 @@
         <a href="http://www.talkapex.com/2014/03/referencing-user-in-apex.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
     </footer>
   </div>
   
@@ -458,6 +470,8 @@
         <a href="http://www.talkapex.com/2014/02/oracle-apex-training.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
     </footer>
   </div>
   
@@ -514,7 +528,7 @@
         <a href="http://www.talkapex.com/2014/02/apex-shortcuts.html#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
 
     </footer>
   </div>
@@ -561,7 +575,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">APEX</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">APEX 5</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">APEX PLUGIN</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apexposed/">APEXPOSED</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytic-functions/">Analytic Functions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/">Analytics</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">CSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">Checkbox</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">Dynamic Actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">IoT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jobs/">JOBS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">JavaScript</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">KSCOPE</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaleidoscope/">Kaleidoscope</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mockups/">MOCKUPS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">ODTUG</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">OOW</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">ORACLE</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a><span class="tag-list-count">54</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-xe/">ORACLE XE</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os-x/">OS X</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oraopensource/">OraOpenSource</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pl-sql/">PL/SQL</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podcast/">Podcast</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">SQLcl</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">Tabular Form</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virtualbox/">VIRTUALBOX</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vpd/">VPD</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wireframe/">WIREFRAME</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-stackexchange-com/">apex.stackexchange.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console/">console</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console-wrapper/">console wrapper</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo/">demo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo-talkapex-com/">demo.talkapex.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery-ui/">jQUERY UI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/orclapex-yyc/">orclapex-yyc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/twitter/">twitter</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">129</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
