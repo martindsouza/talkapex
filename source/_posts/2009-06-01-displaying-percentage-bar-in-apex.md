@@ -13,7 +13,7 @@ APEX can create "Percentage Bars" within a report. They're probably a lot of 3rd
 <span style="font-weight: bold">1- Create your report</span>
 <span style="font-style: italic">In this report we're using the employees percentage of salary within their department</span>
 
-<pre class="brush: sql">
+```sql
 SELECT e.ename,
        e.job,
        d.dname,
@@ -23,10 +23,10 @@ SELECT e.ename,
   FROM emp e,
        dept d
  WHERE e.deptno = d.deptno
-</pre>
+```
 
 <span style="font-weight: bold">2- Add Percentage Bar for the "bar" column</span>
 - In the Reports Attributes section, click on the "Bar" column attributes
-- Under Number/Date formatting enter the following: PCT_GRAPH:330099:CC0000:100
+- Under Number/Date formatting enter the following: `PCT_GRAPH:330099:CC0000:100`
 
-<span style="font-style: italic">PCT_GRAPH:&lt;Hex background color&gt;:&lt;Hex foreground color&gt;:&lt;Bar width in pixels&gt;</span>
+`PCT_GRAPH:<Hex background color>:<Hex foreground color>:<Bar width in pixels>`
