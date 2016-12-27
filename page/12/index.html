@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="TODO description">
+<meta property="og:type" content="website">
+<meta property="og:title" content="TalkApex">
+<meta property="og:url" content="https://www.talkapex.com/page/12/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="TODO description">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TalkApex">
+<meta name="twitter:description" content="TODO description">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">TODO</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-command-line-backups-for-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/04/command-line-backups-for-apex.html" class="article-date">
+  <time datetime="2012-04-28T23:25:00.000Z" itemprop="datePublished">2012-04-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/04/command-line-backups-for-apex.html">Command Line Backups for APEX Applications</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><span style="color: red;"><strong>Update 21-Apr-2015: </strong>This script will no longer be supported. Instead please use the new script (for Mac/Linux) available on <a href="https://github.com/OraOpenSource/apexbackup" target="_blank" rel="external">Github</a>. New article:&nbsp;<a href="http://www.talkapex.com/2015/04/apex-backup-script.html">http://www.talkapex.com/2015/04/apex-backup-script.html</a></span></p>
+<p>One thing developers like to do is keep local backup copies of their development work. Sometimes they’ll copy files and suffix them with <em>.bak</em> or they’ll store them in a version control repository. With APEX you don’t copy a file to back it up. Either you have to copy the application (within the workspace) or export the application and save it locally. For one-off backups this can be ok, but as you develop with more and more applications in larger environments it can be tedious work and will slow down your development time.</p>
+<p>Thankfully APEX has a tool, that comes as part of the install zip file, which allows for command line exports. It’s one of the lesser known tools that is extremely useful.</p>
+<p>Below is a simplified copy of a batch file which will automatically backup all the APEX applications on a given database using the APEX backup tool. I usually recommend that organizations run such a script on their development environments to store hourly backups of their development environments. The example is a very simple example which should be modified to tag the backup with the date/time or zip and store the backups in version control. I’ve also appended an extra script which lists all the APEX applications, workspaces, and IDs and stores this information as part of the backup in a <em>.html</em> file. </p>
+<p>To use the script, create the files listed below in the same directory and make the appropriate modifications in _apex<em>backup.bat</em></p>
+<p><strong>apex_backup.bat</strong><br><em>Backups all the applications in the database</em></p>
+<pre class="brush: bash;">REM ***** START MODIFICATIONS ******
+
+REM ***** Parameters ******
+REM Oracle information
+REM To find SID name: select * from v$instance;
+set oracleSID=XE
+set oracleSystemPass=oracle
+set oraclePort=1526
+set oracleHost=localhost
+REM Root directory where oracle\apex\*class files are stored
+REM These is a sub directory from the extracted APEX install zip file
+set apexExportJavaDir=C:\temp\apex_4.1.1_en\apex\utilities
+REM File that contains names of applications and workspaces
+set apexHtmlFileName=apex_info.html
+REM Directory where backups will be stored
+set backupLocation=C:\temp\apexbackup
+
+REM ****** PATHS *********
+REM Note: You may not need to explicitly define these as they may already be set in OS.
+set ORACLE_HOME=C:\oracle\product\11.2.0\client_1
+set CLASSPATH=%CLASSPATH%;.\;%ORACLE_HOME%\jdbc\lib\ojdbc5.jar;%apexExportJavaDir%
+set PATH=%PATH%;.\;C:\Program Files (x86)\Java\jre6\bin
+
+REM ***** END MODIFICATIONS ******
+
+REM ****** Other *********
+set startRunLocation=%CD%
+
+REM ****** Directory Setup ******
+REM Create temp bacpkup location
+mkdir %backupLocation%
+
+REM ****** APEX BACKUP *******
+REM Go to backup location to run backups in
+cd %backupLocation%
+
+REM Export all applications
+java oracle.apex.APEXExport -db %oracleHost%:%oraclePort%:%oracleSID% -user system -password %oracleSystemPass% -instance
+
+REM Export all Workspaces
+java oracle.apex.APEXExport -db %oracleHost%:%oraclePort%:%oracleSID% -user system -password %oracleSystemPass% -expWorkspace
+
+REM Generate listing of Workspaces and Applications
+sqlplus system/%oracleSystemPass%@%oracleHost%:%oraclePort%/%oracleSID% @%startRunLocation%\apex_backup_info.sql %apexHtmlFileName%
+
+REM Back to start location
+cd %startRunLocation%
+</pre>**apex_backup_info.sql**
+_Stores all the application names, workspaces, and IDs_
+<pre class="brush: sql;">-- Parameters
+-- 1 = File Name
+
+-- http://forums.devshed.com/oracle-development-96/sql-plus-column-width-format-185085.html
+-- http://download.oracle.com/docs/cd/B10501_01/server.920/a90842/ch13.htm#1012748
+SET NUMFORMAT 9999999999999999999999999999999999999
+SET MARKUP HTML ON SPOOL ON HEAD "<title>APEX Export</title>"
+
+SET ECHO OFF
+SPOOL &amp;1
+
+-- Current Date
+select to_char(sysdate, 'DD-MON-YYYY HH24:MI:SS') current_date
+from dual;
+
+-- Applications
+SELECT application_id, workspace, application_name, owner
+FROM apex_applications
+WHERE workspace != 'INTERNAL'
+ORDER BY application_id;
+
+-- Workspaces
+SELECT workspace_id, workspace
+FROM apex_workspaces
+WHERE workspace != 'INTERNAL'
+ORDER BY workspace_id;
+
+SPOOL OFF
+SET MARKUP HTML OFF
+SET ECHO ON  
+
+EXIT;
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/04/command-line-backups-for-apex.html" data-id="cix71m7py004abpn9szpmc50k" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/04/command-line-backups-for-apex.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-presenting-at-calgary-oracle-user-group" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/04/presenting-at-calgary-oracle-user-group.html" class="article-date">
+  <time datetime="2012-04-04T14:12:00.000Z" itemprop="datePublished">2012-04-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/04/presenting-at-calgary-oracle-user-group.html">Presenting at Calgary Oracle User Group (COUG) April 19th</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I’m really excited about my presentation at the Calgary Oracle User Group (<a href="http://coug.ab.ca/" target="_blank" rel="external">COUG</a>) on April 19th. I gave a presentation there three years ago and it’ll be nice to give a talk “on home turf” again.</p>
+<p>Here’s the information about the presentation:</p>
+<p><strong>Title:</strong> Common Questions DBA have about APEX</p>
+<p><strong>Abstract:</strong> DBAs have many responsibilities managing the databases in their organizations. The introduction of Oracle Application Express (APEX) has added some more items to their already demanding list of tasks. This presentation will answer some of the common questions DBAs have about APEX. </p>
+<p>APEX items to be discussed include: development best practices, release management, automatic backups, and web server configurations. This presentation is also relevant to developers and they are encouraged to attend.</p>
+<p><strong>Date/Time/Location:</strong><br>April 19th 8:30am (registration starts at 8:00 am)</p>
+<p><a href="http://g.co/maps/kw523" target="_blank" rel="external">Suncor Energy Centre (West Tower)</a><br>150 6th Avenue SW<br>17th floor – Room A/B</p>
+<p>I will also be giving away a few things at the end of my talk. <a href="http://www.apress.com/" target="_blank" rel="external">Apress</a> has been very generous and donated a copy of each of my <a href="http://www.talkapex.com/p/books.html">books</a> and <a href="http://www.odtug.com/" target="_blank" rel="external">ODTUG</a> has donated a lot of really cool swag to help promote the best Oracle conference in the world, <a href="http://www.kscope12.com/" target="_blank" rel="external">Kscope 12</a>.</p>
+<p>Hope to see you there!</p>
+<p>Martin</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group.html" data-id="cix71m1rp0049bpn97w56h93s" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-odtug-apex-plug-in-competition" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/odtug-apex-plug-in-competition.html" class="article-date">
+  <time datetime="2012-03-27T20:23:00.000Z" itemprop="datePublished">2012-03-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/odtug-apex-plug-in-competition.html">ODTUG APEX Plug-In Competition</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago <a href="http://www.apex-at-work.com/" target="_blank" rel="external">Tobias Arnhold</a> posted a tweet suggesting that we should have an APEX Plugins competition. After a few months, many emails, a lot of effort by an excellent group of people, and the support from <a href="http://www.odtug.com/" target="_blank" rel="external">ODTUG</a>, I’m pleased to announce the first ever world wide <a href="http://www.odtug.com/apex/f?p=500:450:0" target="_blank" rel="external">APEX Plug-ins competition</a>! Here’s a short blurb from the official announcement on odtug.com:</p>
+<p><em>ODTUG is holding its first ever world wide <a href="http://www.odtug.com/apex/f?p=500:450:0" target="_blank" rel="external">APEX Plug-ins competition</a>! This is your opportunity to write an APEX plug-in and have it viewed by the entire international APEX community and maybe crowned 2012 ODTUG APEX Plug-in Developer of the Year! Even better, there are some really great prizes with the grand prize being a<strong> free pass to Kscope13</strong> or a <strong>Jawbone Jambox</strong>!</em></p>
+<p>This is your opportunity to showcase your Oracle APEX Plugin skills and win some really cool <a href="http://www.odtug.com/apex/f?p=500:450:0#prizes" target="_blank" rel="external">prizes</a>. We also made a special Experts category to ensure everyone is on a level playing field.</p>
+<p>I hope this encourages everyone to try to submit a plugin and help expand the list of already fantastic plugins.</p>
+<p>Good luck!</p>
+<p>_Update: Here’s the <a href="https://twitter.com/#%21/tobias_arnhold/status/162425360724664320" target="_blank" rel="external">original tweet</a> from Tobias_!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/03/odtug-apex-plug-in-competition.html" data-id="cix6zhotz007w31n9dl6cvh35" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/03/odtug-apex-plug-in-competition.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-q-function-inside-q-function" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/q-function-inside-q-function.html" class="article-date">
+  <time datetime="2012-03-26T13:00:00.000Z" itemprop="datePublished">2012-03-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/q-function-inside-q-function.html">q Function Inside a q Function</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Two years ago I wrote about how to escape single quotes in string using the <em>q</em> function: <a href="http://www.talkapex.com/2009/03/q-function-escape-single-quotes.html">http://www.talkapex.com/2009/03/q-function-escape-single-quotes.html</a> If you’ve never seen this before or don’t know what I’m talking about please read the article first before continuing.</p>
+<p>I recently had an issue where I had to use a <em>q</em> function inside another <em>q</em> function. Here’s what I tried: </p>
+<p><pre class="brush: sql;">DECLARE<br>  l_code varchar2(4000);</pre></p>
+<p>BEGIN<br>  l_code := q’!BEGIN dbms_output.put_line(q’!It’s cold in Calgary!’); END; !’;</p>
+<p>  dbms_output.put_line(l_code);</p>
+<p>  execute immediate l_code;</p>
+<p>END;<br>/</p>
+<p>ERROR:<br>ORA-01756: quoted string not properly terminated<br>You’ll notice that the above code doesn’t run. The reason it doesn’t work is that I’m using the same character (!) as the quote delimiter. To fix this, each “Q” block must have it’s own unique quote delimiter. Below is a copy of the same code but using two different quote delimiters (# and !).   </p>
+<p><pre class="brush: sql;">DECLARE<br>  l_code varchar2(4000);</pre></p>
+<p>BEGIN<br>  l_code := q’#BEGIN dbms_output.put_line(q’!It’s cold in Calgary!’); END; #’;</p>
+<p>  dbms_output.put_line(l_code);</p>
+<p>  execute immediate l_code;</p>
+<p>END;<br>/</p>
+<p>BEGIN dbms_output.put_line(q’!It’s cold in Calgary!’); END;<br>It’s cold in Calgary</p>
+<p>PL/SQL procedure successfully completed.<br>For more information on the q function (it’s real name is “Q-quote mechanism”) read the Oracle documentation: <a href="http://docs.oracle.com/cd/B19306_01/appdev.102/b14251/adfns_sqltypes.htm#BABECADE" target="_blank" rel="external">http://docs.oracle.com/cd/B19306_01/appdev.102/b14251/adfns_sqltypes.htm#BABECADE</a> and scroll down to the “Quoting Character Literals” section.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/03/q-function-inside-q-function.html" data-id="cix71ln1r0047bpn993oz74ng" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/03/q-function-inside-q-function.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pl-sql/">PL/SQL</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-things-to-watch-out-for-when-upgrading" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/things-to-watch-out-for-when-upgrading.html" class="article-date">
+  <time datetime="2012-03-22T14:00:00.000Z" itemprop="datePublished">2012-03-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/things-to-watch-out-for-when-upgrading.html">Things to Watch Out for When Upgrading an APEX Plugin</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Now that APEX plugins have been around for a while I’m starting to notice that upgrades are being released for the same plugin. This is a natural occurrence in the lifecycle of software development and is expected.</p>
+<p>Prior to upgrading an APEX plugin you should be aware of what will happen to the settings (also known as Custom Attributes) for your plugin before upgrading. Before I continue it’s important to note the two different types of custom attributes a plugin can have.</p>
+<p><strong>Application:</strong> These attributes are applicable for the plugin as a whole across the entire application. Think of them as a global variable for the plugin</p>
+<p><strong>Component</strong>: These attributes are applicable for each instantiation of the plugin. For example, if the plugin is an item type plugin the settings found while editing the item are component level attributes.</p>
+<p>When upgrading a plugin the component level attributes/settings will retain their value (this is good). The same is not true for application level attributes. They will be reset to the plugin’s default values. For example if I configure the <a href="http://apex.oracle.com/pls/apex/f?p=45587:800:0::NO" target="_blank" rel="external">ClariFit Dialog</a> plugin they’re a few settings I can change: Background Color and Background Opacity. In the image below I’ve changed them from the default values to <em>red</em> and <em>50%</em> respectively.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-AbE8XEgHwKY/T2jQjAOLkdI/AAAAAAAAEHE/3PfGP5g96Bw/s1600/plugin_before_upgrade.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-AbE8XEgHwKY/T2jQjAOLkdI/AAAAAAAAEHE/3PfGP5g96Bw/s400/plugin_before_upgrade.png" alt=""></a></div><br>After I upgrade the plugin to a newer version the application level attributes are reset back to the plugin’s default values shown below.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-2B3zMtCmzvk/T2jQi2qnHhI/AAAAAAAAEHA/DNr2-opaFyg/s1600/plugin_after_upgrade.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-2B3zMtCmzvk/T2jQi2qnHhI/AAAAAAAAEHA/DNr2-opaFyg/s1600/plugin_after_upgrade.png" alt=""></a></div><br>Be sure to take note of your plugin application level settings before updating a plugin. I find the easiest way to do this is to take a screen shot, similar to the images above, before I upgrade the plugin and compare the values with the new default values and make the appropriate changes.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading.html" data-id="cix71lisl0046bpn9kx6qitrp" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-apex-processes-various-conditions" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/how-apex-processes-various-conditions.html" class="article-date">
+  <time datetime="2012-03-20T17:05:00.000Z" itemprop="datePublished">2012-03-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/how-apex-processes-various-conditions.html">How APEX Processes Various Conditions and Validations</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I was recently teaching an Intro to APEX course and the students had some questions about what to put in the <em>Expression 1</em> text area for different conditions and validations based on the <em>Type</em> selected. If you’re new to APEX the various options can be confusing.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s1600/condition_types.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s640/condition_types.png" alt=""></a></div><br>To help clear things up I’ve included a list of the various APEX conditions and validations along with code that demonstrates how APEX processes the value in <em>Expression 1</em> based on the given <em>Type</em>. I didn’t include the definition for each type as they are already well documented in the APEX documentation and popup help.</p>
+<p>_Note: the calls to DBMS<em>OUTPUT are there to show you if the validation/condition is true or false.</em> </p>
+<p><strong>Exists</strong></p>
+<pre class="brush: sql; highlight: [8,9,10]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM (
+    -- Start Expression 1
+    SELECT 1 
+    FROM emp 
+    WHERE sal &gt; :p1_sal
+    -- End Expression 1
+  );
+
+  IF l_rows &gt; 0 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**Not Exists**
+<pre class="brush: sql; highlight: [8, 9, 10]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM (
+    -- Start Expression 1
+    SELECT 1 
+    FROM emp 
+    WHERE sal &gt; :p1_sal
+    -- End Expression 1
+  );
+
+  IF l_rows = 0 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**SQL Expression**
+_Note: SQL Expression and PL/SQL Expression are very similar but some SQL expressions can't be used in PL/SQL. Example: Decode_
+<pre class="brush: sql; highlight: [9]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM dual
+  WHERE 
+    -- Start Expression 1
+    :p1_sal &gt; 500
+    -- End Expression 1
+  ;
+
+  IF l_rows = 1 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**PL/SQL Expression**
+<pre class="brush: sql; highlight: [5]">DECLARE
+BEGIN
+  IF (
+    -- Start Expression 1
+    :p1_sal &gt; 500
+    -- End Expression 1
+  ) THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+
+END;
+/
+</pre>**PL/SQL Function Returning Boolean**
+<pre class="brush: sql; highlight: [6,7,8,9,10,11,12,13,14,15,16,17,18,19]">DECLARE
+  FUNCTION f_apex_condtion RETURN boolean
+  AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN -- only want at most 1 president
+        RETURN FALSE;
+      ELSE
+        RETURN TRUE;
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+
+  IF f_apex_condtion THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+
+END;
+/
+</pre>**_Conditions Only_**
+
+**Function Returning Error Text**
+<pre class="brush: sql; highlight: [8,9,10,11,12,13,14,15,16,17,18,19,20,21]">DECLARE
+  l_err_msg varchar2(4000);
+
+  FUNCTION f_apex_condtion RETURN varchar2
+  AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN 
+        RETURN 'Only 1 president can exist for the company';
+      ELSE
+        RETURN NULL; -- no error
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+  l_err_msg := f_apex_condtion;
+
+  IF l_err_msg IS NULL THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE - Error message: ' || l_err_msg);
+  END IF;
+
+END;
+/
+</pre>**PL/SQL Error**
+<pre class="brush: sql; highlight: [6,7,8,9,10,11,12,13,14,15,16,17]">DECLARE
+
+  PROCEDURE sp_apex_condtion AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN 
+        raise_application_error(-20001, 'Only 1 president can exist for the company');
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+  sp_apex_condtion;
+
+  dbms_output.put_line('TRUE');
+
+exception WHEN others THEN
+  dbms_output.put_line('FALSE'); -- Error message is defined in the validation's error message
+END;
+/
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/03/how-apex-processes-various-conditions.html" data-id="cix71le5b0045bpn9sh26zsvb" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/03/how-apex-processes-various-conditions.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apex-process-condition-with-multiple" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2011/12/apex-process-condition-with-multiple.html" class="article-date">
+  <time datetime="2011-12-13T14:00:00.000Z" itemprop="datePublished">2011-12-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2011/12/apex-process-condition-with-multiple.html">APEX Process Condition with Multiple Buttons</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>For new APEX developers, adding a page process condition can be a bit confusing at first when basing it on multiple buttons. This post will go through a scenario on how to easily use multiple buttons in a page condition. </p>
+<p><strong><span style="font-size: small;">The Setup</span></strong><br>A classic example of having multiple buttons on a page is when you want to save or update a record. The Save button should only appear for new records, whereas the Update button should only appear for existing records. The catch is that when saving and updating the page you may need to run the same process. </p>
+<p>The following setup highlights this classic example. Create a region in a page with two fields: P1_X and P1_Y. Then create three buttons: Save, Update, and Cancel. All three buttons should submit the page and an example of the page is shown below</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-Th7GcS6UnvY/TtpJnsNnnqI/AAAAAAAAEFQ/yTphEesUKKo/s1600/process_condition_setup.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-Th7GcS6UnvY/TtpJnsNnnqI/AAAAAAAAEFQ/yTphEesUKKo/s1600/process_condition_setup.png" alt=""></a></div><br>Create the following page process:<br>Name: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">Update P1_Y</span><br>Process Point: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">On Submit - After Computations and Validations</span><br>Process: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">:P1_Y := :P1_X * 2;</span></p>
+<p><strong>The Problem</strong><br>You’d like this process to run when both the Save and Update buttons are clicked. If you scroll down to the process’s conditions area you’ll notice that it has an option to restrict the process when a particular button is clicked (shown below). </p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png" alt=""></a></div><br>As you can see you can only select one button from the list. At first glance the only option that you have to resolve the two button issue is to create a new process, which is a copy of the existing process, and set the condition to the other button. That doesn’t necessarily make sense and can be an obvious maintenance nightmear.</p>
+<p>The good news is that there is a very simple way to get around this issue. When you click a button it actually sets the <a href="http://docs.oracle.com/cd/E23903_01/doc/doc.41/e21674/concept_sub.htm#BEIFJJBC" target="_blank" rel="external">REQUEST</a> variable to the button name. The button name is defined in the button. For example the Save button’s request is actually SAVE (shown below).</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-NAhzVX9cpf0/TtpJn8-vFYI/AAAAAAAAEFM/kJn-_bwXs-Q/s1600/process_condition_button.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-NAhzVX9cpf0/TtpJn8-vFYI/AAAAAAAAEFM/kJn-_bwXs-Q/s1600/process_condition_button.png" alt=""></a></div><br>Going back to the original problem, and leveraging what we know about the REQUEST variable, you can modify the process’s condition to have it run when either the Save or Update buttons are selected as shown below.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-M_w6hjuT-EQ/TtpJngA96WI/AAAAAAAAEFA/PZTYRg5XwX4/s1600/process_condition_condition_good.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-M_w6hjuT-EQ/TtpJngA96WI/AAAAAAAAEFA/PZTYRg5XwX4/s1600/process_condition_condition_good.png" alt=""></a></div><br><em>Note: They’re other ways to use the REQUEST variable in the conditions section. This one highlights a very simple use.</em></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2011/12/apex-process-condition-with-multiple.html" data-id="cix71jngt0044bpn9ki099oq6" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2011/12/apex-process-condition-with-multiple.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-moving-apex-developer-toolbar" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2011/12/moving-apex-developer-toolbar.html" class="article-date">
+  <time datetime="2011-12-08T14:00:00.000Z" itemprop="datePublished">2011-12-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2011/12/moving-apex-developer-toolbar.html">Moving the APEX Developer Toolbar</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When you are developing an APEX application there may be certain situations (primarily depending on your page template) that require you to move the APEX toolbar from the bottom of the screen. The screen shot below shows such a case where there is content all the way to the end of the screen and the toolbar is preventing you from accessing/clicking on something at the bottom. If you try to click the last Edit button nothing happens since the toolbar is overlaying it. <em>Note: I modified the page template to highlight this issue.</em></p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-0g2ayhW6PWU/Ttpjlmd51TI/AAAAAAAAEFw/9rO2p4y4UAk/s1600/toolbar_issue.png" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-0g2ayhW6PWU/Ttpjlmd51TI/AAAAAAAAEFw/9rO2p4y4UAk/s400/toolbar_issue.png" alt=""></a></div><br>This doesn’t occur very often but when it does there’s a simple solution to move the toolbar from the bottom to the top of the screen. Run the following JavaScript code in your browser’s console window and the toolbar will move to the top of the page.</p>
+<p><pre class="brush: js">//Note on older versions of APEX you’ll need to check the toolbar’s ID<br>$(‘#apex-dev-toolbar’).css({<br>  top: 0,<br>  height: ‘22px’<br>});<br></pre>Once at the top it will look like the image below. Note that the logout link (top right corner) is no longer clickable.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-fKt5RGq7A3s/TtphxW0ipVI/AAAAAAAAEFg/G1P671C5oqU/s1600/toolbar_top.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-fKt5RGq7A3s/TtphxW0ipVI/AAAAAAAAEFg/G1P671C5oqU/s400/toolbar_top.png" alt=""></a></div><br>If this happens a lot in development you could create a special button for the JavaScript code and add it as a dynamic action.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2011/12/moving-apex-developer-toolbar.html" data-id="cix71jhy00043bpn9i2s5a48u" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2011/12/moving-apex-developer-toolbar.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apexapplicationstopapexengine" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2011/12/apexapplicationstopapexengine.html" class="article-date">
+  <time datetime="2011-12-05T14:00:00.000Z" itemprop="datePublished">2011-12-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2011/12/apexapplicationstopapexengine.html">apex_application.stop_apex_engine</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Something that was upgraded in APEX 4.1 with little to no far fair was the addition of a new (supported) procedure called <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application.stop_apex_engine</span>. The <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application.stop_apex_engine</span> essentially stops the APEX engine and, as a result, will stop processing the rest of the page. It is most commonly used when forcing URL redirects from a page.</p>
+<p>Before APEX 4.1 you could still use a similar feature however it was an unsupported variable in the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application</span> package called <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">g_unrecoverable_error</span>.</p>
+<p>I’ve included an example below of the before vs. after 4.1 ways to stop the APEX engine.</p>
+<p><pre class="brush: sql; highlight: [4, 9]">– Pre-APEX 4.1 (not supported)<br>…<br>owa_util.redirect_url(‘<a href="http://www.clarifit.com" target="_blank" rel="external">http://www.clarifit.com</a>‘);<br>apex_application.g_unrecoverable_error:= true; – End APEX session</pre></p>
+<p>– APEX 4.1 and above (supported)<br>…<br>owa_util.redirect_url(‘<a href="http://www.clarifit.com" target="_blank" rel="external">http://www.clarifit.com</a>‘);<br>apex_application.stop_apex_engine; – End APEX session<br><br>For those who have used the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application.g_unrecoverable_error</span> variable in some of your applications you should go back and upgrade to the new procedure. For more information about the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">stop_apex_engine</span> procedure please read the APEX <a href="http://docs.oracle.com/cd/E23903_01/doc/doc.41/e21676/apex_app.htm#BABGIDII" target="_blank" rel="external">documentation</a>.</p>
+<p>Thanks to Jason Long for posting the following comment about the <strong>differences between <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application.g_unrecoverable_error</span> and <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">stop_apex_engine</span></strong>. Be sure to read it carefully because in the right conditions switching between the two calls can have significant impacts.</p>
+<p>_There appear to be a couple gotchas with simply replacing g_unrecoverable_error with stop_apex_engine.</p>
+<p>1.  If there is any PL/SQL code immediately following the  g_unrecoverable_error it will still be executed. It looks like  stop_apex_engine actually exits out of the routine.</p>
+<p>2. It looks  like stop_apex_engine will roll back any SQL inserts/updates/deletes  that occur in the routine, where as g_unrecoverable<em>error allow them to  be committed. </em></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2011/12/apexapplicationstopapexengine.html" data-id="cix71jdfn0041bpn9b7nzvp48" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2011/12/apexapplicationstopapexengine.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-clarifit-fromto-date-picker-plug-in" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2011/12/clarifit-fromto-date-picker-plug-in.html" class="article-date">
+  <time datetime="2011-12-01T14:03:00.000Z" itemprop="datePublished">2011-12-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2011/12/clarifit-fromto-date-picker-plug-in.html">ClariFit From/To Date Picker Plug-in</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>In my <a href="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex.html">previous post</a> I discussed an issue about dynamic min and max dates using the APEX date picker. If you haven’t read the article please take a few minutes before continuing.</p>
+<p>At the end of my <a href="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex.html">previous post</a> I left off with the following question: How do you solve the dynamic min/max date issue? The answer is to use a new plugin that I created called <a href="http://apex.oracle.com/pls/apex/f?p=45587:700:0::NO:::" target="_blank" rel="external">ClariFit From To Date Picker</a>. This is a free and open source plugin created as part of the <a href="http://www.clarifit.com/" target="_blank" rel="external">ClariFit</a> plugin set and is covered in detail in the book: <a href="http://goo.gl/089zi" target="_blank" rel="external">Expert Oracle Application Express Plugins</a>.</p>
+<p>The plugin is an item plugin. Its options (shown below) are similar to the APEX date picker. The main difference is that instead of having Minimum and Maximum date attributes you now have Date Type and Corresponding Date Item attributes. The Date Type can either be a From or To date (i.e. min/max date). The Corresponding Date Item is the item name for the date picker that will determine the date’s restrictions.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-f8_DJfxd6CM/Ts6_686oU4I/AAAAAAAAEDs/nKfmswd-1vU/s1600/plugin_date_picker_settings.jpg" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-f8_DJfxd6CM/Ts6_686oU4I/AAAAAAAAEDs/nKfmswd-1vU/s1600/plugin_date_picker_settings.jpg" alt=""></a></div><br>I’ve created a demo on <a href="http://apex.oracle.com/pls/apex/f?p=45587:700:0::NO:::" target="_blank" rel="external">plugins.clarifit.com</a>. If you select a date in the From Date field (in this case 24-Nov-2011) then open the To Date date picker you’ll notice that you can’t select anything before 24-Nov-2011 as shown below.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-RBnZdaHdxbg/Ts6_6p7r0XI/AAAAAAAAEDk/K0C2JsQstI4/s1600/plugin_date_picker.jpg" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-RBnZdaHdxbg/Ts6_6p7r0XI/AAAAAAAAEDk/K0C2JsQstI4/s1600/plugin_date_picker.jpg" alt=""></a></div><br>The plugin also comes bundled with some nifty features that may not be visible at first but are really useful:</p>
+<ul>
+<li><p>Allows for different From/To date formats (i.e. they don’t need to be the same).&nbsp;*   Built in validations:</p>
+</li>
+<li><p>Validates that the input is a valid date</p>
+</li>
+<li><p>Validates that From Date is less than or equal to the To Date*   Javascript Console instrumentation (run the page in debug mode and look at the console)<em>Note: The built in validations will run as part of the page’s validations and are only executed if you enable validation as part of your submit button.</em></p>
+</li>
+</ul>
+<p>The plugin can be downloaded from <a href="http://apex-plugin.com/oracle-apex-plugins/item-plugin/clarifit-from-to-date-picker_154.html" target="_blank" rel="external">apex-plugin.com</a>.<em> </em></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in.html" data-id="cix71j93u0040bpn9yr343d32" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/11/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="extend next" rel="next" href="/page/13/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="OraOpenSource.com">TODO RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">APEX</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">APEX 5</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">APEX PLUGIN</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apexposed/">APEXPOSED</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytic-functions/">Analytic Functions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/">Analytics</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">CSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">Checkbox</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">Dynamic Actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">IoT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jobs/">JOBS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">JavaScript</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">KSCOPE</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaleidoscope/">Kaleidoscope</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mockups/">MOCKUPS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">ODTUG</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">OOW</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">ORACLE</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a><span class="tag-list-count">54</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-xe/">ORACLE XE</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os-x/">OS X</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oraopensource/">OraOpenSource</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pl-sql/">PL/SQL</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podcast/">Podcast</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">SQLcl</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">Tabular Form</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virtualbox/">VIRTUALBOX</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vpd/">VPD</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wireframe/">WIREFRAME</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-stackexchange-com/">apex.stackexchange.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console/">console</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console-wrapper/">console wrapper</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo/">demo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo-talkapex-com/">demo.talkapex.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery-ui/">jQUERY UI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/orclapex-yyc/">orclapex-yyc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/twitter/">twitter</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

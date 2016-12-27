@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>How APEX Processes Various Conditions and Validations | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="I was recently teaching an Intro to APEX course and the students had some questions about what to put in the Expression 1 text area for different conditions and validations based on the Type selected.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How APEX Processes Various Conditions and Validations">
+<meta property="og:url" content="https://www.talkapex.com/blog/2012/03/20/how-apex-processes-various-conditions-and-validations/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="I was recently teaching an Intro to APEX course and the students had some questions about what to put in the Expression 1 text area for different conditions and validations based on the Type selected.">
+<meta property="og:image" content="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s640/condition_types.png">
+<meta property="og:updated_time" content="2016-12-26T04:24:43.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="How APEX Processes Various Conditions and Validations">
+<meta name="twitter:description" content="I was recently teaching an Intro to APEX course and the students had some questions about what to put in the Expression 1 text area for different conditions and validations based on the Type selected.">
+<meta name="twitter:image" content="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s640/condition_types.png">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">TODO</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/about">About</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-how-apex-processes-various-conditions-and-validations" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/blog/2012/03/20/how-apex-processes-various-conditions-and-validations/" class="article-date">
+  <time datetime="2012-03-20T17:05:00.000Z" itemprop="datePublished">2012-03-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      How APEX Processes Various Conditions and Validations
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I was recently teaching an Intro to APEX course and the students had some questions about what to put in the <em>Expression 1</em> text area for different conditions and validations based on the <em>Type</em> selected. If you’re new to APEX the various options can be confusing.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s1600/condition_types.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s640/condition_types.png" alt=""></a></div><br>To help clear things up I’ve included a list of the various APEX conditions and validations along with code that demonstrates how APEX processes the value in <em>Expression 1</em> based on the given <em>Type</em>. I didn’t include the definition for each type as they are already well documented in the APEX documentation and popup help.</p>
+<p>_Note: the calls to DBMS<em>OUTPUT are there to show you if the validation/condition is true or false.</em> </p>
+<p><strong>Exists</strong></p>
+<pre class="brush: sql; highlight: [8,9,10]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM (
+    -- Start Expression 1
+    SELECT 1 
+    FROM emp 
+    WHERE sal &gt; :p1_sal
+    -- End Expression 1
+  );
+
+  IF l_rows &gt; 0 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**Not Exists**
+<pre class="brush: sql; highlight: [8, 9, 10]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM (
+    -- Start Expression 1
+    SELECT 1 
+    FROM emp 
+    WHERE sal &gt; :p1_sal
+    -- End Expression 1
+  );
+
+  IF l_rows = 0 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**SQL Expression**
+_Note: SQL Expression and PL/SQL Expression are very similar but some SQL expressions can't be used in PL/SQL. Example: Decode_
+<pre class="brush: sql; highlight: [9]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM dual
+  WHERE 
+    -- Start Expression 1
+    :p1_sal &gt; 500
+    -- End Expression 1
+  ;
+
+  IF l_rows = 1 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**PL/SQL Expression**
+<pre class="brush: sql; highlight: [5]">DECLARE
+BEGIN
+  IF (
+    -- Start Expression 1
+    :p1_sal &gt; 500
+    -- End Expression 1
+  ) THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+
+END;
+/
+</pre>**PL/SQL Function Returning Boolean**
+<pre class="brush: sql; highlight: [6,7,8,9,10,11,12,13,14,15,16,17,18,19]">DECLARE
+  FUNCTION f_apex_condtion RETURN boolean
+  AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN -- only want at most 1 president
+        RETURN FALSE;
+      ELSE
+        RETURN TRUE;
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+
+  IF f_apex_condtion THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+
+END;
+/
+</pre>**_Conditions Only_**
+
+**Function Returning Error Text**
+<pre class="brush: sql; highlight: [8,9,10,11,12,13,14,15,16,17,18,19,20,21]">DECLARE
+  l_err_msg varchar2(4000);
+
+  FUNCTION f_apex_condtion RETURN varchar2
+  AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN 
+        RETURN 'Only 1 president can exist for the company';
+      ELSE
+        RETURN NULL; -- no error
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+  l_err_msg := f_apex_condtion;
+
+  IF l_err_msg IS NULL THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE - Error message: ' || l_err_msg);
+  END IF;
+
+END;
+/
+</pre>**PL/SQL Error**
+<pre class="brush: sql; highlight: [6,7,8,9,10,11,12,13,14,15,16,17]">DECLARE
+
+  PROCEDURE sp_apex_condtion AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN 
+        raise_application_error(-20001, 'Only 1 president can exist for the company');
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+  sp_apex_condtion;
+
+  dbms_output.put_line('TRUE');
+
+exception WHEN others THEN
+  dbms_output.put_line('FALSE'); -- Error message is defined in the validation's error message
+END;
+/
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/blog/2012/03/20/how-apex-processes-various-conditions-and-validations/" data-id="cix5kyq6v007kchn9zrl0ve88" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/blog/2012/03/20/how-apex-processes-various-conditions-and-validations/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/blog/2012/03/22/things-to-watch-out-for-when-upgrading-an-apex-plugin/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Things to Watch Out for When Upgrading an APEX Plugin
+        
+      </div>
+    </a>
+  
+  
+    <a href="/blog/2011/12/13/apex-process-condition-with-multiple-buttons/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">APEX Process Condition with Multiple Buttons</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <!-- <h3 class="widget-title">APEX Podcast</h3> -->
+  <div class="widget">
+    <img src="images/aced-logo.gif" alt="" />
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">APEX Podcast</h3>
+  <div class="widget">
+    My Podcast here
+  </div>
+</div>
+
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">APEX</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">APEX 5</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">APEX PLUGIN</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apexposed/">APEXPOSED</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytic-functions/">Analytic Functions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/">Analytics</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">CSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">Checkbox</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">Dynamic Actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">IoT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jobs/">JOBS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">JavaScript</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">KSCOPE</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaleidoscope/">Kaleidoscope</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mockups/">MOCKUPS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">ODTUG</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">OOW</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">ORACLE</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a><span class="tag-list-count">54</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-xe/">ORACLE XE</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os-x/">OS X</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oraopensource/">OraOpenSource</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pl-sql/">PL/SQL</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podcast/">Podcast</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">SQLcl</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">Tabular Form</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virtualbox/">VIRTUALBOX</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vpd/">VPD</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wireframe/">WIREFRAME</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-stackexchange-com/">apex.stackexchange.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console/">console</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console-wrapper/">console wrapper</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo/">demo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo-talkapex-com/">demo.talkapex.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery-ui/">jQUERY UI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/orclapex-yyc/">orclapex-yyc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/twitter/">twitter</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">34</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">49</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'https://www.talkapex.com/blog/2012/03/20/how-apex-processes-various-conditions-and-validations/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="TODO description">
+<meta property="og:type" content="website">
+<meta property="og:title" content="TalkApex">
+<meta property="og:url" content="https://www.talkapex.com/page/18/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="TODO description">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TalkApex">
+<meta name="twitter:description" content="TODO description">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">TODO</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-apex-report-download-logger" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/07/apex-report-download-logger.html" class="article-date">
+  <time datetime="2010-07-06T15:00:00.000Z" itemprop="datePublished">2010-07-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/07/apex-report-download-logger.html">APEX Report Download Logger</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/TDJYewihZFI/AAAAAAAADxQ/J6hgRy4E1wI/s1600/1119379849_14860651001_History-Ax-Men-Logger-Advice-SF.jpg" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/TDJYewihZFI/AAAAAAAADxQ/J6hgRy4E1wI/s320/1119379849_14860651001_History-Ax-Men-Logger-Advice-SF.jpg" alt=""></a><br><span style="font-style:italic;">This solution was demoed at the  <a href="http://www.odtugkaleidoscope.com/" target="_blank" rel="external">ODTUG</a> APEX Open Mic night</span></p>
+<p>I developed a reporting application in APEX. The goal of the application is to help turn “data into information”. Users should be able to make business decisions based on the reports and charts rather than exporting the report data and using spreadsheets to analyze it.</p>
+<p>I’ve been a bit concerned that the application isn’t achieving it’s initial goal and that the reports are just used as data dumps. To validate this hypothesis I needed a way to track how many times a report was downloaded and compare it to the number of times it was viewed.</p>
+<p>I can find out how many times a report/page was displayed by looking at the APEX logs: </p>
+<pre class="brush: sql;">
+SELECT *
+  FROM apex_workspace_activity_log
+ WHERE application_id = :app_id
+   AND page_id = :app_page_id
+</pre>
+<span style="font-style:italic;">Note: this approach is not 100% accurate since it only logs the page and not the individual regions, however for this purpose it should do. I have tinkered with "Region Logging" and may write about it soon.</span>
+
+I still needed a way to track report downloads. Here's how I did it. A working demo can be found here: [http://apex.oracle.com/pls/apex/f?p=20195:3120](http://apex.oracle.com/pls/apex/f?p=20195:3120)
+
+- Create Download Log table:
+<pre class="brush: sql;">
+CREATE TABLE TAPEX_WORKSPLACE_REPORT_DL_LOG
+(
+  WORKSPACE                  VARCHAR2 (255 BYTE) NOT NULL,
+  WORKSPACE_ID               NUMBER NOT NULL,
+  APPLICATION_ID             NUMBER NOT NULL,
+  APPLICATION_NAME           VARCHAR2 (255 BYTE) NOT NULL,
+  APPLICATION_SCHEMA_OWNER   VARCHAR2 (30 BYTE) NOT NULL,
+  PAGE_ID                    NUMBER NOT NULL,
+  PAGE_NAME                  VARCHAR2 (255 BYTE) NOT NULL,
+  REGION_ID                  NUMBER NOT NULL,
+  REGION_NAME                VARCHAR2 (255 BYTE) NOT NULL,
+  VIEW_DATE                  DATE NOT NULL,
+  APEX_USER                  VARCHAR2 (255 BYTE) NOT NULL,
+  APEX_SESSION_ID            NUMBER NOT NULL
+);
+</pre>
+- Create procedure to store APEX download record
+<pre class="brush: sql;">
+/**
+ * Insert Download Report Record
+ * @param p_region_id Report Region ID
+ */
+
+CREATE OR REPLACE PROCEDURE sp_log_apex_dl_report (
+  p_region_id IN apex_application_page_regions.region_id%TYPE)
+AS
+BEGIN
+  -- Insert into report download log table
+  INSERT INTO tapex_worksplace_report_dl_log (WORKSPACE,
+                                              WORKSPACE_ID,
+                                              APPLICATION_ID,
+                                              APPLICATION_NAME,
+                                              APPLICATION_SCHEMA_OWNER,
+                                              PAGE_ID,
+                                              PAGE_NAME,
+                                              REGION_ID,
+                                              REGION_NAME,
+                                              VIEW_DATE,
+                                              APEX_USER,
+                                              APEX_SESSION_ID)
+    SELECT aapr.workspace,
+           AA.WORKSPACE_ID,
+           aapr.application_id,
+           aapr.application_name,
+           aa.owner,
+           aapr.page_id,
+           AAPr.PAGE_NAME,
+           aapr.region_id,
+           aapr.region_name,
+           SYSDATE,
+           v ('APP_USER'),
+           v ('APP_SESSION')
+      FROM APEX_APPLICATION_PAGE_regionS aapr, APEX_APPLICATIONS aa
+     WHERE aapr.application_id = v ('APP_ID')
+       AND AAPr.PAGE_ID = v ('APP_PAGE_ID')
+       AND aapr.region_id = p_region_id
+       AND aapr.application_id = aa.application_id;
+END sp_log_apex_dl_report;
+</pre>
+- Trigger the above procedure every time a report is downloaded:
+
+Since Standard Reports (STD) and Interactive Reports (IR) download functionalities are handled differently I can't use an Applicatiobn Process to trigger the logging function. Instead, I'm going to leverage the VPD section in APEX. For those of you new to APEX, the Virtual Private Database (VPD) section in APEX is a section in APEX where you can put a block of PL/SQL code. This code gets run right at the beginning of the page, after the APP_USER is defined. The label of VPD is a bit misleading since the code doesn't have to do any VPD tasks. <span style="font-style:italic;">Initially I had planned to handle IRs and STD Reports using a different method but thanks to the guys at Purdue Pharma for reminding me that I can leverage the VPD section in APEX.</span> 
+
+- Shared Components
+  - Security Attributes
+    - Virtual Private Database
+
+<pre class="brush: sql;">
+DECLARE
+  v_region_id   APEX_APPLICATION_PAGE_REGIONS.REGION_ID%TYPE;
+BEGIN
+  -- If CSV/HTMLD is for IR (does not factor in email IRs). FLOW_EXCEL_OUTPUT is for Standard Report
+  IF :request IN ('CSV', 'HTMLD')
+  OR  :request LIKE ('FLOW_EXCEL_OUTPUT%') THEN
+    -- Check for Standard Report
+    IF :request LIKE ('FLOW_EXCEL_OUTPUT%') THEN
+      v_region_id := REGEXP_SUBSTR (:request, '[[:digit:]]+');
+    ELSE
+      -- Interactive Report
+      SELECT region_id
+        INTO v_region_id
+        FROM APEX_APPLICATION_PAGE_ir
+       WHERE application_id = :app_id
+         AND page_id = :app_page_id;
+    END IF;
+
+    sp_log_apex_dl_report (p_region_id => v_region_id);
+  END IF;
+END;
+</pre>
+- Comparison report:
+
+Here's the query that I used to compare the downloads to the report views
+<pre class="brush: sql;">
+SELECT AR.APPLICATION_ID,
+       ar.application_name,
+       ar.page_id,
+       ar.page_name,
+       ar.region_id,
+       ar.region_name,
+       tdl.downloads,
+       al.page_views
+  FROM APEX_APPLICATION_PAGE_REGIONS ar,
+       (SELECT tdl.application_id,
+               tdl.page_id,
+               tdl.region_id,
+               COUNT (tdl.application_id) downloads
+          FROM TAPEX_WORKSPLACE_REPORT_DL_LOG tdl
+        GROUP BY tdl.application_id, tdl.page_id, tdl.region_id) tdl,
+       (SELECT al.application_id, al.page_id, COUNT (al.application_id) page_views
+          FROM apex_workspace_activity_log al
+        GROUP BY al.application_id, al.page_id) al
+ WHERE AR.APPLICATION_ID = :app_id
+   AND ar.source_type_code IN ('SQL_QUERY', 'DYNAMIC_QUERY')
+   -- Downloads
+   AND ar.region_id = tdl.region_id(+)
+   -- Page Views
+   AND ar.application_id = al.application_id(+)
+   AND ar.page_id = al.page_id(+)
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/07/apex-report-download-logger.html" data-id="cix6zhos0004b31n9if0jfzr5" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/07/apex-report-download-logger.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-find-current-apex-version" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/06/how-to-find-current-apex-version.html" class="article-date">
+  <time datetime="2010-06-18T15:00:00.000Z" itemprop="datePublished">2010-06-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/06/how-to-find-current-apex-version.html">How to Find Current APEX Version</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Last week my DBA asked me what version of APEX we were running. Instinctively I loaded up the APEX development page and looked in the bottom right hand corner:</p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/TBbeBbiAPWI/AAAAAAAADxI/IL9fU9eZADA/s1600/apex_version.jpg" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/TBbeBbiAPWI/AAAAAAAADxI/IL9fU9eZADA/s400/apex_version.jpg" alt=""></a></p>
+<p>This worked, however he needed to dynamically obtain the current version for a script that he was writing. After some digging around he sent me the following query:</p>
+<p><pre class="brush: sql;"><br>SELECT *<br>FROM apex_release<br></pre><br><span style="font-style:italic;">Note: this isn’t earth shattering but more for my reference</span></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/06/how-to-find-current-apex-version.html" data-id="cix6zhory004931n9rruhs0mm" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/06/how-to-find-current-apex-version.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-conditional-validations-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/06/conditional-validations-in-apex.html" class="article-date">
+  <time datetime="2010-06-17T15:00:00.000Z" itemprop="datePublished">2010-06-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/06/conditional-validations-in-apex.html">Conditional Validations in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/TBbbcfsk2gI/AAAAAAAADxA/NuLp-l-YU1I/s1600/blue-check-mark1.jpg" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/TBbbcfsk2gI/AAAAAAAADxA/NuLp-l-YU1I/s400/blue-check-mark1.jpg" alt=""></a><br>There may be some instances when you have validations on your APEX page that you only want to run if all the other validations have passed. A good example of this is if you have 2 fields, FROM_DATE and TO_DATE and have the following validations:</p>
+<ul>
+<li>V1: Ensure FROM_DATE is not null and is a valid date</li>
+<li>V2: Ensure TO_DATE is not null and is a valid date</li>
+<li>V3: Ensure FROM_DATE &lt; TO_DATE</li>
+</ul>
+<p>In this example you only want the last validation to run if the first 2 pass (i.e. both FROM_DATE and TO_DATE are valid dates). Currently there’s no declarative way of doing this. i.e. validations don’t support declarative dependencies.</p>
+<p>A simple trick to get around this issue is to put a condition in some validations to only run if all the other validations pass. This may not work in all situations, however it should help you in some.</p>
+<p>In the example about, modify the 3rd validation (V3) and set the condition to the following:<br>Condition Type: PL/SQL Expression<br>Expression 1: apex_application.g_inline_validation_error_cnt = 0</p>
+<p>Now V3 will only run if all previous validations pass.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/06/conditional-validations-in-apex.html" data-id="cix6zhorw004631n9z2f54jdd" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/06/conditional-validations-in-apex.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-special-columns-for-apex-standard" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/06/special-columns-for-apex-standard.html" class="article-date">
+  <time datetime="2010-06-16T15:00:00.000Z" itemprop="datePublished">2010-06-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/06/special-columns-for-apex-standard.html">Special columns for APEX Standard Reports</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/TBW23Sp6qAI/AAAAAAAADw4/kQUdxW8a5Kw/s1600/std_col_tasks.jpg" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/TBW23Sp6qAI/AAAAAAAADw4/kQUdxW8a5Kw/s400/std_col_tasks.jpg" alt=""></a><br>I was testing APEX 4.0 on <a href="http://apex.oracle.com" target="_blank" rel="external">http://apex.oracle.com</a> and I noticed that on Standard Reports you can add 2 types of “special” columns: Derived Column and Column Link. At first I thought this was a new APEX 4.0 feature, but then tested on a copy of 3.x noticed it was there as well! <span style="font-style:italic;">I apologize if this is old news to people but I found it to be a pretty neat feature.</span></p>
+<p>The interesting thing about these columns is that you can add Derived Column and Column Link columns and it does not modify your existing SQL. </p>
+<p>The only difference I can tell about these 2 column types is that Derived Columns don’t contain the following attributes: List of Values, Tabular Form Attributes, and Column Link</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/06/special-columns-for-apex-standard.html" data-id="cix7186hd0028bpn9qz22d48d" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/06/special-columns-for-apex-standard.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-only-display-column-when" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/06/how-to-only-display-column-when.html" class="article-date">
+  <time datetime="2010-06-15T15:00:00.000Z" itemprop="datePublished">2010-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/06/how-to-only-display-column-when.html">How to only Display Column when Downloading</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called “color” and you want to display the color in the report. Your query would look like this:</p>
+<p><pre class="brush: sql;"><br>SELECT ‘<span style="color:' || color || '">“‘ || color || ‘</span>‘ color<br>FROM my_colors<br></pre><span style="font-style:italic;">Note: That they’re ways to get around this simple example using Report Templates and Column Formatting. I’m just using it for demo purposes</span></p>
+<p>If you were to download this report the “color” column would contain all the html (i.e. span tags etc). This may confuse users since they expected to see “red, green, blue, etc…” in their download file, but instead see the colors wrapped in a lot of html.</p>
+<p>A workaround that I’ve used is to create 2 columns: color_html and color</p>
+<p><pre class="brush: sql;"><br>SELECT ‘<span style="color:' || color || '">“‘ || color || ‘</span>‘ color_html,<br>            color color<br>  FROM my_colors<br></pre>And modify each report column’s attributes:</p>
+<p><span style="font-style:italic; font-weight:bold">Standard Reports</span></p>
+<p><span style="font-style:italic;">color_html</span><br>Column Definition:<br>Include In Export: No</p>
+<p><span style="font-style:italic;">color</span><br>Conditional Display:<br>PL/SQL Function Body Returning a Boolean: return apex_application.g_excel_format</p>
+<p><span style="font-style:italic; font-weight:bold">Interactive Reports</span></p>
+<p><span style="font-style:italic;">color_html</span><br>Conditional Display:<br>Request is NOT Contained within Expression 1: CSV,HTMLD</p>
+<p><span style="font-style:italic;">color</span><br>Conditional Display:<br>Request is Contained within Expression 1: CSV,HTMLD</p>
+<p>Now when a user downloads the report they’ll get the non-html version of the column. This solution works in APEX 4.0 and APEX 3.x</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/06/how-to-only-display-column-when.html" data-id="cix7180520025bpn9dlnsk5sw" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/06/how-to-only-display-column-when.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-interactive-reports-with-over-100" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/06/interactive-reports-with-over-100.html" class="article-date">
+  <time datetime="2010-06-14T15:00:00.000Z" itemprop="datePublished">2010-06-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/06/interactive-reports-with-over-100.html">Interactive Reports with over 100 Columns</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I ran into an issue last week where I had an Interactive Report (IR) with over 100 columns. All 100 plus columns displayed for end users, however I was only able to modify the first 100 columns. For example, the 101st column did not display in the report attributes screen (see screen shot below)</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/TBWayGifFFI/AAAAAAAADww/PSLxmo75XJM/s1600/ir_too_many_cols.jpg" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/TBWayGifFFI/AAAAAAAADww/PSLxmo75XJM/s400/ir_too_many_cols.jpg" alt=""></a></p>
+<p>After some digging around I figured out how to modify columns that weren’t displayed on the Report Attributes screen. This demo requires Firefox and Firebug. You should also be able to do this in Google Chrome. This demo works for APEX 3.x and APEX 4.0.<br><span style="font-weight:bold; font-style:italic"><br>Build Large IR:</span></p>
+<pre class="brush: sql;">
+SELECT LEVEL c001, LEVEL c002, LEVEL c003, LEVEL c004, LEVEL c005, LEVEL c006, LEVEL c007,
+       LEVEL c008, LEVEL c009, LEVEL c010, LEVEL c011, LEVEL c012, LEVEL c013, LEVEL c014, 
+       LEVEL c015, LEVEL c016, LEVEL c017, LEVEL c018, LEVEL c019, LEVEL c020, LEVEL c021, 
+       LEVEL c022, LEVEL c023, LEVEL c024, LEVEL c025, LEVEL c026, LEVEL c027, LEVEL c028, 
+       LEVEL c029, LEVEL c030, LEVEL c031, LEVEL c032, LEVEL c033, LEVEL c034, LEVEL c035, 
+       LEVEL c036, LEVEL c037, LEVEL c038, LEVEL c039, LEVEL c040, LEVEL c041, LEVEL c042, 
+       LEVEL c043, LEVEL c044, LEVEL c045, LEVEL c046, LEVEL c047, LEVEL c048, LEVEL c049, 
+       LEVEL c050, LEVEL c051, LEVEL c052, LEVEL c053, LEVEL c054, LEVEL c055, LEVEL c056, 
+       LEVEL c057, LEVEL c058, LEVEL c059, LEVEL c060, LEVEL c061, LEVEL c062, LEVEL c063,
+       LEVEL c064, LEVEL c065, LEVEL c066, LEVEL c067, LEVEL c068, LEVEL c069, LEVEL c070,
+       LEVEL c071, LEVEL c072, LEVEL c073, LEVEL c074, LEVEL c075, LEVEL c076, LEVEL c077, 
+       LEVEL c078, LEVEL c079, LEVEL c080, LEVEL c081, LEVEL c082, LEVEL c083, LEVEL c084, 
+       LEVEL c085, LEVEL c086, LEVEL c087, LEVEL c088, LEVEL c089, LEVEL c090, LEVEL c091, 
+       LEVEL c092, LEVEL c093, LEVEL c094, LEVEL c095, LEVEL c096, LEVEL c097, LEVEL c098, 
+       LEVEL c099, LEVEL c100, LEVEL c101, LEVEL c102, LEVEL c103, LEVEL c104, LEVEL c105, 
+       LEVEL c106, LEVEL c107, LEVEL c108
+  FROM DUAL
+CONNECT BY LEVEL <= 10="" <="" pre="">
+<span style="font-weight:bold; font-style:italic">
+Get the COLUMN_ID</span>
+
+This is the column that you want to modify that isn't currently displayed on the Reports Attributes page
+<pre class="brush: sql;">
+SELECT column_id,
+       column_alias,
+       display_order,
+       report_label
+  FROM APEX_APPLICATION_PAGE_IR_COL
+ WHERE application_id = :app_id
+   AND page_id = :page_id
+</pre><span style="font-weight:bold; font-style:italic">
+Run</span>
+
+Go to the Reports Attributes screen (the screen that lists all the IR columns)
+
+Open Firebug and go to the Console Window. Enter the following:
+<pre class="brush: js;">
+apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID here
+</pre></=></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/06/interactive-reports-with-over-100.html" data-id="cix717tbp0022bpn9borlsslv" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/06/interactive-reports-with-over-100.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-new-url-httptalkapexcom" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/06/new-url-httptalkapexcom.html" class="article-date">
+  <time datetime="2010-06-10T15:00:00.000Z" itemprop="datePublished">2010-06-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/06/new-url-httptalkapexcom.html">New URL: http://TalkApex.com</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Well it’s been a while since I’ve had any new posts on this blog. I’ve been extremely busy with “after school” activities <span style="font-style:italic;">(soccer, speed skating, biking, etc…)</span></p>
+<p>I don’t have an APEX specific post today but I do have a few items to discuss. The first, in case you haven’t noticed yet, is that I’ve changed the URL of this blog from <a href="http://apex-smb.blogspot.com" target="_blank" rel="external">http://apex-smb.blogspot.com</a> to <a href="http://talkapex.com" target="_blank" rel="external">http://TalkApex.com</a>, The old URL, <a href="http://apex-smb.blogspot.com" target="_blank" rel="external">http://apex-smb.blogspot.com</a> will still work so you don’t need to update any old links.</p>
+<p>Just because I haven’t had time to write about APEX, doesn’t mean I’ve forgotten about this blog. I’ve been compiling a fairly large list of new things to write about over the past few months. I hope to spend a some time soon to write about these items.</p>
+<p>Last, but not least, I’ll be giving 2 presentations at <a href="http://www.odtugkaleidoscope.com/" target="_blank" rel="external">ODTUG Kaleidoscope</a>. I submitted my presentation for the CD, however I think that they’ll change significantly by the time I present. As such I will post the final slides used for my presentation here after the conference. The presentations I’ll be giving are</p>
+<ul>
+<li><span style="font-weight:bold;">Enhancing APEX Security</span>: Monday 2:30~3:30</li>
+<li><span style="font-weight:bold;">How to be Creative: Using the APEX Dictionary to Create Solutions</span>: Tuesday 4:45~5:45Hope to see most of you at ODTUG!</li>
+</ul>
+<ul>
+<li>Martin</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/06/new-url-httptalkapexcom.html" data-id="cix717p0e0020bpn9fkyd7x1u" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/06/new-url-httptalkapexcom.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apex-logs-storing-mail-log-data" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/04/apex-logs-storing-mail-log-data.html" class="article-date">
+  <time datetime="2010-04-13T15:00:00.000Z" itemprop="datePublished">2010-04-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/04/apex-logs-storing-mail-log-data.html">APEX Logs: Storing Mail Log Data</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago (almost a year ago) I wrote about how to permanently store APEX logs into your own tables (<a href="http://apex-smb.blogspot.com/2009/05/apex-logs-storing-log-data.html" target="_blank" rel="external">http://apex-smb.blogspot.com/2009/05/apex-logs-storing-log-data.html</a>). I covered the APEX_WORKSPACE_ACCESS_LOG and APEX_WORKSPACE_ACTIVITY_LOG logs. I forgot to include how to permanently store the APEX_MAIL_LOG. You’ll only need to do this if you use APEX_MAIL to send email.</p>
+<p><span style="font-weight:bold;">1- Create the APEX Mail Log table</span></p>
+<pre class="brush: sql">
+-- Mail Log
+CREATE TABLE tapex_mail_log
+AS  SELECT * FROM apex_mail_log;
+</pre><span style="font-weight:bold;">2- Update the APEX Mail Log table</span>
+
+<span style="font-style:italic;">Note: You may want to store this in a procedure and run as a nightly scheduled job so you don't forget to update the tables</span>
+<pre class="brush: sql">
+BEGIN
+  -- apex_mail_log is linked to the workspace.
+  -- Need to access all the mail sent for each workspace that is linked to this schema
+
+  FOR x IN (SELECT workspace_id FROM apex_workspaces) LOOP
+    -- Set the workspace ID
+    wwv_flow_api.set_security_group_id (x.workspace_id);
+
+    INSERT INTO tapex_mail_log (mail_to,
+                                mail_from,
+                                mail_replyto,
+                                mail_subj,
+                                mail_cc,
+                                mail_bcc,
+                                mail_send_error,
+                                last_updated_on)
+      SELECT aml.mail_to,
+             aml.mail_from,
+             aml.mail_replyto,
+             aml.mail_subj,
+             aml.mail_cc,
+             aml.mail_bcc,
+             aml.mail_send_error,
+             aml.last_updated_on
+        FROM tapex_mail_log x, apex_mail_log aml
+       WHERE     NVL (aml.mail_to, -1) = NVL (x.mail_to(+), -1)
+             AND NVL (aml.mail_from, -1) = NVL (x.mail_from(+), -1)
+             AND NVL (aml.mail_replyto, -1) = NVL (x.mail_replyto(+), -1)
+             AND NVL (aml.mail_subj, -1) = NVL (x.mail_subj(+), -1)
+             AND NVL (aml.mail_cc, -1) = NVL (x.mail_cc(+), -1)
+             AND NVL (aml.mail_bcc, -1) = NVL (x.mail_bcc(+), -1)
+             AND NVL (aml.mail_send_error, -1) = NVL (x.mail_send_error(+), -1)
+             AND aml.last_updated_on = x.last_updated_on(+)
+             AND x.ROWID IS NULL;
+  END LOOP;
+END;
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data.html" data-id="cix6zhorn003s31n9710losyw" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/">ORACLE</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-restoring-jquery-ui-theme-from" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/03/restoring-jquery-ui-theme-from.html" class="article-date">
+  <time datetime="2010-03-25T15:00:00.000Z" itemprop="datePublished">2010-03-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/03/restoring-jquery-ui-theme-from.html">Restoring jQuery UI Theme from ThemeRoller</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/S6mfnc13b-I/AAAAAAAADwY/jKWUIeU-UEg/s1600/theme-roller.jpg" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/S6mfnc13b-I/AAAAAAAADwY/jKWUIeU-UEg/s320/theme-roller.jpg" alt=""></a><br>If you ever use <a href="http://jqueryui.com/themeroller/" target="_blank" rel="external">jQuery’s Theme Roller</a>, you may find it frustrating to alter a custom theme. For example, if you created a theme, downloaded it, then decided to change your colors you may not know how to restore your changes.</p>
+<p>Believe it or not there’s a pretty easy way to restore a Theme Roller theme. Before you download a theme copy, or bookmark, the URL at the top of the browser. All the changes you have made are stored in the URL! If you forget to copy the URL before downloading, the URL is stored in ..\css\custom-theme\jquery-ui-1.8.custom.css (where 1.8 is the version number).</p>
+<p>Here’s an example of a theme modification where I changed the header background to red: <a href="http://jqueryui.com/themeroller/#ffDefault=Verdana%2CArial%2Csans-serif&amp;fwDefault=normal&amp;fsDefault=1.1em&amp;cornerRadius=4px&amp;bgColorHeader=e10505&amp;bgTextureHeader=03_highlight_soft.png&amp;bgImgOpacityHeader=75&amp;borderColorHeader=aaaaaa&amp;fcHeader=222222&amp;iconColorHeader=222222&amp;bgColorContent=ffffff&amp;bgTextureContent=01_flat.png&amp;bgImgOpacityContent=75&amp;borderColorContent=aaaaaa&amp;fcContent=222222&amp;iconColorContent=222222&amp;bgColorDefault=e6e6e6&amp;bgTextureDefault=02_glass.png&amp;bgImgOpacityDefault=75&amp;borderColorDefault=d3d3d3&amp;fcDefault=555555&amp;iconColorDefault=888888&amp;bgColorHover=dadada&amp;bgTextureHover=02_glass.png&amp;bgImgOpacityHover=75&amp;borderColorHover=999999&amp;fcHover=212121&amp;iconColorHover=454545&amp;bgColorActive=ffffff&amp;bgTextureActive=02_glass.png&amp;bgImgOpacityActive=65&amp;borderColorActive=aaaaaa&amp;fcActive=212121&amp;iconColorActive=454545&amp;bgColorHighlight=fbf9ee&amp;bgTextureHighlight=02_glass.png&amp;bgImgOpacityHighlight=55&amp;borderColorHighlight=fcefa1&amp;fcHighlight=363636&amp;iconColorHighlight=2e83ff&amp;bgColorError=fef1ec&amp;bgTextureError=05_inset_soft.png&amp;bgImgOpacityError=95&amp;borderColorError=cd0a0a&amp;fcError=cd0a0a&amp;iconColorError=cd0a0a&amp;bgColorOverlay=aaaaaa&amp;bgTextureOverlay=01_flat.png&amp;bgImgOpacityOverlay=0&amp;opacityOverlay=30&amp;bgColorShadow=aaaaaa&amp;bgTextureShadow=01_flat.png&amp;bgImgOpacityShadow=0&amp;opacityShadow=30&amp;thicknessShadow=8px&amp;offsetTopShadow=-8px&amp;offsetLeftShadow=-8px&amp;cornerRadiusShadow=8px" target="_blank" rel="external">Red Header</a>.</p>
+<p>APEX 4.0 will be using jQuery and some jQuery UI components, so I hope this helps when customizing the look and feel of your applications.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from.html" data-id="cix7174td001xbpn94048szpq" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jquery-ui/">jQUERY UI</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-reference-package-variables" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/03/how-to-reference-package-variables.html" class="article-date">
+  <time datetime="2010-03-24T15:00:00.000Z" itemprop="datePublished">2010-03-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/03/how-to-reference-package-variables.html">How To Reference Package Variables Outside of PL/SQL</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When developing with PL/SQL you may store public variables in the package specification. This has many uses, none of which I will get into for this post. The only catch in Oracle is that you can not easily reference these values in SQL statements outside of PL/SQL. The following example demonstrates this:</p>
+<ul>
+<li><p>Create Package Spec with Variable</p>
+<pre class="brush: sql">
+CREATE OR REPLACE PACKAGE pkg_var
+AS
+c_my_var   CONSTANT VARCHAR2 (5) := 'hello';
+END pkg_var;
+</pre>
+</li>
+<li><p>Reference the variable in a SQL statement in SQL*Plus<br><pre class="brush: sql"><br>SQL&gt; SELECT pkg_var.c_my_var x<br>2    FROM DUAL;<br>SELECT pkg_var.c_my_var x</pre></p>
+<pre><code>*
+</code></pre><p>ERROR at line 1:<br>ORA-06553: PLS-221: ‘C_MY_VAR’ is not a procedure or is undefined<br><br><span style="font-style:italic;">This results in an Oracle error.</span></p>
+</li>
+<li><p>Try the same code, but in an block of PL/SQL<br><pre class="brush: sql"><br>SQL&gt; DECLARE<br>2    v_x   VARCHAR2 (5);<br>3  BEGIN<br>4    SELECT pkg_var.c_my_var x<br>5      INTO v_x<br>6      FROM DUAL;<br>7<br>8    DBMS_OUTPUT.put_line (v_x);<br>9  END;<br>10  /<br>hello</pre></p>
+</li>
+</ul>
+<p>PL/SQL procedure successfully completed.<br><br><span style="font-style:italic;">As you can see this worked.</span></p>
+<p>So how can we refernce package variables in a non-PL/SQL setting? I created the following function to do so. It will handle values that are of type VARCHAR2. I’ve also removed any spaces from the parameter (pkg_name.var_name) to ensure that no SQL injection will occur.</p>
+<pre class="brush: sql">
+-- **
+-- * Returns Package Variable value
+-- * Note: for demo purposes I broke this function into various steps
+-- * 
+-- * @param p_pkg_var_name fully qualified variable reference. Ex: pkg_x.var_y
+-- * @return Varchar2 value
+-- * @author Martin Giffy D'Souza: http://apex-smb.blogspot.com
+-- **
+CREATE OR REPLACE FUNCTION f_get_pkg_val_vc2 (p_pkg_var_name in varchar2)
+  RETURN VARCHAR2
+AS
+  v_string          VARCHAR2 (4000);
+  -- Full Variable Name (i.e. pkg.var)
+  v_var_full_name   VARCHAR2 (61);                             -- Max of 61 chars since 30 + . + 30
+BEGIN
+  v_var_full_name := p_pkg_var_name;
+  -- Remove any spaces to avoid SQL injections
+  v_var_full_name := REGEXP_REPLACE (v_var_full_name, '[[:space:]]', '');
+
+  EXECUTE IMMEDIATE 'begin :v_string := ' || v_var_full_name || '; end;'
+              USING OUT v_string;
+
+  RETURN v_string;
+END f_get_pkg_val_vc2;
+</pre>
+
+<p>Now when you run in SQL*Plus you get the following:</p>
+<pre class="brush: sql">
+SQL> SELECT f_get_pkg_val_vc2 ('pkg_var.c_my_var') x
+  2    FROM DUAL;
+
+X
+-----------------------------------------------------
+
+hello
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2010/03/how-to-reference-package-variables.html" data-id="cix716zab001ubpn9eqvbhao8" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2010/03/how-to-reference-package-variables.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/">ORACLE</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pl-sql/">PL/SQL</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/17/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="extend next" rel="next" href="/page/19/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="OraOpenSource.com">TODO RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">APEX</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">APEX 5</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">APEX PLUGIN</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apexposed/">APEXPOSED</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytic-functions/">Analytic Functions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/">Analytics</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">CSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">Checkbox</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">Dynamic Actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">IoT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jobs/">JOBS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">JavaScript</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">KSCOPE</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaleidoscope/">Kaleidoscope</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mockups/">MOCKUPS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">ODTUG</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">OOW</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">ORACLE</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a><span class="tag-list-count">54</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-xe/">ORACLE XE</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os-x/">OS X</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oraopensource/">OraOpenSource</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pl-sql/">PL/SQL</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podcast/">Podcast</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">SQLcl</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">Tabular Form</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virtualbox/">VIRTUALBOX</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vpd/">VPD</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wireframe/">WIREFRAME</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-stackexchange-com/">apex.stackexchange.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console/">console</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console-wrapper/">console wrapper</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo/">demo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo-talkapex-com/">demo.talkapex.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery-ui/">jQUERY UI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/orclapex-yyc/">orclapex-yyc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/twitter/">twitter</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

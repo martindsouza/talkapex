@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Report with Checkboxes (an update) | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Supposed you have a report with checkboxes. Once the user selects all the rows, they can submit the page and the application would process the rows. Sounds pretty simple and straight forward however t">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Report with Checkboxes (an update)">
+<meta property="og:url" content="https://www.talkapex.com/2015/09/report-with-checkboxes-update.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="Supposed you have a report with checkboxes. Once the user selects all the rows, they can submit the page and the application would process the rows. Sounds pretty simple and straight forward however t">
+<meta property="og:updated_time" content="2016-12-27T03:58:08.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Report with Checkboxes (an update)">
+<meta name="twitter:description" content="Supposed you have a report with checkboxes. Once the user selects all the rows, they can submit the page and the application would process the rows. Sounds pretty simple and straight forward however t">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">TODO</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-report-with-checkboxes-update" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/09/report-with-checkboxes-update.html" class="article-date">
+  <time datetime="2015-09-14T02:40:00.000Z" itemprop="datePublished">2015-09-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Report with Checkboxes (an update)
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Supposed you have a report with checkboxes. Once the user selects all the rows, they can submit the page and the application would process the rows. Sounds pretty simple and straight forward however they’re some additional requirements:</p>
+<ul>
+<li>The report is an Interactive Report</li>
+<li>There may be up to 10,000 records in the report</li>
+<li>When the user “scrolls” through the report (i.e. uses pagination), if they checked off a box it should remain checked the entire time (i.e. if they check an row in the 1st 15 rows, then view rows 16~30, then go back to rows 1~15 it should remain checked). Same applies if a user uses the IR filters.</li>
+</ul>
+<p><em>If you follow this blog and the above sounds familiar, that’s because it is. I <a href="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced.html">wrote about this problem</a> a very long time ago. A lot has changed since 2009 and an update on the original post is long overdue. Here’s the updated (and simplified) solution.</em><br><em>
+</em></p>
+<h4 id="Create-Item-to-Hold-List-of-IDs"><a href="#Create-Item-to-Hold-List-of-IDs" class="headerlink" title="Create Item to Hold List of IDs"></a><span style="font-weight: normal;">Create Item to Hold List of IDs</span></h4><p>Create a hidden APEX item which will contain a comma delimited list of all the IDs that are to be checked off (in this example it will be <span style="font-family: Courier New, Courier, monospace;">P1_EMPNO<em>LIST</em></span>)_. <strong>Be sure to modify the <em>Value Protected</em>&nbsp;attribute to <em>No</em></strong>. This is critical as this item will be updated via AJAX and can not have any hashing/security applied to it.</p>
+<p>If you are loading this from a cross reference table you can use the following query in a Before Header process. This query will load all the employees from the Accounting department.</p>
+<pre class="brush: sql;">select listagg(e.empno, ',') within group (order by e.empno)
+from dept d, emp e
+where 1=1
+  and e.deptno = d.deptno
+  and d.dname = 'ACCOUNTING'
+</pre>
+
+<h4 id="Create-IR-Report-with-Checkboxes"><a href="#Create-IR-Report-with-Checkboxes" class="headerlink" title="Create IR Report with Checkboxes"></a><span style="font-weight: normal;">Create IR Report with Checkboxes</span></h4><p><strong>
+</strong>Create an IR with the query below. Note the <span style="font-family: Courier New, Courier, monospace;">p_attributes</span>&nbsp;value. This is critical as we need to identify the checkboxes that should be monitored.</p>
+<pre class="brush: sql;">select 
+  apex_item.checkbox2(
+    p_idx =&gt; 1,
+    p_value =&gt; e.empno ,
+    p_attributes =&gt; 'class="empno"',
+    p_checked_values =&gt; :p1_empno_list,
+    p_checked_values_delimiter =&gt; ',') checkbox,
+  e.ename, 
+  e.job
+from emp e
+</pre>In the report attributes set the _Page Items to Submit_&nbsp;to&nbsp;<span style="font-family: Courier New, Courier, monospace;">P1_EMPNO_LIST</span>. Each time the report is refreshed (pagination, filters, sorting, etc) the active list of selected values will be submitted.
+
+#### <span style="font-weight: normal;">Create Dynamic Action (DA)</span>
+<div>
+</div><div>Create a new DA with the attributes in the below image. This DA will append/remove the comma delimited list of IDs in <span style="font-family: Courier New, Courier, monospace;">P1_EMPNO_LIST</span>. Note the _jQuery Selector_ value must match what was used in the IR query above.</div><div>
+</div><div><div class="separator" style="clear: both; text-align: center;">[![](http://1.bp.blogspot.com/-xJNvFChTWxU/VfYM4-26OgI/AAAAAAABGdQ/17JvBPLA1NY/s320/Snip20150913_1.png)](http://1.bp.blogspot.com/-xJNvFChTWxU/VfYM4-26OgI/AAAAAAABGdQ/17JvBPLA1NY/s1600/Snip20150913_1.png)</div>
+</div><div>Configure a True action as shown below (JS code follows).</div><div>
+</div><div><div class="separator" style="clear: both; text-align: center;">[![](http://1.bp.blogspot.com/-ds8NWT305ks/VfYM5KF861I/AAAAAAABGdc/PrMHN9c60pk/s400/Snip20150913_3.png)](http://1.bp.blogspot.com/-ds8NWT305ks/VfYM5KF861I/AAAAAAABGdc/PrMHN9c60pk/s1600/Snip20150913_3.png)</div></div><div><pre class="brush: js;">var
+  //Checkbox that was changed
+  $checkBox = $(this.triggeringElement),
+  //DOM object for APEX Item that holds list.
+  apexItemIDList = apex.item(this.affectedElements.get(0)),
+  //Convert comma list into an array or blank array
+  //Note: Not sure about the "?" syntax see: http://www.talkapex.com/2009/07/javascript-if-else.html
+  ids = apexItemIDList.getValue().length === 0 ? [] : apexItemIDList.getValue().split(','),
+  //Index of current ID. If it's not in array, value will be -1
+  idIndex = ids.indexOf($checkBox.val())
+;
+
+//If box is checked and it doesn't already exist in list
+if ($checkBox.is(':checked') && idIndex < 0) {
+  ids.push($checkBox.val());
+}
+//If box is unchecked and it exists in list
+else if (!$checkBox.is(':checked') && idIndex >= 0){
+  ids.splice(idIndex, 1);
+}
+
+//Convert array back to comma delimited list
+apexItemIDList.setValue(ids.join(','));
+</pre>
+</div>
+
+#### <span style="font-weight: normal;">Demo</span>
+<div>
+</div><div>That's all that's required. Now each time a checkbox is checked/unchecked <span style="font-family: Courier New, Courier, monospace;">P1_EMPNO_LIST</span>&nbsp;will be updated to reflect these changes. The checkboxes will persist each time the report is refreshed. You can see the checkbox implantation in [this demo](https://apex.oracle.com/pls/apex/f?p=16406:1400).</div><div>
+</div>
+
+#### <span style="font-weight: normal;">Considerations</span>
+<div>
+</div><div>This solution is fairly simple to create an manage however it does have one small caveat. If the list of checked items is very large (more than 4000 characters) you may run into some <span style="font-family: Courier New, Courier, monospace;">varchar2</span> issues. In most cases this shouldn't be an issue but if it is you should test first.</div><div>
+</div><div>To process the list of comma delimited list you can use the <span style="font-family: Courier New, Courier, monospace;">[apex_util.string_to_table](https://docs.oracle.com/cd/E59726_01/doc.50/e39149/apex_util.htm#AEAPI185)</span> function and loop over the table values. If you want to use the comma delimited list in a query the following example should work (again it does have <span style="font-family: Courier New, Courier, monospace;">varchar2</span> size limitations).</div><pre class="brush: sql;">select regexp_substr(:p1_empno_list,'[^,]+', 1, level) empno
+from dual
+connect by regexp_substr(:p1_empno_list, '[^,]+', 1, level) is not null
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2015/09/report-with-checkboxes-update.html" data-id="cix72il3n007bbpn9yp88u026" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2015/09/report-with-checkboxes-update.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/checkbox/">Checkbox</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tabular-form/">Tabular Form</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2015/09/custom-code-for-tabular-forms-part-1.html" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Custom Code for Tabular Forms (Part 1)
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2015/08/oracle-developer-choice-awards-1-week.html" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Oracle Developer Choice Awards - 1 Week Left to Nominate</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="OraOpenSource.com">TODO RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">APEX</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">APEX 5</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">APEX PLUGIN</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apexposed/">APEXPOSED</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytic-functions/">Analytic Functions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/">Analytics</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">CSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">Checkbox</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">Dynamic Actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">IoT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jobs/">JOBS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">JavaScript</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">KSCOPE</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaleidoscope/">Kaleidoscope</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mockups/">MOCKUPS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">ODTUG</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">OOW</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">ORACLE</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a><span class="tag-list-count">54</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-xe/">ORACLE XE</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os-x/">OS X</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oraopensource/">OraOpenSource</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pl-sql/">PL/SQL</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podcast/">Podcast</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">SQLcl</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">Tabular Form</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virtualbox/">VIRTUALBOX</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vpd/">VPD</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wireframe/">WIREFRAME</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-stackexchange-com/">apex.stackexchange.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console/">console</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console-wrapper/">console wrapper</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo/">demo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo-talkapex-com/">demo.talkapex.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery-ui/">jQUERY UI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/orclapex-yyc/">orclapex-yyc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/twitter/">twitter</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'https://www.talkapex.com/2015/09/report-with-checkboxes-update.html';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="TODO description">
+<meta property="og:type" content="website">
+<meta property="og:title" content="TalkApex">
+<meta property="og:url" content="https://www.talkapex.com/page/11/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="TODO description">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TalkApex">
+<meta name="twitter:description" content="TODO description">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">TODO</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-nodatafound-exceptions-in-plsql" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/nodatafound-exceptions-in-plsql.html" class="article-date">
+  <time datetime="2012-08-16T13:00:00.000Z" itemprop="datePublished">2012-08-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/nodatafound-exceptions-in-plsql.html">NO_DATA_FOUND Exceptions in PL/SQL Functions Called in Queries</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Functions in PL/SQL can be a tricky thing as they don’t always raise an exception when one occurs. You may be asking yourself: <em>How, I thought functions and procedures always raise exceptions when one occurs</em>? This is true except in some very specific situations.</p>
+<p>First lets look at a very simple function which is then executed in both PL/SQL and in a query. It should (and does) raise an exception in both cases since we have a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">1/0</span> in it.</p>
+<pre class="brush: sql;">SQL> CREATE OR REPLACE FUNCTION f_generate_error RETURN VARCHAR2
+  2  AS
+  3    l_x pls_integer;
+  4  BEGIN
+  5    SELECT 1 INTO l_x FROM dual WHERE 1/0 = 0;
+  6    RETURN 'No exception raised';
+  7  END;
+  8  /
+
+Function created.
+
+SQL> EXEC dbms_output.put_line(f_generate_error);
+BEGIN dbms_output.put_line(f_generate_error); END;
+
+*
+ERROR at line 1:
+ORA-01476: divisor is equal to zero
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 5
+ORA-06512: at line 1
+
+SQL> SELECT f_generate_error FROM dual;
+SELECT f_generate_error FROM dual
+       *
+ERROR at line 1:
+ORA-01476: divisor is equal to zero
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 5
+</pre>What if we change the query slightly so that the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SELECT INTO</span> statement doesn't return any rows (by applying a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">1=0</span> predicate) and raises a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception?
+<pre class="brush: sql; highlight: [22,23,24,25,26,27]">SQL> CREATE OR REPLACE FUNCTION f_generate_error RETURN VARCHAR2
+  2  AS
+  3    l_x pls_integer;
+  4  BEGIN
+  5    SELECT 1 INTO l_x FROM dual WHERE 1=0;
+  6    RETURN 'No exception raised';
+  7  END;
+  8  /
+
+Function created.
+
+SQL> EXEC dbms_output.put_line(f_generate_error);
+BEGIN dbms_output.put_line(f_generate_error); END;
+
+*
+ERROR at line 1:
+ORA-01403: no data found
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 5
+ORA-06512: at line 1
+
+SQL> SELECT f_generate_error FROM dual;
+
+F_GENERATE_ERROR
+----------------------------------------------------------------
+
+1 row selected.</pre>When we run it in PL/SQL it raises an exception but when we run it in a query it doesn't. It just returns a null value which doesn't really tell the calling query that an exception was raised. This can obviously cause issues and unexpected behavior in your application. 
+
+According to the [Oracle documentation](http://docs.oracle.com/cd/B13789_01/appdev.101/b10807/07_errs.htm) the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception will not propagate the exception if run in a query: "_Because this exception is used internally by some SQL functions to signal that they are finished, you should not rely on this exception being propagated if you raise it within a function that is called as part of a query._"
+
+To get around this issue you can raise a custom exception when you encounter a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception in functions so that it will propagate when called via a SQL query. In the example below a custom exception is raised and the exception is propagated when called from a query.
+<pre class="brush: sql; highlight: [7,8,9]">SQL> CREATE OR REPLACE FUNCTION f_generate_error RETURN VARCHAR2
+  2  AS
+  3    l_x pls_integer;
+  4  BEGIN
+  5    SELECT 1 INTO l_x FROM dual WHERE 1=0;
+  6    RETURN 'No exception raised';
+  7  EXCEPTION
+  8    WHEN NO_DATA_FOUND THEN
+  9      raise_application_error(-20001, 'Custom NO_DATA_FOUND');
+ 10  END;
+ 11  /
+
+Function created.
+
+SQL> SELECT f_generate_error FROM dual;
+SELECT f_generate_error FROM dual
+       *
+ERROR at line 1:
+ORA-20001: Custom NO_DATA_FOUND
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql.html" data-id="cix71njjj004nbpn9x6xtv2jw" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pl-sql/">PL/SQL</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-create-apex-session-in-plsql" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/how-to-create-apex-session-in-plsql.html" class="article-date">
+  <time datetime="2012-08-15T14:38:00.000Z" itemprop="datePublished">2012-08-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/how-to-create-apex-session-in-plsql.html">How to Create an APEX Session in PL/SQL</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Debugging a function or procedure which references APEX items using the V/NV functions or trying to debug APEX collections can be frustrating when the only way to set, and view, the values is to actually do it through the application. Thankfully, there’s a way to create an APEX session from a PL/SQL session to test out your code.</p>
+<p>They’re various examples on the <a href="https://forums.oracle.com/forums/forum.jspa?forumID=137" target="_blank" rel="external">APEX forums</a> on how to create an APEX session in PL/SQL. Here’s one version of it.</p>
+<p><pre class="brush: sql;">CREATE OR REPLACE PROCEDURE sp_create_apex_session(<br>  p_app_id IN apex_applications.application_id%TYPE,<br>  p_app_user IN apex_workspace_activity_log.apex_user%TYPE,<br>  p_app_page_id IN apex_application_pages.page_id%TYPE DEFAULT 1)<br>AS<br>  l_workspace_id apex_applications.workspace_id%TYPE;<br>  l_cgivar_name  owa.vc_arr;<br>  l_cgivar_val   owa.vc_arr;<br>BEGIN</pre></p>
+<p>  htp.init; </p>
+<p>  l_cgivar_name(1) := ‘REQUEST_PROTOCOL’;<br>  l_cgivar_val(1) := ‘HTTP’;</p>
+<p>  owa.init_cgi_env(<br>    num_params =&gt; 1,<br>    param_name =&gt; l_cgivar_name,<br>    param_val =&gt; l_cgivar_val ); </p>
+<p>  SELECT workspace_id<br>  INTO l_workspace_id<br>  FROM apex_applications<br>  WHERE application_id = p_app_id;</p>
+<p>  wwv_flow_api.set_security_group_id(l_workspace_id); </p>
+<p>  apex_application.g_instance := 1;<br>  apex_application.g_flow_id := p_app_id;<br>  apex_application.g_flow_step_id := p_app_page_id; </p>
+<p>  apex_custom_auth.post_login(<br>    p_uname =&gt; p_app_user,<br>    p_session_id =&gt; null, – could use APEX_CUSTOM_AUTH.GET_NEXT_SESSION_ID<br>    p_app_page =&gt; apex_application.g_flow_id||’:’||p_app_page_id);<br>END;To create an APEX session (in PL/SQL) to mimic some tests I can do the following:  </p>
+<p><pre class="brush: sql;">SQL&gt; BEGIN<br>  2    sp_create_apex_session(<br>  3      p_app_id =&gt; 106,<br>  4      p_app_user =&gt; ‘MARTIN’,<br>  5      p_app_page_id =&gt; 10);<br>  6  END;<br>  7  /</pre></p>
+<p>PL/SQL procedure successfully completed.<br>View some APEX session state variables: </p>
+<p><pre class="brush: sql;">SQL&gt; SELECT v(‘APP_USER’) app_user, v(‘APP_SESSION’) app_session,<br>  2    v(‘APP_PAGE_ID’) page_id, v(‘P1_X’) p1_x<br>  3  FROM dual;</pre></p>
+<p>APP_USER   APP_SESSION     PAGE_ID    P1_X</p>
+<hr>
+<p>MARTIN     374363229560201 10</p>
+<p>SQL&gt; – Set P1_X<br>SQL&gt; exec apex_util.set_session_state(‘P1_X’, ‘abc’);</p>
+<p>PL/SQL procedure successfully completed.</p>
+<p>SQL&gt; SELECT v(‘APP_USER’) app_user, v(‘APP_SESSION’) app_session,<br>  2    v(‘APP_PAGE_ID’) page_id, v(‘P1_X’) p1_x<br>  3  FROM dual;</p>
+<p>APP_USER   APP_SESSION     PAGE_ID    P1_X</p>
+<hr>
+<p>MARTIN     374363229560201 10         abc</p>
+<p>SQL&gt; – Clear APEX Session State<br>SQL&gt; exec APEX_UTIL.CLEAR_APP_CACHE(p_app_id =&gt; 106);</p>
+<p>PL/SQL procedure successfully completed.You can also create and view collections using the APEX_COLLECTION APIs and the APEX_COLLECTION view.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql.html" data-id="cix71nf6o004lbpn9qjgmekk7" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-odtug-apexposed-2012" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/07/odtug-apexposed-2012.html" class="article-date">
+  <time datetime="2012-07-30T13:14:00.000Z" itemprop="datePublished">2012-07-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/07/odtug-apexposed-2012.html">ODTUG APEXposed 2012</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-t3VS4FaGTPA/UBYgsLzW0YI/AAAAAAAAENw/wWEdjTUUsag/s1600/2012_APEXposed.jpg" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-t3VS4FaGTPA/UBYgsLzW0YI/AAAAAAAAENw/wWEdjTUUsag/s400/2012_APEXposed.jpg" alt=""></a></div><br>ODTUG is hosting it’s APEX focused APEXposed conference in Montreal this fall from September 11-12. The <a href="http://odtugapextraining.com/presenters.html" target="_blank" rel="external">speaker list</a> is loaded with experts from around the <u>world</u> who will present on a wide variety of APEX and SQL Developer topics. The list includes 3 Oracle Product Managers (APEX / SQL Developer), 6 ACE and ACE Directors, and some other excellent presenters. To put some perspective on this list of presenters, there’s only 14 ACE/ACE Directors in Canada and 375 world wide. Having 6 ACE/ACEDs coming to Montreal is a great opportunity to learn from them.</p>
+<p>On a personal note, I’ll be giving two talks on <a href="http://odtugapextraining.com/presentations.html#dsouzaapex" target="_blank" rel="external">APEX + HTML5</a>, and <a href="http://odtugapextraining.com/presentations.html#dsouzaplugins" target="_blank" rel="external">APEX Plugins</a>. I gave the HTML 5 presentation this summer at Kscope 12 but I’ll be adding some new parts to it. The plugins presentation will go over how to create a plugin from scratch to help you and your team build your own APEX plugins.</p>
+<p>For more information and to register go to <a href="http://odtugapextraining.com/" target="_blank" rel="external">http://odtugapextraining.com</a>. If you register before August 15th you can take advantage of the early bird rate for only $399! This is a steal for the amount of information that you’ll learn and the opportunity to ask the experts any of your APEX questions. To make things even more compelling if you use the code <em>CLARIFIT</em> you will save an additional $50 off your registration cost.</p>
+<p>For those that are coming from out of town (Toronto, Ottawa, Quebec City, Southern US, etc) ODTUG has secured a preferred rate at Le St.Martin. For more information go to <a href="http://odtugapextraining.com/Location.html" target="_blank" rel="external">http://odtugapextraining.com/Location.html</a> and scroll to the bottom. </p>
+<p>I really hope that the Oracle community in Canada takes advantage of this opportunity. I’m not sure how often we’ll get such an amazing list of presenters and presentations in our own back yard. See you there!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/07/odtug-apexposed-2012.html" data-id="cix6zhoud008i31n97kofppes" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/07/odtug-apexposed-2012.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apex-4-html5-awesome-ii-slides" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/07/apex-4-html5-awesome-ii-slides.html" class="article-date">
+  <time datetime="2012-07-06T18:06:00.000Z" itemprop="datePublished">2012-07-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/07/apex-4-html5-awesome-ii-slides.html">APEX 4 + HTML5 = Awesome II - Slides</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I have uploaded the slides from the my talk on HTML5 that I gave at ODTUG Kscope 12 last week. The slides include comments and links to various demos. I haven’t had the opportunity to clean up the drag &amp; drop file upload demo and I will post that separately when I have some free time.</p>
+<p>You can <a href="http://goo.gl/TpqRE" target="_blank" rel="external">download</a> the slides or go to the <a href="http://www.talkapex.com/p/presentations.html">Presentations</a> page to see full abstract and download link. If you have any questions, comments, or feedback please feel free to send me an email (email address in slides).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides.html" data-id="cix6zhoub008g31n9rloklip3" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-building-better-team-slides" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/07/building-better-team-slides.html" class="article-date">
+  <time datetime="2012-07-04T03:54:00.000Z" itemprop="datePublished">2012-07-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/07/building-better-team-slides.html">Building a Better Team - Slides</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A lot of people have emailed me about the slides from my talk on Building a Better Team that I gave at ODTUG Kscope 12 last week. I updated the slides to include a lot of comments about the main points from the talk.</p>
+<p>You can <a href="http://goo.gl/hVnyD" target="_blank" rel="external">download</a> the slides or go to the <a href="http://www.talkapex.com/p/presentations.html">Presentations</a> page to see full abstract and download link. If you have any questions, comments, or want to let me know how implementing some of the ideas go please feel free to send me an email (email address in slides).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/07/building-better-team-slides.html" data-id="cix71n17r004kbpn9yt5hguua" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/07/building-better-team-slides.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-odtug-kscope-12-things-to-look-out-for" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/06/odtug-kscope-12-things-to-look-out-for.html" class="article-date">
+  <time datetime="2012-06-22T23:51:00.000Z" itemprop="datePublished">2012-06-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/06/odtug-kscope-12-things-to-look-out-for.html">ODTUG Kscope 12: Things To Look Out For</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>With <a href="http://www.kscope12.com/" target="_blank" rel="external">Kscope 12</a> around the corner (literally) I thought I’d post somethings that I’m really looking forward to at the conference. </p>
+<p><strong>Cary Millsap’s Keynote at the General Session:</strong> I’ve heard <u>a lot</u> of great things about Cary’s talk. Everyone that has seen it has only had rave reviews about it so I’m really excited to see it myself. Besides Cary’s talk there will be a lot of other funny and exciting things from ODTUG at the general session.</p>
+<p><strong>Red Gate’s booth:</strong> Red Gate will be doing something I’ve never seen before at a conference. They’ll be having a <a href="http://www.red-gate.com/products/oracle-development/source-control-for-oracle/kscope12" target="_blank" rel="external">Rapid Development Lab</a> to develop a new Database Version Control system. I strongly encourage you to check it out and bring some ideas on how to manage changes coming in from multiple developers and how a tool could help with it.</p>
+<p><strong>Open Mic Night</strong>: Immediately following the general session on Monday there will be the annual APEX Open mic night where anyone can demo anything with APEX. Only rule is no powerpoints and a fixed time limit. I’m always amazed at all the neat things that people are doing in their organization. </p>
+<p><strong>Lots of APEX presentations:</strong> Obviously I’m biased on this topic, but I think there will be a lot of great presentations on the newly announced 4.2 EA 1 and mobile applications. I’m giving two talks this year that I’m really excited about:&nbsp; </p>
+<ul>
+<li><a href="http://kscope12.com/component/seminar/seminarslist#APEX%204%20+%20HTML%205%20=%20Awesome%20II" target="_blank" rel="external">APEX 4 + HTML 5 = Awesome II</a>: <em>Mon&nbsp; 11:30 @ Cibolo Canyon 5</em> - This talk is a sequel to last year’s award winning talk on HTML 5. I have some very cool new features to showcase.</li>
+<li><a href="http://kscope12.com/component/seminar/seminarslist#Building%20a%20Better%20Team" target="_blank" rel="external">Building a Better Team</a>: <em>Mon&nbsp; 11:30 @ Cibolo Canyon 5</em> - This talk will cover how to help improve your development team. Though it’s not APEX specific it’ll cover some very key points.</li>
+<li><em>In both of my presentations I’ll be giving copies of my APEX books away!</em><br>I look forward to seeing everyone over the next week and seeing a lot of APEX presentations.</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for.html" data-id="cix6zhou9008b31n90xnm0rs8" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-select-into-techinques" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/06/select-into-techinques.html" class="article-date">
+  <time datetime="2012-06-07T17:01:00.000Z" itemprop="datePublished">2012-06-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/06/select-into-techinques.html">SELECT INTO Techinques</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>One thing that bothers a lot of PL/SQL developers is when they have to select some data from a table into local variables. The problem is that the data may or may not exist (i.e. return 0..1 rows). They’re several ways to write this code, some taking longer than others which is the pain point for developers.  </p>
+<p>I’ve listed out various ways to do this below and hopefully it’ll help you find some easier ways to solve this issue. </p>
+<p> The first example is the classic case of handling the 0..1 rows issue in PL/SQL. They’re a few issues (not problems) that I have with this. The first is that it adds some additional lines of code (highlighted) which can make the code harder to follow. The other issue is that instead of using “_WHEN no_data<em>found</em>“ some developers tend to use “<em>WHEN OTHERS</em>“ which is guaranteed to give you some false positives in the long run.  <pre class="brush: sql; highlight: [6,11,12,13,14]"><br>DECLARE<br>  l_sal emp.sal%TYPE;<br>  p_empno emp.empno%TYPE := 123; – Invalid empno number<br>BEGIN</pre></p>
+<p>  BEGIN<br>    SELECT sal<br>    INTO l_sal<br>    FROM emp<br>    WHERE empno = p_empno;<br>  EXCEPTION<br>    WHEN no_data_found THEN<br>      l_sal := 0;<br>  END;</p>
+<p>END;<br>/<br> Another way to get the value from the table is to use the aggregate function <em>MAX</em>. Since you’re expecting 0..1 rows this will always return 1 row and eliminates the need to have the “<em>BEGIN …</em>“ block of code which saves 5 lines of code. You can handle what to do when no value is found by using the <em>NVL</em> function.  <pre class="brush: sql; highlight: [6]"><br>DECLARE<br>  l_sal emp.sal%TYPE;<br>  p_empno emp.empno%TYPE := 123; – Invalid empno number<br>BEGIN</pre></p>
+<p>  SELECT NVL(MAX(sal), 0)<br>  INTO l_sal<br>  FROM emp<br>  WHERE empno = p_empno;</p>
+<p>END;<br>/<br> The only issue with the above example is when you can have 0..n rows but should only get 0..1. Ideally you should have table constraints in order to guarantee 0..1 rows but it’s not always the case in some system. The following example shows how you can use the same technique as above but it will trigger an exception if n rows are found (which is what you want to do):  <pre class="brush: sql; highlight: [10]"><br>DECLARE<br>  l_sal emp.sal%TYPE;<br>  p_empno emp.empno%TYPE := 123; – Invalid empno number<br>BEGIN</pre></p>
+<p>  SELECT NVL(MAX(sal), 0)<br>  INTO l_sal<br>  FROM emp<br>  WHERE empno = p_empno<br>  HAVING count(1) &lt;= 1;</p>
+<p>END;<br>/<br></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/06/select-into-techinques.html" data-id="cix6zhou8008931n9eg51uwhy" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/06/select-into-techinques.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/">ORACLE</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pl-sql/">PL/SQL</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-nthvalue-windowing-clause" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/06/nthvalue-windowing-clause.html" class="article-date">
+  <time datetime="2012-06-01T13:55:00.000Z" itemprop="datePublished">2012-06-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/06/nthvalue-windowing-clause.html">NTH_VALUE Windowing Clause</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>In my <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic.html">previous post</a>, which highlighted some analytic functions, I mentioned that the windowing clause must be explicitly defined when using the <a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions114.htm#CJAFEJBE" target="_blank" rel="external">NTH_VALUE</a> function.</p>
+<p>To recap, here’s the example I used for NTH_VALUE which lists the 2nd highest salary for each department:</p>
+<p><pre class="brush: sql; highlight: 5">SELECT d.dname, e.ename, e.sal,<br>   nth_value(e.sal, 2) OVER (<br>    PARTITION BY e.deptno ORDER BY e.sal DESC<br>    – windowing_clause<br>    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) sec_high_sal_dept<br>FROM emp e, dept d<br>WHERE e.deptno = d.deptno;</pre></p>
+<p>– Result</p>
+<p>DNAME          ENAME             SAL SEC_HIGH_SAL_DEPT</p>
+<hr>
+<p>ACCOUNTING     KING             5000              2450<br>ACCOUNTING     CLARK            2450              2450<br>ACCOUNTING     MILLER           1300              2450<br>RESEARCH       FORD             3000              3000<br>RESEARCH       SCOTT            3000              3000<br>RESEARCH       JONES            2975              3000<br>RESEARCH       ADAMS            1100              3000<br>RESEARCH       SMITH             800              3000<br>SALES          BLAKE            2850              1600<br>SALES          ALLEN            1600              1600<br>SALES          TURNER           1500              1600<br>SALES          WARD             1250              1600<br>SALES          MARTIN           1250              1600<br>SALES          JAMES             950              1600<br>What happens if we don’t include the windowing clause? Here’s the same query, but just focusing on the Accounting department, without the windowing clause: </p>
+<p><pre class="brush: sql; highlight: 12">SELECT d.dname, e.ename, e.sal,<br>   nth_value(e.sal, 2) OVER (<br>    PARTITION BY e.deptno ORDER BY e.sal DESC) sec_high_sal_dept<br>FROM emp e, dept d<br>WHERE e.deptno = d.deptno<br>  AND d.dname = ‘ACCOUNTING’;</pre></p>
+<p>– Result</p>
+<p>DNAME          ENAME             SAL SEC_HIGH_SAL_DEPT</p>
+<hr>
+<p>ACCOUNTING     KING             5000<br>ACCOUNTING     CLARK            2450              2450<br>ACCOUNTING     MILLER           1300              2450<br>You’ll notice that the first row (KING) has a NULL returned for the SEC_HIGH_SAL_DEPT column. That’s because when it looks at the first row (KING) it still hasn’t had a chance to evaluate at least 2 values.   Obviously writing some test queries will identify this “issue” which may or may not be what you’re looking for. If it isn’t then just add the windowing clause (above).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/06/nthvalue-windowing-clause.html" data-id="cix71mlpm004ibpn9lmn8s42s" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/06/nthvalue-windowing-clause.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/pl-sql/">PL/SQL</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-some-interesting-oracle-analytic" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/05/some-interesting-oracle-analytic.html" class="article-date">
+  <time datetime="2012-05-22T13:00:00.000Z" itemprop="datePublished">2012-05-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/05/some-interesting-oracle-analytic.html">Some Interesting Oracle Analytic Functions</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I had to write some reports for a personal application of mine last night and needed to expand beyond my usual set of analytic functions that I normally use. I thought it would be a good idea to do a quick blog post on these analytic functions. </p>
+<p>_If you’ve never heard of or used Oracle analytic functions please read <a href="http://orafaq.com/node/55" target="_blank" rel="external">this article</a> first. It’s by far the best article I’ve read at explaining what analytic functions are and how to use them. The Oracle analytic function documentation can be found <a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions004.htm#SQLRF06174" target="_blank" rel="external">here</a>._ </p>
+<p><strong>RATIO_TO_REPORT</strong></p>
+<p><a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions142.htm#i85800" target="_blank" rel="external">RATIO_TO_REPORT</a> compares the current value against the sum of the other set of values.   The following example shows the percentage of each employees salary when compared to the sum of their department’s salary. You’ll notice that you can calculate the same value using a different method (_sal_dept<em>ratio2</em>) which may be why I haven’t seen RATIO_TO_REPORT used that often.  </p>
+<pre class="brush: sql; highlight: 2">SELECT d.dname, e.ename, e.sal, 
+  round(ratio_to_report(sal) OVER (PARTITION BY e.deptno),2) sal_dept_ratio, 
+  round(sal / sum(e.sal) OVER (PARTITION BY e.deptno),2) sal_dept_ratio2
+FROM emp e, dept d
+WHERE e.deptno = d.deptno;
+
+-- Result
+
+DNAME          ENAME             SAL SAL_DEPT_RATIO SAL_DEPT_RATIO2
+-------------- ---------- ---------- -------------- ---------------
+ACCOUNTING     CLARK            2450            .28             .28
+ACCOUNTING     MILLER           1300            .15             .15
+ACCOUNTING     KING             5000            .57             .57
+RESEARCH       FORD             3000            .28             .28
+RESEARCH       SCOTT            3000            .28             .28
+RESEARCH       JONES            2975            .27             .27
+RESEARCH       SMITH             800            .07             .07
+RESEARCH       ADAMS            1100             .1              .1
+SALES          WARD             1250            .13             .13
+SALES          MARTIN           1250            .13             .13
+SALES          TURNER           1500            .16             .16
+SALES          JAMES             950             .1              .1
+SALES          ALLEN            1600            .17             .17
+SALES          BLAKE            2850             .3              .3
+</pre>
+**NTH_VALUE**
+
+[NTH_VALUE](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions114.htm#CJAFEJBE) returns the nth row in the window clause. It's extremely important that you <u>explicitly define the window</u> or your values may not make sense. I'll write another post explaining this later. _Update: [NTH_VALUE Windowing Clause](http://www.talkapex.com/2012/06/nthvalue-windowing-clause.html)_
+
+The following example shows the 2nd highest salary in each department.  
+<pre class="brush: sql; highlight: [2,3,4,5]">SELECT d.dname, e.ename, e.sal, 
+   nth_value(e.sal, 2) OVER (
+    PARTITION BY e.deptno ORDER BY e.sal DESC 
+    -- Don't forget to define the window
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) sec_high_sal_dept
+FROM emp e, dept d
+WHERE e.deptno = d.deptno;
+
+-- Result
+
+DNAME          ENAME             SAL SEC_HIGH_SAL_DEPT
+-------------- ---------- ---------- -----------------
+ACCOUNTING     KING             5000              2450
+ACCOUNTING     CLARK            2450              2450
+ACCOUNTING     MILLER           1300              2450
+RESEARCH       FORD             3000              3000
+RESEARCH       SCOTT            3000              3000
+RESEARCH       JONES            2975              3000
+RESEARCH       ADAMS            1100              3000
+RESEARCH       SMITH             800              3000
+SALES          BLAKE            2850              1600
+SALES          ALLEN            1600              1600
+SALES          TURNER           1500              1600
+SALES          WARD             1250              1600
+SALES          MARTIN           1250              1600
+SALES          JAMES             950              1600
+</pre>
+**LISTAGG**
+
+[LISTAGG](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions089.htm#CJABDFBD) was a highly requested feature that was implemented in 11gR2\. Overall LISTAGG allows you to group values in multiple rows and put them in a comma delimited column on one row. 
+
+The following example (which is not an analytic function) shows all the employees for each department:  
+<pre class="brush: sql; highlight: 2">SELECT d.dname,
+  listagg(e.ename, ',') WITHIN GROUP (ORDER BY e.ename) dept_emp_list
+FROM emp e, dept d
+WHERE e.deptno = d.deptno
+GROUP BY d.dname;
+
+-- Result
+
+DNAME          DEPT_EMP_LIST
+-------------- ----------------------------------------
+
+ACCOUNTING     CLARK,KING,MILLER
+RESEARCH       ADAMS,FORD,JONES,SCOTT,SMITH
+SALES          ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+</pre>Using the LISTAGG as an analytic function you can see each employee's colleagues in their department, including themselves.  
+<pre class="brush: sql; highlight: [2,3]">SELECT d.dname, e.ename,
+  listagg(e.ename, ',') WITHIN GROUP (ORDER BY e.ename) 
+    OVER (PARTITION BY e.deptno) dept_colleagues
+FROM emp e, dept d
+WHERE e.deptno = d.deptno;
+
+-- Result
+
+DNAME          ENAME      DEPT_COLLEAGUES
+-------------- ---------- --------------------------------------
+
+ACCOUNTING     CLARK      CLARK,KING,MILLER
+ACCOUNTING     KING       CLARK,KING,MILLER
+ACCOUNTING     MILLER     CLARK,KING,MILLER
+RESEARCH       ADAMS      ADAMS,FORD,JONES,SCOTT,SMITH
+RESEARCH       FORD       ADAMS,FORD,JONES,SCOTT,SMITH
+RESEARCH       JONES      ADAMS,FORD,JONES,SCOTT,SMITH
+RESEARCH       SCOTT      ADAMS,FORD,JONES,SCOTT,SMITH
+RESEARCH       SMITH      ADAMS,FORD,JONES,SCOTT,SMITH
+SALES          ALLEN      ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          BLAKE      ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          JAMES      ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          MARTIN     ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          TURNER     ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          WARD       ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+</pre>
+**NTILE**
+
+[NTILE](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions115.htm#i85619) allows you to divide your values into buckets and see which bucket the current row belongs to. For educational institutions this is a very good function to let students know that they're in the top _x%_ of the class. 
+
+_**Update (12-Apr-2014):** [NTILE vs WIDTH_BOX](http://www.talkapex.com/2014/04/ntile-vs-widthbucket.html) describes the different ways to bucket data in Oracle. It also explains why SAL 1250 exists in both buckets 2 and 3._
+
+The following example shows the 3 tiers (or buckets) of salaries across the entire company. It allows you to easily see who's in the top 33% of salaries.   
+<pre class="brush: sql; highlight: [2]">SELECT d.dname, e.ename, e.sal,
+  ntile (3) over (order by sal desc) three_tier_sal
+FROM emp e, dept d
+WHERE e.deptno = d.deptno;
+
+-- Result
+
+DNAME          ENAME             SAL THREE_TIER_SAL
+-------------- ---------- ---------- --------------
+ACCOUNTING     KING             5000              1
+RESEARCH       SCOTT            3000              1
+RESEARCH       FORD             3000              1
+RESEARCH       JONES            2975              1
+SALES          BLAKE            2850              1
+ACCOUNTING     CLARK            2450              2
+SALES          ALLEN            1600              2
+SALES          TURNER           1500              2
+ACCOUNTING     MILLER           1300              2
+SALES          WARD             1250              2
+SALES          MARTIN           1250              3
+RESEARCH       ADAMS            1100              3
+SALES          JAMES             950              3
+RESEARCH       SMITH             800              3
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/05/some-interesting-oracle-analytic.html" data-id="cix71mhb2004ebpn9xnjp72nc" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/05/some-interesting-oracle-analytic.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/analytic-functions/">Analytic Functions</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/analytics/">Analytics</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/">ORACLE</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-clarifit-from-to-date-picker-101-update" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/05/clarifit-from-to-date-picker-101-update.html" class="article-date">
+  <time datetime="2012-05-06T23:27:00.000Z" itemprop="datePublished">2012-05-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/05/clarifit-from-to-date-picker-101-update.html">ClariFit From To Date Picker 1.0.1 Update</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I’ve updated the <a href="http://apex-plugin.com/oracle-apex-plugins/item-plugin/clarifit-from-to-date-picker_154.html" target="_blank" rel="external">ClariFit From To Date Picker</a> APEX Plugin. There was a small bug in the initial version that caused rendering issues in IE.</p>
+<p>The initial post about the plugin can be found <a href="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in.html">here</a> and the <a href="http://apex.oracle.com/pls/apex/f?p=45587:700:0" target="_blank" rel="external">demo</a> here.</p>
+<p>Thanks to Marc B and Joni V for finding the issue.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update.html" data-id="cix71mcoz004cbpn9oqexy9cd" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/">APEX PLUGIN</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/10/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="extend next" rel="next" href="/page/12/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="OraOpenSource.com">TODO RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">APEX</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">APEX 5</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">APEX PLUGIN</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apexposed/">APEXPOSED</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytic-functions/">Analytic Functions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/">Analytics</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">CSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">Checkbox</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">Dynamic Actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">IoT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jobs/">JOBS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">JavaScript</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">KSCOPE</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaleidoscope/">Kaleidoscope</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mockups/">MOCKUPS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">ODTUG</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">OOW</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">ORACLE</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a><span class="tag-list-count">54</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-xe/">ORACLE XE</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os-x/">OS X</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oraopensource/">OraOpenSource</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pl-sql/">PL/SQL</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podcast/">Podcast</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">SQLcl</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">Tabular Form</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virtualbox/">VIRTUALBOX</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vpd/">VPD</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wireframe/">WIREFRAME</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-stackexchange-com/">apex.stackexchange.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console/">console</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console-wrapper/">console wrapper</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo/">demo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo-talkapex-com/">demo.talkapex.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery-ui/">jQUERY UI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/orclapex-yyc/">orclapex-yyc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/twitter/">twitter</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

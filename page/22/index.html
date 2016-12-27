@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="TODO description">
+<meta property="og:type" content="website">
+<meta property="og:title" content="TalkApex">
+<meta property="og:url" content="https://www.talkapex.com/page/22/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="TODO description">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="TalkApex">
+<meta name="twitter:description" content="TODO description">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">TODO</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-quickly-modify-apex-interactive-report" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/06/quickly-modify-apex-interactive-report.html" class="article-date">
+  <time datetime="2009-06-11T15:00:00.000Z" itemprop="datePublished">2009-06-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/06/quickly-modify-apex-interactive-report.html">Quickly Modify APEX Interactive Report Options</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>If your APEX application has many Interactive Reports (IR) it can be tedious to configure IR features for each report, and their columns, such as filtering, highlighting etc.</p>
+<p>Since APEX resides within the database there’s a quick way to manage all of your IRs. <span style="color:red; font-style=italic;">Please note this is not supported by Oracle so please be aware of this.</span></p>
+<p>First login to the database as SYS or SYSTEM.</p>
+<p>Update Interactive Report options: <span style="font-style: italic;">You can modify more options by looking at the table definition for wwv_flow_worksheets</span></p>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Si3Q3CeFohI/AAAAAAAADpY/sPTJxC7mV6Q/s1600-h/24_ir_options.bmp" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Si3Q3CeFohI/AAAAAAAADpY/sPTJxC7mV6Q/s400/24_ir_options.bmp" alt=""></a></p>
+<pre class="brush: sql">
+UPDATE apex_030200.wwv_flow_worksheets -- Where apex_030200 is your current APEX instance
+   SET allow_report_saving = 'Y', -- Configure options as required
+       show_finder_drop_down = 'N',
+       show_display_row_count = 'Y',
+       show_search_bar = 'N',
+       show_search_textbox = 'Y',
+       show_actions_menu = 'Y',
+       show_select_columns = 'N',
+       show_sort = 'N',
+       show_filter = 'Y',
+       show_control_break = 'Y',
+       show_highlight = 'Y',
+       show_computation = 'N',
+       show_aggregate = 'N',
+       show_chart = 'Y',
+       show_flashback = 'N',
+       show_reset = 'Y',
+       show_download = 'Y',
+       show_help = 'N'
+ WHERE flow_id = :app_id
+   AND page_id = :app_page_id -- Remove this predicate to push changes for all IRs
+</pre>
+
+<p>Update Interactive Report Columns:</p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/Si3Q8jhgbPI/AAAAAAAADpg/BuXPQH8UR80/s1600-h/24_ir_col_options.bmp" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/Si3Q8jhgbPI/AAAAAAAADpg/BuXPQH8UR80/s400/24_ir_col_options.bmp" alt=""></a></p>
+<pre class="brush: sql">
+UPDATE apex_030200.wwv_flow_worksheet_columns
+   SET allow_sorting = 'Y',
+       allow_filtering = 'N',
+       allow_ctrl_breaks = 'Y',
+       allow_aggregations = 'N',
+       allow_computations = 'Y',
+       allow_charting = 'Y'
+ WHERE flow_id = :app_id
+   AND page_id = :app_page_id;
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/06/quickly-modify-apex-interactive-report.html" data-id="cix70an0q000vbpn9pmpiis83" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/06/quickly-modify-apex-interactive-report.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-extend-apex-workspace-password" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/06/extend-apex-workspace-password.html" class="article-date">
+  <time datetime="2009-06-09T15:00:00.000Z" itemprop="datePublished">2009-06-09</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/06/extend-apex-workspace-password.html">Extend APEX Workspace Password</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Every so often when you log into the APEX development interface, it will require you to change your account password. This isn’t a bad idea, however if you develop in several workspaces, and have multiple accounts, it may be a bit cumbersome. You can extend the account password lifetime by doing the following:</p>
+<ul>
+<li>Login to the APEX Admin</li>
+<li>Home / Manage Service / Security</li>
+<li>Change the Account Password Lifetime (days) to whatever you need.</li>
+</ul>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Si3QI1QG_7I/AAAAAAAADpQ/4oa2ZyXsEvY/s1600-h/account_password_lifetime.bmp" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Si3QI1QG_7I/AAAAAAAADpQ/4oa2ZyXsEvY/s400/account_password_lifetime.bmp" alt=""></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/06/extend-apex-workspace-password.html" data-id="cix6zhoq3001i31n99cokinwt" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/06/extend-apex-workspace-password.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-displaying-percentage-bar-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/06/displaying-percentage-bar-in-apex.html" class="article-date">
+  <time datetime="2009-06-01T15:00:00.000Z" itemprop="datePublished">2009-06-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/06/displaying-percentage-bar-in-apex.html">Displaying Percentage Bar in APEX Reports</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>APEX can create “Percentage Bars” within a report. They’re probably a lot of 3rd party tools you can use for fancy percentage bars, however if you want a basic display to the user here’s a quick way to do it. Click <a href="http://apex.oracle.com/pls/otn/f?p=20195:1600" target="_blank" rel="external">here</a> for a demo.</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Sh9QMdwQ5PI/AAAAAAAADpI/cnJJTKr2r38/s1600-h/22_pct_bar.bmp" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Sh9QMdwQ5PI/AAAAAAAADpI/cnJJTKr2r38/s400/22_pct_bar.bmp" alt=""></a></p>
+<p><span style="font-weight: bold">1- Create your report</span><br><span style="font-style: italic">In this report we’re using the employees percentage of salary within their department</span></p>
+<pre class="brush: sql">
+SELECT e.ename,
+       e.job,
+       d.dname,
+       e.sal,
+       ROUND (e.sal / SUM (e.sal) OVER (PARTITION BY e.deptno) * 100, 0) pct_dep_sal, 
+       ROUND (e.sal / SUM (e.sal) OVER (PARTITION BY e.deptno) * 100, 0) bar
+  FROM emp e,
+       dept d
+ WHERE e.deptno = d.deptno
+</pre>
+
+<p><span style="font-weight: bold">2- Add Percentage Bar for the “bar” column</span></p>
+<ul>
+<li>In the Reports Attributes section, click on the “Bar” column attributes</li>
+<li>Under Number/Date formatting enter the following: PCT_GRAPH:330099:CC0000:100</li>
+</ul>
+<p><span style="font-style: italic">PCT_GRAPH:&lt;Hex background color&gt;:&lt;Hex foreground color&gt;:&lt;Bar width in pixels&gt;</span></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/06/displaying-percentage-bar-in-apex.html" data-id="cix70b5rm000xbpn9vyli3x4f" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/06/displaying-percentage-bar-in-apex.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apexutiljsonfromsql-no-rows-bug-fix" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/apexutiljsonfromsql-no-rows-bug-fix.html" class="article-date">
+  <time datetime="2009-05-26T15:00:00.000Z" itemprop="datePublished">2009-05-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/05/apexutiljsonfromsql-no-rows-bug-fix.html">APEX_UTIL.JSON_FROM_SQL No Rows Bug + Fix</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I ran into an issue yesterday using APEX_UTIL.JSON_FROM_SQL with a query that returned no rows. This function is used in AJAX calls to return the results of a query as a JSON object.</p>
+<p>To replicate this issue you can do the following in APEX:</p>
+<p><span style="font-weight: bold">1- Create an On Demand Application Process</span></p>
+<pre class="brush: sql">
+-- AP_JSON_TEST
+DECLARE
+  v_sql VARCHAR2 (4000);
+BEGIN
+  -- Note: This query is meant to return no rows
+  v_sql := 'SELECT ename FROM emp WHERE 1 = 2';
+
+  -- Print JSON result set
+  apex_util.json_from_sql (v_sql);
+END;
+</pre>
+
+<p><span style="font-weight: bold">2- Run the following JS code</span><span style="font-style:italic">(easiest using firebug)</span></p>
+<pre class="brush: js">
+  var get = new htmldb_Get(null,$v('pFlowId'),'APPLICATION_PROCESS=AP_TODO_DEL',$v('pFlowStepId'));  
+  vReturn = get.get(); 
+</pre>
+
+<p>At this point if you’re using FireBug you’ll notice that <span style="color:red">“sqlerrm:ORA-06502: PL/SQL: numeric or value error”</span> now appears in the console window.</p>
+<p>At first glance it appears that you have something wrong with your Application Process or with your query. After some digging around I finally realized that it’s a bug with APEX_UTIL.JSON_FROM_SQL. </p>
+<p>The good news is that it’s really easy to fix. All you need to do is catch any exceptions and return a JSON object with no rows:</p>
+<pre class="brush: sql">
+-- AP_JSON_TEST
+
+DECLARE
+  v_sql VARCHAR2 (4000);
+BEGIN
+  -- Note: This query is meant to return no rows
+  v_sql := 'SELECT ename FROM emp WHERE 1 = 2';
+  -- Print JSON result set
+  apex_util.json_from_sql (v_sql);
+
+-- *** FIX ***  
+EXCEPTION
+  WHEN OTHERS THEN
+    HTP.p ('{"row":[]}');
+END;
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/05/apexutiljsonfromsql-no-rows-bug-fix.html" data-id="cix70xkc6000zbpn9vnzgtz3u" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/05/apexutiljsonfromsql-no-rows-bug-fix.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apex-logs-storing-log-data" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/apex-logs-storing-log-data.html" class="article-date">
+  <time datetime="2009-05-25T15:00:00.000Z" itemprop="datePublished">2009-05-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/05/apex-logs-storing-log-data.html">APEX Logs: Storing Log Data</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>For those of you that use the APEX Logs you may not be aware that they store at best 4 weeks of data and at worst 2 weeks of data. They’re actually 2 log tables, each one gets purged roughly every 2 weeks. For those of you who don’t know about or use the APEX logs I suggest you read up on this.</p>
+<p>You can get a list of the APEX logs by running the following query:</p>
+<pre class="brush: sql">
+SELECT *
+  FROM apex_dictionary
+ WHERE column_id = 0
+   AND apex_view_name LIKE '%LOG%'
+</pre>
+
+<p>I strongly recommend that you explicitly store the log data into your own tables. I’ve encountered several instances where the APEX Logs have helped get me out of some sticky situations. It can also help you get some usage stats and page stats.</p>
+<p>Here’s how to keep a copy of the APEX log tables:</p>
+<p><span style="font-style:italic; color:red">Note: You’ll need to run this in each of your schemas that you have APEX applications in since the APEX Log Views only display application information who’s parsing schema matches the current Oracle user</span></p>
+<p><span style="font-weight:bold;">1- Create the APEX log tables</span></p>
+<pre class="brush: sql">
+-- Login information
+CREATE TABLE tapex_workspace_access_log
+AS SELECT * FROM apex_workspace_access_log;
+
+-- Page access information
+CREATE TABLE tapex_workspace_activity_log
+AS SELECT * FROM apex_workspace_activity_log;
+</pre>
+
+<p><span style="font-weight:bold;">2- Update the APEX log tables</span></p>
+<p><span style="font-style:italic;">Note: You may want to store this in a procedure and run as a nightly scheduled job so you don’t forget to update the tables</span></p>
+<pre class="brush: sql">
+INSERT INTO tapex_workspace_access_log
+            (workspace, application_id, application_name, user_name, authentication_method, application_schema_owner,
+             access_date, ip_address, authentication_result, custom_status_text, workspace_id)
+  SELECT alog.workspace,
+         alog.application_id,
+         alog.application_name,
+         alog.user_name,
+         alog.authentication_method,
+         alog.application_schema_owner,
+         alog.access_date,
+         alog.ip_address,
+         alog.authentication_result,
+         alog.custom_status_text,
+         alog.workspace_id
+    FROM apex_workspace_access_log alog,
+         tapex_workspace_access_log x
+   WHERE alog.access_date = x.access_date(+)
+     AND x.ROWID IS NULL
+     AND alog.application_schema_owner = USER;
+
+INSERT INTO tapex_workspace_activity_log
+            (workspace, apex_user, application_id, application_name, application_schema_owner, page_id, page_name,
+             view_date, think_time, log_context, elapsed_time, rows_queried, ip_address, AGENT, apex_session_id,
+             error_message, error_on_component_type, error_on_component_name, page_view_mode, regions_from_cache,
+             workspace_id)
+  SELECT alog.workspace,
+         alog.apex_user,
+         alog.application_id,
+         alog.application_name,
+         alog.application_schema_owner,
+         alog.page_id,
+         alog.page_name,
+         alog.view_date,
+         alog.think_time,
+         alog.log_context,
+         alog.elapsed_time,
+         alog.rows_queried,
+         alog.ip_address,
+         alog.AGENT,
+         alog.apex_session_id,
+         alog.error_message,
+         alog.error_on_component_type,
+         alog.error_on_component_name,
+         alog.page_view_mode,
+         alog.regions_from_cache,
+         alog.workspace_id
+    FROM apex_workspace_activity_log alog,
+         tapex_workspace_activity_log x
+   WHERE alog.view_date = x.view_date(+)
+     AND alog.apex_session_id = x.apex_session_id(+)
+     AND alog.application_schema_owner = USER
+     AND x.ROWID IS NULL;
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/05/apex-logs-storing-log-data.html" data-id="cix6zhoq1001g31n9i9a0ngx4" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/05/apex-logs-storing-log-data.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-presenting-at-coug-calgary-oracle-user" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/presenting-at-coug-calgary-oracle-user.html" class="article-date">
+  <time datetime="2009-05-25T03:02:00.000Z" itemprop="datePublished">2009-05-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/05/presenting-at-coug-calgary-oracle-user.html">Presenting at COUG (Calgary Oracle User Group) this week</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://www.coug.ab.ca/events/20090528.htm" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Se0s5CljYQI/AAAAAAAADoQ/Jee6bufuoSQ/s400/coug.jpg" alt=""></a></p>
+<p>Frank Hoogendoorn and I will be giving a presentation on APEX at the Calgary Oracle User Group (COUG) on this Thursday, May 28th, at 8:00 am. For those of you that are thinking about implementing APEX within your organization this will be an excellent presentation as we will go over both the business and technical reasons why we are using APEX. We’ll also be demonstrating some of our newest APEX applications</p>
+<p>Thursday, May 28th<br>Registration: 8:00 am<br>Presentation: 8:30 am</p>
+<p><a href="http://maps.google.ca/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=150+6+Avenue+SW,+calgary&amp;sll=51.048679,-114.064028&amp;sspn=0.007622,0.022745&amp;ie=UTF8&amp;ll=51.047923,-114.064071&amp;spn=0.007622,0.022745&amp;z=16&amp;iwloc=A" target="_blank" rel="external">PetroCanada Building - West Tower</a><br>150 6th Avenue S.W.<br>17th Floor, Meeting room B/C </p>
+<p>For more information, please go to: <a href="http://www.coug.ab.ca/events/20090528.htm" target="_blank" rel="external">http://www.coug.ab.ca/events/20090528.htm</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/05/presenting-at-coug-calgary-oracle-user.html" data-id="cix70yg1z0011bpn9309w7zki" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/05/presenting-at-coug-calgary-oracle-user.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-determine-if-user-can-view-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/how-to-determine-if-user-can-view-apex.html" class="article-date">
+  <time datetime="2009-05-21T13:30:00.000Z" itemprop="datePublished">2009-05-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/05/how-to-determine-if-user-can-view-apex.html">How to determine if user can view an APEX region.</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><span style="font-style:italic">If you just want to see how to determine if user is allowed to view a region scroll to bottom of this post, however I suggest you read the explanation as to why/when you may want to use this function</span></p>
+<p>I recently received a request to build an internal application to generate many reports for one of the teams in my organization. At a high level, the application is supposed to have (it’s still not built) several “Report Result” pages. Each Report Result page will contain 10 to 15 reports. Their will be a menu page in which end users can select the Report Result page they’d like to run, and the individual reports they want to run on that page: </p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/ShTbH_xs65I/AAAAAAAADpA/VWfpxtTCg_A/s1600-h/_16_screen_shot.bmp" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/ShTbH_xs65I/AAAAAAAADpA/VWfpxtTCg_A/s400/_16_screen_shot.bmp" alt=""></a></p>
+<p>Query for Checkboxes:</p>
+<pre class="brush: sql">
+SELECT region_name d,
+       region_id r
+  FROM apex_application_page_regions
+ WHERE application_id = 103
+   AND page_id = 2
+ORDER BY UPPER (d) ASC   
+</pre>
+
+<p>When users click “Go”, they will go to the selected “Report Result” page and execute the selected reports.</p>
+<p>So far this is fairly straight forward (using the <a href="http://apex-smb.blogspot.com/2008/11/how-to-list-apex-dictionary-views-using.html" target="_blank" rel="external">APEX Dictionary</a> to help out). To make things more difficult, certain reports should only be accessible depending on the parsing schema. For example if the parsing schema is “SCOTT” then Report/Region 2 should not be displayed. </p>
+<p>To meet this requirement I can add a condition (SQL Exists) to the Report 2 region on Page 2:</p>
+<pre class="brush: sql">
+SELECT 1
+  FROM DUAL
+ WHERE :p2_region_static_id_list IS NULL
+    OR (    :f_parsing_schema != 'SCOTT' -- F_PARSING_SCHEMA is an application_item I added
+        AND INSTR (':' || 'REPORT2' || ':', :p2_region_static_id_list) > 0)
+    -- "REPORT2" is the Region's Static ID
+</pre>    
+
+<p>When I run Page 2, Reports 1, 3, and 4 are executed which is correct. However, on the menu page the user had the option to select Report 2 when they should have never been allowed to see it in the check list since the parsing schema was SCOTT. </p>
+<p>To resolve this issue, I’ve created the following function to determine if a user can view a specified region:</p>
+<pre class="brush: sql">
+/**
+ * Determine if current user has permissions to view region
+ * @param p_region_id region to test
+ * @return Y or N
+ * @author Martin Giffy DSouza - http://apex-smb.blogspot.com/
+ */
+
+CREATE OR REPLACE FUNCTION f_apex_permission_flag (
+  p_region_id IN apex_application_page_regions.region_id%TYPE
+)
+  RETURN VARCHAR2
+AS
+  TYPE v_apex_region_rec_type IS RECORD (
+    page_authorization_scheme apex_application_page_regions.authorization_scheme%TYPE,
+    page_build_option_status apex_application_build_options.build_option_status%TYPE,
+    reg_authorization_scheme apex_application_page_regions.authorization_scheme%TYPE,
+    reg_build_option_status apex_application_build_options.build_option_status%TYPE,
+    reg_condition_expression1 apex_application_page_regions.condition_expression1%TYPE,
+    reg_condition_expression2 apex_application_page_regions.condition_expression2%TYPE,
+    reg_condition_type apex_standard_conditions.d%TYPE
+  );
+
+  v_apex_region v_apex_region_rec_type;
+BEGIN
+  -- If region is null return N to access
+  IF p_region_id IS NULL THEN
+    RETURN 'N';
+  END IF;
+
+  SELECT aap.authorization_scheme page_authorization_scheme,
+         aap_bo.build_option_status page_build_option_status,
+         aapr.authorization_scheme reg_authorization_scheme,
+         aapr_bo.build_option_status reg_build_option_status,
+         aapr.condition_expression1 reg_condition_expression1,
+         aapr.condition_expression2 reg_condition_expression2,
+         asc_reg.d reg_condition_type
+    INTO v_apex_region
+    FROM apex_application_pages aap,
+         apex_application_build_options aap_bo,
+         apex_application_build_options aapr_bo,
+         apex_application_page_regions aapr,
+         apex_standard_conditions asc_reg
+   WHERE aapr.region_id = p_region_id
+     AND aapr.page_id = aap.page_id
+     AND aapr.application_id = aap.application_id
+     AND UPPER (aap.build_option) = UPPER (aap_bo.build_option_name(+))
+     AND aapr.build_option_id = aapr_bo.build_option_id(+)
+     AND aapr.condition_type = asc_reg.r(+);
+
+  -- PAGE VALIDATIONS
+  -- Check Page Build Option
+  IF UPPER (NVL (v_apex_region.page_build_option_status, 'INCLUDE')) != 'INCLUDE' THEN
+    RETURN 'N';
+  END IF;
+
+  -- Check Page Authorization
+  IF v_apex_region.page_authorization_scheme IS NOT NULL THEN
+    IF apex_util.public_check_authorization (p_security_scheme => v_apex_region.page_authorization_scheme) = FALSE THEN
+      RETURN 'N';
+    END IF;
+  END IF;
+
+  -- REGION VALIDATIONS
+
+  -- Check Region Build Option
+  IF UPPER (NVL (v_apex_region.reg_build_option_status, 'INCLUDE')) != 'INCLUDE' THEN
+    RETURN 'N';
+  END IF;
+
+  -- Check Region Authorization
+  IF v_apex_region.reg_authorization_scheme IS NOT NULL THEN
+    IF apex_util.public_check_authorization (p_security_scheme => v_apex_region.reg_authorization_scheme) = FALSE THEN
+      RETURN 'N';
+    END IF;
+  END IF;
+
+  -- Check the region condition
+  IF v_apex_region.reg_condition_type IS NOT NULL THEN
+    IF wwv_flow_conditions.standard_condition (p_condition_type     => v_apex_region.reg_condition_type,
+                                               p_condition          => v_apex_region.reg_condition_expression1,
+                                               p_condition2         => v_apex_region.reg_condition_expression1
+                                              ) = FALSE THEN
+      RETURN 'N';
+    END IF;
+  END IF;
+
+  -- All test passed
+  RETURN 'Y';
+END f_apex_permission_flag;
+</pre>
+
+<p>Using the new function, the Checkbox Query (on Page 1) now becomes:</p>
+<pre class="brush: sql">
+SELECT   region_name d,
+         region_id r
+    FROM (SELECT region_id,
+                 region_name,
+                 f_apex_permission_flag (region_id) permission_flag
+            FROM apex_application_page_regions
+           WHERE application_id = 103
+             AND page_id = 2) x
+   WHERE x.permission_flag = 'Y'
+ORDER BY UPPER (d) ASC
+</pre>
+
+<p><span style="font-style:italic; color:red;">A word of precaution: If you’re using this function to verify region access on another page you should be aware of how the condition is defined. If it is referencing items specific to its own page then you may get some false positives as those items may not have been defined yet.</span></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/05/how-to-determine-if-user-can-view-apex.html" data-id="cix70ymrb0013bpn9o1wnhh4u" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/05/how-to-determine-if-user-can-view-apex.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apex-page-access-protection-and-session" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/apex-page-access-protection-and-session.html" class="article-date">
+  <time datetime="2009-05-18T15:10:00.000Z" itemprop="datePublished">2009-05-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/05/apex-page-access-protection-and-session.html">APEX: Page Access Protection and Session State Protection</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>APEX’s Page Access Protection (PAP - For Pages) and Session State Protection (SSP - For Items) are excellent security tools to help prevent users from altering session values. What some people may not be aware of is that if you enable PAP for page it does not prevent users from altering the session state of items on that page. All it does is require that any items passed through that page via the URL require a checksum. Malicious users can still alter the item’s session state using AJAX or from other pages. Long story short, if you want to lock your application down you need to enable SSP for all required items.</p>
+<p>APEX has a great tool to do this quickly for you rather than having to go into each page item. Shared Components / Session State Protection / Page / (click page number). You can now set the PAP and the SSP for all the page items.</p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/ShF6mp-aqQI/AAAAAAAADo4/HkfdHpHv5AY/s1600-h/_17_PAP_SSP.bmp" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/ShF6mp-aqQI/AAAAAAAADo4/HkfdHpHv5AY/s400/_17_PAP_SSP.bmp" alt=""></a></p>
+<p>If you do use PAP and SSP the following queries will help you do some quick validations to ensure all your security checks are in place</p>
+<p><span style="font-weight:bold;">Pages without Page Access Protection</span></p>
+<pre class="brush: sql">
+SELECT aap.application_id,
+       aap.application_name,
+       aap.page_id,
+       aap.page_name
+  FROM apex_application_pages aap
+ WHERE LOWER (aap.page_access_protection) = 'unrestricted'
+   AND aap.application_id = :app_id
+</pre>
+
+<p><span style="font-weight:bold;">Page items without Session State Protection</span></p>
+<pre class="brush: sql">
+SELECT aapi.application_id,
+       aapi.application_name,
+       aapi.page_id,
+       aapi.page_name,
+       aapi.item_name
+  FROM apex_application_page_items aapi
+ WHERE aapi.application_id = :app_id
+   AND LOWER (aapi.item_protection_level) = 'unrestricted'
+</pre>
+
+<p><span style="font-weight:bold;">Pages which have Page Access Protection, but have page items with no Session State Protection</span></p>
+<p><span style="font-style:italic;color:red">This query helps identify pages which you think are locked down, but end users could set the session state of item values</span></p>
+<pre class="brush: sql">
+SELECT aapi.application_id,
+       aapi.application_name,
+       aapi.page_id,
+       aapi.page_name,
+       aapi.item_name
+  FROM apex_application_pages aap,
+       apex_application_page_items aapi
+ WHERE LOWER (aap.page_access_protection) != 'unrestricted'
+   AND aap.application_id = :app_id
+   AND aapi.application_id = aap.application_id
+   AND aap.page_id = aapi.page_id
+   AND LOWER (aapi.item_protection_level) = 'unrestricted'
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/05/apex-page-access-protection-and-session.html" data-id="cix70yy4z0017bpn9fs5gh73v" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/05/apex-page-access-protection-and-session.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-enhancing-apex-security-explanation" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/enhancing-apex-security-explanation.html" class="article-date">
+  <time datetime="2009-05-14T14:16:00.000Z" itemprop="datePublished">2009-05-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/05/enhancing-apex-security-explanation.html">Enhancing APEX Security - Explanation</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I recently posted an entry called <a href="http://apex-smb.blogspot.com/2009/05/enhancing-apex-security.html" target="_blank" rel="external">Enhancing APEX Security</a>. I may have jumped the gun and not given a full explanation as to what problem this was trying to solving and the logic behind this solution. Here’s the full explanation to the problem and a high level overview of the proposed solution.</p>
+<p>In APEX, Session State Protection (SSP) can help secure your applications by preventing users to set session state value of items. Developers should be aware that it has 2 issues regarding it. First, it prevents items from being set using AJAX. If I try to set using AJAX I get the following error (using Firebug):</p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/SgwoKsULsHI/AAAAAAAADog/9ZSr7t3nPbw/s1600-h/_15_folloup_1.bmp" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/SgwoKsULsHI/AAAAAAAADog/9ZSr7t3nPbw/s400/_15_folloup_1.bmp" alt=""></a></p>
+<p>Second, when a user is on a page, they can alter the value before it is submitted to try to access data they aren’t allowed to. For example, let’s say users are only allowed to see information about people within their own department. So my LOV is something like:</p>
+<pre class="brush: sql">
+SELECT e.ename d,
+       e.empno r
+  FROM emp e
+WHERE job = 'CLERK'
+</pre>
+
+<p>Using Firebug I can see that this is what my option list looks like</p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/Sgwoe5C-a5I/AAAAAAAADoo/ujojjsZow68/s1600-h/_15_followup_2.bmp" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/Sgwoe5C-a5I/AAAAAAAADoo/ujojjsZow68/s400/_15_followup_2.bmp" alt=""></a></p>
+<p>Now what if I were to modify the select list and change the value for “SMITH” from 7369 to 7839 (This is “KING” / President) then submit the page? It still works and sets the value in session state:</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/SgwomQs7-1I/AAAAAAAADow/j87nrZ3affs/s1600-h/_15_followup_3.bmp" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/SgwomQs7-1I/AAAAAAAADow/j87nrZ3affs/s400/_15_followup_3.bmp" alt=""></a></p>
+<p>Notice how the value in session is set to 7839, which we really shouldn’t have access to? If you’re not careful in your application this can lead to serious security holes.</p>
+<p>Now on to the proposed solution. When you have a Select List, use a hashed value for the IDs so that users can’t alter the select list values (well they can but they’ll require the hash value as well). Instead of P1_EMPNO being a select list, set it as a Hidden and Protected item and enable SSP for it. This allows your application to still reference P1_EMPNO as it normally would. Create a new item, P1_EMPNO_SEC, which will be a select list with the altered LOV code (i.e. the return value has a hash associated to it). So if the value is 7369, it will actually be 7369@J92388502378540C (i.e. VALUE[DELIMITER][HASH]). The code (in my <a href="http://apex-smb.blogspot.com/2009/05/enhancing-apex-security.html" target="_blank" rel="external">example</a>) handles the rest so that when a user submits a page, it will take the submitted value from the secure item and then set the “regular” item with the unhashed value. If someone were to try to alter the select list, they’d be unsuccessful since the unhashing method returns NULL when an invalid hash value is present.</p>
+<p>The reason why I create 2 items is I don’t want to have to alter any existing code. So all code referencing P1_EMPNO will remain the same. If users need to pass P1_EMPNO in via the URL they can (provided they pass in the checksum since it has SSP enabled).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/05/enhancing-apex-security-explanation.html" data-id="cix6zhopv001631n97ig7l6hp" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/05/enhancing-apex-security-explanation.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-enhancing-apex-security" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/enhancing-apex-security.html" class="article-date">
+  <time datetime="2009-05-11T13:27:00.000Z" itemprop="datePublished">2009-05-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/05/enhancing-apex-security.html">Enhancing APEX Security</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><span style="font-style:italic;color:red;">Note: Full explanation available <a href="http://apex-smb.blogspot.com/2009/05/enhancing-apex-security-explanation.html" target="_blank" rel="external">here</a>. Please read before continuing with this post.</span></p>
+<p>The best way to secure data in your APEX application, or any application, is to secure your data in the database. You can do this using Oracle’s Virtual Private Database (VPD), also known as Fine Grained Access Control (FGAC). APEX also has Session State Protection (SSP) which helps prevent front-end modification of data by preventing URL tampering.</p>
+<p>I’m a big advocate of using both VPD and SSP. In some situations VPD may not be implemented for various reasons so developers must rely on SSP. SSP is great and allows developers to quickly and easily help prevent malicious users from trying to access data that they aren’t supposed to. It’s important to note that SSP only prevents URL tampering. If users wanted to alter data on a form they could easily do that with Firebug (I won’t go into that in this post). SSP also prevents users from setting values using AJAX. This can be circumvented using the “x01” .. “x10” parameters (please see Carl’s <a href="http://carlback.blogspot.com/2008/03/new-stuff-2-x01-and-friends.html" target="_blank" rel="external">post</a> for more info) but still leaves the door open for users to alter items in session state that they shouldn’t.</p>
+<p>How can you use SSP, make AJAX calls, and ensure that users aren’t altering data on a form? This question has been bugging me for a while and I think I’ve come up with a solution that should work with minimal changes to existing code. For this example I’m going to use a select list containing a list of IDs (this is where the issue has come up the most for me). I’ll use the emp table, with empno as the id, for this example.</p>
+<p>Some notation before we begin: “Secure” items (i.e. ones that have a hashed value appended to them) will be called PX_ITEM_NAME_SEC while it’s corresponding unsecured item is called PX_ITEM_NAME. The code only looks at “secure” items that have a matching “unsecured” item. “Unsecure” items are really items that are Hidden and Protected so they have a checksum associated to them.</p>
+<p>The demo can be found <a href="http://apex.oracle.com/pls/otn/f?p=20195:1500" target="_blank" rel="external">here</a></p>
+<p><span style="font-weight:bold;">Step 1- Compile Package</span></p>
+<p><span style="font-style:italic">Since I don’t have access to DMBS_CRYPTO on apex.oracle.com I’ve used a dummy encryption method.</span> You’ll need to grant execute on DBMS_CRYPTO from SYS:</p>
+<pre class="brush: sql">
+GRANT EXECUTE ON DBMS_CRYPTO TO giffy; -- Where "giffy" is your schema name
+</pre>
+
+<p>Compile the following code in your schema </p>
+<p><span style="font-style:italic;">pkg_apex_sec.pks</span></p>
+<pre class="brush: sql">
+CREATE OR REPLACE PACKAGE pkg_apex_sec
+AS
+  /**
+   * Returns secure value
+   * @param p_value
+   * @return
+   */
+  FUNCTION f_get_sec_val (
+    p_value IN VARCHAR2
+  )
+    RETURN VARCHAR2;
+
+  /**
+   * Checks if secured value is valid
+   * @param p_hashed_val (case sensitive
+   * @return 'Y' or 'N'
+   */
+  FUNCTION is_valid_hashed_val (
+    p_hash IN VARCHAR2
+  )
+    RETURN VARCHAR2;
+
+  /**
+   * unsecure value given the hash
+   * @param p_hash
+   * @return unsecure number
+   */
+  FUNCTION f_get_val (
+    p_hash IN VARCHAR2
+  )
+    RETURN VARCHAR2;
+
+   /**
+  * Sets unsec values in the page given the secure values
+  * @param p_page_id Page ID to set. Default current page
+  */
+  PROCEDURE sp_set_page_unsec_values (
+    p_page_id IN apex_application_pages.page_id%TYPE DEFAULT v ('APP_PAGE_ID')
+  );
+
+  /**
+   * Set all the secure values given the unsecure values
+   * @param p_page_id Page ID. Default current page
+   */
+  PROCEDURE sp_set_page_sec_values (
+    p_page_id IN apex_application_pages.page_id%TYPE DEFAULT v ('APP_PAGE_ID')
+  );
+END pkg_apex_sec;
+</pre>
+
+<p><span style="font-style:italic;">pkg_apex_sec.pkb</span></p>
+<pre class="brush: sql">
+CREATE OR REPLACE PACKAGE BODY pkg_apex_sec
+AS
+  -- Constants
+  gc_delim CONSTANT VARCHAR2 (1) := '@';
+
+/**
+ * Returns hashed value
+ * May require sys to grant access to dbms_crypto
+ *  - GRANT EXECUTE ON DBMS_CRYPTO TO <schema>;
+ * @param p_source
+ * @param p_key
+ * @return hashed value
+ */
+  FUNCTION f_get_md5 (
+    p_source IN VARCHAR2,
+    p_key IN VARCHAR2
+  )
+    RETURN VARCHAR2
+  IS
+    v_key VARCHAR2 (4000) := p_key;
+  BEGIN
+    -- Normally your key should be different from the source. (this is up to you to maintain)
+    -- For simplicity this function will see if they are the same. If so we'll append the app_id
+    IF p_source = p_key THEN
+      v_key := p_key || v ('APP_ID');
+    END IF;
+
+    -- Can't use DBMS_CRYPTO in apex.oracle.com. Using generic coding
+    -- RETURN DBMS_CRYPTO.mac (src => UTL_RAW.cast_to_raw (p_source), typ => 2, KEY => UTL_RAW.cast_to_raw (v_key));
+    RETURN p_source || p_key || 123;                                                                     -- DELETE THIS.
+  END f_get_md5;
+
+/**
+ * Returns secure value
+ * @param p_value
+ * @return
+ */
+  FUNCTION f_get_sec_val (
+    p_value IN VARCHAR2
+  )
+    RETURN VARCHAR2
+  AS
+  BEGIN
+    -- For the Key value I'm arbitrarily appending the app id. You should change this to something that is secure to your code.
+    -- You can add :app_session as well, provided you're not using session 0 or external links (ie. from emails etc)
+    RETURN p_value || gc_delim || f_get_md5 (p_source => p_value, p_key => p_value || v ('APP_ID'));
+  END f_get_sec_val;
+
+  /**
+   * Checks if secured value is valid
+   * @param p_hashed_val (case sensitive
+   * @return 'Y' or 'N'
+   */
+  FUNCTION is_valid_hashed_val (
+    p_hash IN VARCHAR2
+  )
+    RETURN VARCHAR2
+  AS
+    v_value VARCHAR2 (4000);
+  BEGIN
+    v_value := REPLACE (REGEXP_SUBSTR (p_hash, '^[[:print:]]+' || gc_delim), gc_delim);
+
+    IF p_hash = f_get_sec_val (p_value => v_value) THEN
+      RETURN 'Y';
+    ELSE
+      RETURN 'N';
+    END IF;
+  EXCEPTION
+    WHEN OTHERS THEN
+      RETURN 'N';
+  END is_valid_hashed_val;
+
+  /**
+   * unsecure value given the hash
+   * @param p_hash
+   * @return unsecure number
+   */
+  FUNCTION f_get_val (
+    p_hash IN VARCHAR2
+  )
+    RETURN VARCHAR2
+  AS
+  BEGIN
+    IF is_valid_hashed_val (p_hash => p_hash) = 'N' THEN
+      RETURN NULL;
+    END IF;
+
+    RETURN (REPLACE (REGEXP_SUBSTR (p_hash, '^[[:print:]]+' || gc_delim), gc_delim));
+  EXCEPTION
+    WHEN OTHERS THEN
+      RETURN NULL;
+  END f_get_val;
+
+  /**
+   * Sets unsec values in the page given the secure values
+   * @param p_page_id Page ID to set. Default current page
+   */
+  PROCEDURE sp_set_page_unsec_values (
+    p_page_id IN apex_application_pages.page_id%TYPE DEFAULT v ('APP_PAGE_ID')
+  )
+  AS
+    v_app_id apex_applications.application_id%TYPE := v ('APP_ID');
+  BEGIN
+    BEGIN
+      -- Set all the unsecure values from the secure values
+      FOR x IN (SELECT a1.item_name item_name_sec,
+                       a2.item_name
+                  FROM apex_application_page_items a1,
+                       apex_application_page_items a2
+                 WHERE a1.application_id = v_app_id
+                   AND a1.page_id = p_page_id
+                   AND a1.item_name LIKE '%_SEC'
+                   -- Find corresponding item name
+                   AND a2.application_id = a1.application_id
+                   AND a2.page_id = a1.page_id
+                   AND RTRIM (a1.item_name, '_SEC') = a2.item_name) LOOP
+        apex_util.set_session_state (x.item_name, pkg_apex_sec.f_get_val (v (x.item_name_sec)));
+      END LOOP;
+    END;
+  END sp_set_page_unsec_values;
+
+  /**
+   * Set all the secure values given the unsecure values
+   * @param p_page_id Page ID. Default current page
+   */
+  PROCEDURE sp_set_page_sec_values (
+    p_page_id IN apex_application_pages.page_id%TYPE DEFAULT v ('APP_PAGE_ID')
+  )
+  AS
+    v_app_id apex_applications.application_id%TYPE := v ('APP_ID');
+  BEGIN
+    -- Set all the secure values from the secure values
+    FOR x IN (SELECT a1.item_name item_name_sec,
+                     a2.item_name
+                FROM apex_application_page_items a1,
+                     apex_application_page_items a2
+               WHERE a1.application_id = v_app_id
+                 AND a1.page_id = p_page_id
+                 AND a1.item_name LIKE '%_SEC'
+                 -- Find corresponding item name
+                 AND a2.application_id = a1.application_id
+                 AND a2.page_id = a1.page_id
+                 AND RTRIM (a1.item_name, '_SEC') = a2.item_name) LOOP
+      IF v (x.item_name) IS NOT NULL THEN
+        apex_util.set_session_state (x.item_name_sec, pkg_apex_sec.f_get_sec_val (v (x.item_name)));
+      END IF;
+    END LOOP;
+  END sp_set_page_sec_values;
+END pkg_apex_sec;
+</schema></pre>
+
+<p><span style="font-weight:bold;">Step 2- Create Application Processes</span></p>
+<p>Create Application Processes (On Load Before Header) called: AP_SET_SEC_PAGE_ITEMS. This will allow you to pass IDs in the URL as you normally would.</p>
+<pre class="brush: sql">
+BEGIN
+  pkg_apex_sec.sp_set_page_sec_values;
+END;
+</pre>
+
+<p>Create Application Processes (On Submit and Before Computation ) called: AP_SET_UNSEC_PAGE_ITEMS</p>
+<pre class="brush: sql">
+BEGIN
+  pkg_apex_sec.sp_set_page_unsec_values;
+END;
+</pre>
+
+<p>Create Application Process (On Demand) called AP_NULL to set values in session (using AJAX).</p>
+<pre class="brush: sql">
+BEGIN
+  pkg_apex_sec.sp_set_page_unsec_values; -- Update the unsec values from secure values for the current page
+  NULL;
+END;
+</pre>
+
+<p><span style="font-weight:bold;">Step 3 - Create page with Interactive Report (IR)</span></p>
+<pre class="brush: sql">
+SELECT *
+  FROM emp
+ WHERE empno = NVL (:p1500_empno, empno)
+</pre>
+
+<p><span style="font-weight:bold;">Step 4 - Create “Secure” Id LOV and a “Hidden and Protected” unsecured fields</span></p>
+<p>Create P1500_EMPNO as Hidden and Protected. It’s extremely important that you make the field Hidden and Protected so users can’t alter the value in the form.<br>Create P1500_EMPNO_SEC as a Select List. LOV:</p>
+<p>Instead of:</p>
+<pre class="brush: sql">
+SELECT e.ename d,
+       e.empno r
+  FROM emp e
+</pre>  
+
+<p>Use: </p>
+<pre class="brush: sql">
+SELECT e.ename d,
+       pkg_apex_sec.f_get_sec_val (e.empno) r
+  FROM emp e
+</pre>  
+
+<p><span style="font-style:italic;color:red">Besides adding the application processes etc, this is the only significant change that you’ll need to make to your application</span></p>
+<p>At this point your application is good to go. Steps 5 and 6 are included only for demonstration purposes.</p>
+<p><span style="font-weight:bold;">Step 5 - JavaScript</span><br>This JavaScript will be used to simulate the onChange event for a select list</p>
+<pre class="brush: js">
+function onLovChange(pThisId){
+  var get = new htmldb_Get(null,$v('pFlowId'),'APPLICATION_PROCESS=AP_NULL',$v('pFlowStepId'));  
+  get.add(pThisId, $v(pThisId));
+  vReturn = get.get();  
+}
+</pre>
+
+<p><span style="font-weight:bold;">Step 6 - Button </span><br>Create a Submit button that will submit and branch to the same page. This will demonstrate a “normal” submit process<br>Create a button called “AJAX”. URL = javascript:onLovChange(‘P1500_EMPNO_SEC’);</p>
+<p>I haven’t used this in production yet so their may be some changes that I add to the code. If you have any feedback please leave a comment.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/2009/05/enhancing-apex-security.html" data-id="cix6zhopy001a31n9rqcqkxlo" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/2009/05/enhancing-apex-security.html#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+  <nav id="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/21/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><span class="page-number current">22</span><a class="page-number" href="/page/23/">23</a><a class="page-number" href="/page/24/">24</a><a class="extend next" rel="next" href="/page/23/">Next &raquo;</a>
+  </nav>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="OraOpenSource.com">TODO RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">APEX</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">APEX 5</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">APEX PLUGIN</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apexposed/">APEXPOSED</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytic-functions/">Analytic Functions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/">Analytics</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">CSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">Checkbox</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">Dynamic Actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">IoT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jobs/">JOBS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">JavaScript</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">KSCOPE</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaleidoscope/">Kaleidoscope</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mockups/">MOCKUPS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">ODTUG</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">OOW</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">ORACLE</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a><span class="tag-list-count">54</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-xe/">ORACLE XE</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os-x/">OS X</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oraopensource/">OraOpenSource</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pl-sql/">PL/SQL</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podcast/">Podcast</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">SQLcl</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">Tabular Form</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virtualbox/">VIRTUALBOX</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vpd/">VPD</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wireframe/">WIREFRAME</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-stackexchange-com/">apex.stackexchange.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console/">console</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console-wrapper/">console wrapper</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo/">demo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo-talkapex-com/">demo.talkapex.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery-ui/">jQUERY UI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/orclapex-yyc/">orclapex-yyc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/twitter/">twitter</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/count.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>

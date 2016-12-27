@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>APEX and the HTML Form | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="This is the second post in a multi-part series on how APEX submits and processes input elements from your browser to the server. The goal is to understand the effects of moving elements around the pag">
+<meta property="og:type" content="article">
+<meta property="og:title" content="APEX and the HTML Form">
+<meta property="og:url" content="https://www.talkapex.com/blog/2015/07/28/apex-and-the-html-form/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="This is the second post in a multi-part series on how APEX submits and processes input elements from your browser to the server. The goal is to understand the effects of moving elements around the pag">
+<meta property="og:image" content="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s320/Snip20150724_7.png">
+<meta property="og:updated_time" content="2016-12-26T04:24:25.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="APEX and the HTML Form">
+<meta name="twitter:description" content="This is the second post in a multi-part series on how APEX submits and processes input elements from your browser to the server. The goal is to understand the effects of moving elements around the pag">
+<meta name="twitter:image" content="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s320/Snip20150724_7.png">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">TODO</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+          <a class="main-nav-link" href="/about">About</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-apex-and-the-html-form" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/blog/2015/07/28/apex-and-the-html-form/" class="article-date">
+  <time datetime="2015-07-28T12:30:00.000Z" itemprop="datePublished">2015-07-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      APEX and the HTML Form
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>This is the second post in a multi-part series on how APEX submits and processes input elements from your browser to the server. The goal is to understand the effects of moving elements around the page.&nbsp;__It is important to read these articles in the following order.</em><br><em><br>__-&nbsp;<a href="http://www.talkapex.com/2015/07/back-to-basics-html-form.html">Back to Basics</a></em><br><em>-&nbsp;<a href="http://www.talkapex.com/2015/07/apex-and-html-form.html">APEX and the HTML Form</a></em><br><em>-&nbsp;<a href="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted.html">APEX and the Order Items are Submitted</a></em><br>-&nbsp;<a href="http://hardlikesoftware.com/weblog/2015/07/30/apex-item-submission/" target="_blank" rel="external"><em>Why does APEX do this? (by John Snyders)</em></a></p>
+<p>The goal of this article is to highlight how APEX actually processes the data that is sent data from the browser to the server when a submit button is pressed.</p>
+<p>Suppose you have a simple page with two elements: <span style="font-family: Courier New, Courier, monospace;">P1_FIRST_NAME</span> and <span style="font-family: Courier New, Courier, monospace;">P1_LAST_NAME</span> as shown below:</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s1600/Snip20150724_7.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s320/Snip20150724_7.png" alt=""></a></div><div class="separator" style="clear: both; text-align: center;"><br></div>Stripping out a lot code, the underlying HTML code for this page looks like:</p>
+<p><pre class="brush: html;"><form action="wwv_flow.accept" id="wwvFlowForm" method="post" name="wwv_flow"></form></pre></p>
+<p><input name="p_arg_names" type="hidden" value="32629789701858906"><br>  <input id="P1_FIRST_NAME" name="p_t01" type="text" value=""></p>
+<p>  <input name="p_arg_names" type="hidden" value="32629863123858907"><br>  <input id="P1_LAST_NAME" name="p_t02" type="text" value=""><br><br>You’ll notice that despite their being four input elements they’re really only three unique sets of names that are used:&nbsp;<span style="font-family: Courier New, Courier, monospace;">p_arg_names, p_t01,</span> and&nbsp;<span style="font-family: Courier New, Courier, monospace;">p_t02</span>. &nbsp;When the page is submitted the web server (APEX) will get/processes the following elements:</p>
+<p><span style="font-family: Courier New, Courier, monospace;">p_arg_names[1] =&nbsp;32629789701858906</span><br><span style="font-family: Courier New, Courier, monospace;">p_arg_names[2] =&nbsp;32629863123858907</span><br><span style="font-family: Courier New, Courier, monospace;"><br></span><span style="font-family: Courier New, Courier, monospace;">p_t01 = Martin&nbsp;</span><br><span style="font-family: Courier New, Courier, monospace;">p_t02 = D’Souza</span></p>
+<p>None of the data sent back to the server make reference of <span style="font-family: Courier New, Courier, monospace;">P1_FIRST_NAME</span> or <span style="font-family: Courier New, Courier, monospace;">P2_LAST_NAME</span>. As well,&nbsp;<span style="font-family: Courier New, Courier, monospace;">p_arg_names</span> is stored in a top down order of how they are in the page.</p>
+<p><span style="font-family: Courier New, Courier, monospace;">p_arg_names</span> values are actually the IDs for each of the of the page items as highlighted in the following query:</p>
+<p><pre class="brush: sql;">select item_id, item_name<br>from apex_application_page_items<br>where 1=1<br>  and application_id = 118<br>  and page_id = 1;</pre></p>
+<p>ITEM_ID           ITEM_NAME</p>
+<hr>
+<p>32629789701858906 P1_FIRST_NAME<br>32629863123858907 P1_LAST_NAME<br>APEX is able to map the data back to their corresponding APEX items by first mapping the values in&nbsp;<span style="font-family: Courier New, Courier, monospace;">p_arg_names</span>&nbsp;to the&nbsp;<span style="font-family: Courier New, Courier, monospace;">apex_application_page_items</span>&nbsp;view and then using the values in the&nbsp;<span style="font-family: Courier New, Courier, monospace;">p_txx</span>&nbsp;to retrieve the data that was submitted for each item.</p>
+<p>The order that the values are submitted in for <span style="font-family: Courier New, Courier, monospace;">p_arg_names</span>&nbsp;must match the&nbsp;<span style="font-family: Courier New, Courier, monospace;">p_txx</span>&nbsp;values for APEX to correctly map the values to their appropriate APEX item. I.e. <span style="font-family: Courier New, Courier, monospace;">p_args_names[<strong>1</strong>]</span> will link to <span style="font-family: Courier New, Courier, monospace;">p_t0<strong>1</strong></span> and <span style="font-family: Courier New, Courier, monospace;">p_arg_names[<strong>2</strong>]</span> will link to <span style="font-family: Courier New, Courier, monospace;">p_t0<strong>2</strong></span> etc.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://www.talkapex.com/blog/2015/07/28/apex-and-the-html-form/" data-id="cix5kyq9n00d6chn9mb2bdt1h" class="article-share-link">Share</a>
+      
+        <a href="https://www.talkapex.com/blog/2015/07/28/apex-and-the-html-form/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">APEX</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/blog/2015/07/29/apex-and-the-order-items-are-submitted/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          APEX and the Order Items are Submitted
+        
+      </div>
+    </a>
+  
+  
+    <a href="/blog/2015/07/27/back-to-basics-the-html-form/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Back to Basics: The HTML Form</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <!-- <h3 class="widget-title">APEX Podcast</h3> -->
+  <div class="widget">
+    <img src="images/aced-logo.gif" alt="" />
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">APEX Podcast</h3>
+  <div class="widget">
+    My Podcast here
+  </div>
+</div>
+
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">APEX</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">APEX 5</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">APEX PLUGIN</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apexposed/">APEXPOSED</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytic-functions/">Analytic Functions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/analytics/">Analytics</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">CSS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">Checkbox</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">Dynamic Actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">IoT</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jobs/">JOBS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">JavaScript</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">KSCOPE</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kaleidoscope/">Kaleidoscope</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/mockups/">MOCKUPS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">ODTUG</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">OOW</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">ORACLE</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-apex/">ORACLE APEX</a><span class="tag-list-count">54</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-xe/">ORACLE XE</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/os-x/">OS X</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oraopensource/">OraOpenSource</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/pl-sql/">PL/SQL</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/podcast/">Podcast</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">SQLcl</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">Tabular Form</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/virtualbox/">VIRTUALBOX</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/vpd/">VPD</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/wireframe/">WIREFRAME</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-stackexchange-com/">apex.stackexchange.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console/">console</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/console-wrapper/">console wrapper</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo/">demo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/demo-talkapex-com/">demo.talkapex.com</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery-ui/">jQUERY UI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/orclapex-yyc/">orclapex-yyc</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/twitter/">twitter</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">34</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">49</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2016 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/about" class="mobile-nav-link">About</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'https://www.talkapex.com/blog/2015/07/28/apex-and-the-html-form/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+  </div>
+</body>
+</html>
