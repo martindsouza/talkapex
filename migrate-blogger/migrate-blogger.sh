@@ -26,9 +26,7 @@ hexo migrate rss http://talkapex.com/feeds/posts/default?alt=rss&max-results=10&
 hexo migrate rss http://talkapex.com/feeds/posts/default?alt=rss&max-results=10&start-index=201
 hexo migrate rss http://talkapex.com/feeds/posts/default?alt=rss&max-results=10&start-index=211
 hexo migrate rss http://talkapex.com/feeds/posts/default?alt=rss&max-results=9&start-index=221
-# todo next one
 # hexo migrate rss http://talkapex.com/feeds/posts/default?alt=rss&max-results=1&start-index=230
 hexo migrate rss http://talkapex.com/feeds/posts/default?alt=rss&max-results=2&start-index=231
-# TODo next one
 # hexo migrate rss http://talkapex.com/feeds/posts/default?alt=rss&max-results=1&start-index=233
 hexo migrate rss http://talkapex.com/feeds/posts/default?alt=rss&max-results=10&start-index=234
