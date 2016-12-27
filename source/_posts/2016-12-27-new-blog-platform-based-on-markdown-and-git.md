@@ -2,6 +2,7 @@
 title: New Blog Platform Based on Markdown and Git
 date: 2016-12-27 10:45:25
 tags:
+  - meta
 alias:
 ---
 
