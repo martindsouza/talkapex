@@ -1,7 +1,7 @@
 ---
 title: APEXposed en Montreal - Sept 10/11
 tags:
-  - ODTUG
+  - odtug
 date: 2013-07-18 09:05:00
 alias:
 ---
@@ -12,7 +12,7 @@ Some of the [presentations](http://www.odtug.com/apexposed_presentations) that I
 
 - Joel Kallman's (Oracle Director of Software Development) talk on APEX 5.0, giving us an inside look of what's coming up in the near future.
 - David Peake's (APEX Product Manager) talk on how to leverage some of the new features in 12c with APEX.
-- Roel Hartman's (Director at APEX Evangelists) presentation on building mobile applications in APEX. 
+- Roel Hartman's (Director at APEX Evangelists) presentation on building mobile applications in APEX.
 - Steve Feuerstein's (Dell) keynote. I just talked to him about it, should be great!
 
 And, as shameless plug, I'll be giving two talks: "Instrumenting your PL/SQL and APEX Applications" and "APEX Development Best Practices". I'm really excited about the talk on code instrumentation as I'll be highlighted some of the new features that I've integrated into the 2.0.0 version of [Logger](https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility) and also share some of the new upcoming features.

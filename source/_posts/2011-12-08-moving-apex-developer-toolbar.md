@@ -1,6 +1,7 @@
 ---
 title: Moving the APEX Developer Toolbar
-tags: []
+tags:
+  - apex
 date: 2011-12-08 07:00:00
 alias:
 ---

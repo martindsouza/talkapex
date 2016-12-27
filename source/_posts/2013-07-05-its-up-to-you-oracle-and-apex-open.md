@@ -1,6 +1,8 @@
 ---
 title: It's up to You - Oracle and APEX Open Source Projects
-tags: []
+tags:
+  - apex
+  - open-source
 date: 2013-07-05 08:17:00
 alias:
 ---

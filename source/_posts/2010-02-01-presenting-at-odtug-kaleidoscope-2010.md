@@ -1,8 +1,7 @@
 ---
 title: Presenting at ODTUG Kaleidoscope 2010
 tags:
-  - APEX
-  - ODTUG
+  - kscope
 date: 2010-02-01 09:00:00
 alias:
 ---
@@ -18,6 +17,6 @@ This year I'll be giving 2 presentations on APEX ([http://www.odtugkaleidoscope.
 
 <span style="font-weight:bold;">How to be Creative: Using the APEX Dictionary to Create Solutions</span>: The APEX dictionary is a very useful tool which can help enhance existing features in APEX. This presentation will cover how you can use the dictionary to resolve your problems. It will include some real-life issues and how the APEX dictionary was used to resolve them
 
-Of course these presentations may be slightly altered based on the new features and functionality of APEX 4.0\. 
+Of course these presentations may be slightly altered based on the new features and functionality of APEX 4.0\.
 
 I look forward to seeing everyone in Washington.

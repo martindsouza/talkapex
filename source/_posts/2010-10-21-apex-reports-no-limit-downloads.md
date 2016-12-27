@@ -1,8 +1,7 @@
 ---
 title: 'APEX Reports: No Limit Downloads'
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-10-21 09:00:00
 alias:
 ---

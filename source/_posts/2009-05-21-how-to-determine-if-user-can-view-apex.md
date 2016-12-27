@@ -1,14 +1,14 @@
 ---
 title: How to determine if user can view an APEX region.
 tags:
-  - APEX
+  - apex
 date: 2009-05-21 07:30:00
 alias:
 ---
 
 <span style="font-style:italic">If you just want to see how to determine if user is allowed to view a region scroll to bottom of this post, however I suggest you read the explanation as to why/when you may want to use this function</span>
 
-I recently received a request to build an internal application to generate many reports for one of the teams in my organization. At a high level, the application is supposed to have (it's still not built) several "Report Result" pages. Each Report Result page will contain 10 to 15 reports. Their will be a menu page in which end users can select the Report Result page they'd like to run, and the individual reports they want to run on that page: 
+I recently received a request to build an internal application to generate many reports for one of the teams in my organization. At a high level, the application is supposed to have (it's still not built) several "Report Result" pages. Each Report Result page will contain 10 to 15 reports. Their will be a menu page in which end users can select the Report Result page they'd like to run, and the individual reports they want to run on that page:
 
 [![](http://2.bp.blogspot.com/_33EF80fk9sM/ShTbH_xs65I/AAAAAAAADpA/VWfpxtTCg_A/s400/_16_screen_shot.bmp)](http://2.bp.blogspot.com/_33EF80fk9sM/ShTbH_xs65I/AAAAAAAADpA/VWfpxtTCg_A/s1600-h/_16_screen_shot.bmp)
 
@@ -25,7 +25,7 @@ ORDER BY UPPER (d) ASC
 
 When users click "Go", they will go to the selected "Report Result" page and execute the selected reports.
 
-So far this is fairly straight forward (using the [APEX Dictionary](http://apex-smb.blogspot.com/2008/11/how-to-list-apex-dictionary-views-using.html) to help out). To make things more difficult, certain reports should only be accessible depending on the parsing schema. For example if the parsing schema is "SCOTT" then Report/Region 2 should not be displayed. 
+So far this is fairly straight forward (using the [APEX Dictionary](http://apex-smb.blogspot.com/2008/11/how-to-list-apex-dictionary-views-using.html) to help out). To make things more difficult, certain reports should only be accessible depending on the parsing schema. For example if the parsing schema is "SCOTT" then Report/Region 2 should not be displayed.
 
 To meet this requirement I can add a condition (SQL Exists) to the Report 2 region on Page 2:
 
@@ -38,7 +38,7 @@ SELECT 1
     -- "REPORT2" is the Region's Static ID
 </pre>    
 
-When I run Page 2, Reports 1, 3, and 4 are executed which is correct. However, on the menu page the user had the option to select Report 2 when they should have never been allowed to see it in the check list since the parsing schema was SCOTT. 
+When I run Page 2, Reports 1, 3, and 4 are executed which is correct. However, on the menu page the user had the option to select Report 2 when they should have never been allowed to see it in the check list since the parsing schema was SCOTT.
 
 To resolve this issue, I've created the following function to determine if a user can view a specified region:
 

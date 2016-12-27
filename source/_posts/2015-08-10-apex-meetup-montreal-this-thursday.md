@@ -1,7 +1,7 @@
 ---
 title: APEX Meetup - Montreal this Thursday!
 tags:
-  - APEX
+  - apex
 date: 2015-08-10 13:28:00
 alias:
 ---

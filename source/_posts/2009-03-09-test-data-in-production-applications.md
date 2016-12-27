@@ -1,7 +1,7 @@
 ---
 title: Test Data in Production Applications
 tags:
-  - APEX
+  - apex
 date: 2009-03-09 20:09:00
 alias:
 ---
@@ -10,7 +10,7 @@ Hi,
 
 Well this isn't an APEX specific post but I thought it should be mentioned either way. It raises a good point about keeping test data out of production.
 
-I got the following email from a colleague today: 
+I got the following email from a colleague today:
 
 "<span style="font-style:italic;">I’m a bit of a golf fan, and I like to read up on current events, standings, player profiles, etc.  My favorite site to do this is [www.pgatour.com](http://www.pgatour.com)
 

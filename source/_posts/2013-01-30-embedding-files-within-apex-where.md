@@ -1,6 +1,7 @@
 ---
 title: 'Embedding Files within APEX: Where things go wrong'
-tags: []
+tags:
+  - apex
 date: 2013-01-30 18:50:00
 alias:
 ---

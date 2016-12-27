@@ -1,7 +1,7 @@
 ---
 title: 'APEX: How to Dynamically Render Regions'
 tags:
-  - APEX
+  - apex
 date: 2009-07-14 07:30:00
 alias:
 ---
@@ -12,7 +12,7 @@ What if your application had 100 pages? Would you remember to apply the conditio
 
 This is not a problem that most developers run into, however when you are building large applications something similar may come up. If you can find a way to dynamically control items, regions, processes, etc this can save on development time.
 
-At the [ODTUG Kaleidoscope](http://www.odtugkaleidoscope.com) conference Dennis Vanill gave a presentation on how to use Page 0 items to enable and disable APEX objects dynamically. Using this logic, here's an example on how to dynamically disable a region. 
+At the [ODTUG Kaleidoscope](http://www.odtugkaleidoscope.com) conference Dennis Vanill gave a presentation on how to use Page 0 items to enable and disable APEX objects dynamically. Using this logic, here's an example on how to dynamically disable a region.
 
 <span style="font-style:italic;color:red">Note: Use this when appropriate. For basic conditions stick with using "regular" conditions</span>
 

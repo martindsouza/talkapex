@@ -1,6 +1,8 @@
 ---
 title: Presenting at ODTUG Kscope 14
-tags: []
+tags:
+  - odtug
+  - kscope
 date: 2014-06-16 07:00:00
 alias:
 ---

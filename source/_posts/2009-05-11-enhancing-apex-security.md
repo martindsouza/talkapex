@@ -1,7 +1,8 @@
 ---
 title: Enhancing APEX Security
 tags:
-  - APEX
+  - apex
+  - security
 date: 2009-05-11 07:27:00
 alias:
 ---
@@ -26,7 +27,7 @@ The demo can be found [here](http://apex.oracle.com/pls/otn/f?p=20195:1500)
 GRANT EXECUTE ON DBMS_CRYPTO TO giffy; -- Where "giffy" is your schema name
 </pre>
 
-Compile the following code in your schema 
+Compile the following code in your schema
 
 <span style="font-style:italic;">pkg_apex_sec.pks</span>
 <pre class="brush: sql">
@@ -277,7 +278,7 @@ SELECT e.ename d,
   FROM emp e
 </pre>  
 
-Use: 
+Use:
 <pre class="brush: sql">
 SELECT e.ename d,
        pkg_apex_sec.f_get_sec_val (e.empno) r

@@ -1,7 +1,8 @@
 ---
 title: "Who's Birthday is it in n number of days?"
 date: 2013-03-11 07:00:00
-tags: sql
+tags:
+  - sql
 alias:
 ---
 

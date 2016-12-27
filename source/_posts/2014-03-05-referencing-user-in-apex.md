@@ -1,6 +1,7 @@
 ---
 title: Referencing USER in APEX
-tags: []
+tags:
+  - apex
 date: 2014-03-05 07:00:00
 alias:
 ---
@@ -9,7 +10,7 @@ It’s not uncommon to reference the current user as <span style="font-family: C
 
 Referencing <span style="font-family: Courier New, Courier, monospace;">USER</span> will have some slight side effects when running the code in APEX as the current <span style="font-family: Courier New, Courier, monospace;">USER</span> is actually <span style="font-family: Courier New, Courier, monospace;">APEX_PUBLIC_USER</span> (or what ever user you configured). This can cause issues in your application. To resolve it, simply reference <span style="font-family: Courier New, Courier, monospace;">sys_context('userenv','current_schema’)</span> instead.
 
-Example: 
+Example:
 <pre class="brush: sql;">-- Via SQL*Plus
 select user, sys_context('userenv','current_schema')
 from dual;

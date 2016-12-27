@@ -1,8 +1,8 @@
 ---
 title: ODTUG Kaleidoscope 2009 Summary
 tags:
-  - APEX
-  - ODTUG
+  - kscope
+  - odtug
 date: 2009-06-28 08:29:00
 alias:
 ---

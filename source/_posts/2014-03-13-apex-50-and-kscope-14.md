@@ -1,8 +1,8 @@
 ---
 title: APEX 5.0 and KScope 14
 tags:
-  - KSCOPE
-  - ODTUG
+  - odtug
+  - apex-5
 date: 2014-03-13 10:51:00
 alias:
 ---

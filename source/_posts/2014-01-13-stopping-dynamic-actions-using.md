@@ -1,8 +1,8 @@
 ---
 title: Stopping Dynamic Actions using apex.da.cancelEvent
 tags:
-  - APEX
-  - Dynamic Actions
+  - apex
+  - dynamic-actions
 date: 2014-01-13 07:00:00
 alias:
 ---

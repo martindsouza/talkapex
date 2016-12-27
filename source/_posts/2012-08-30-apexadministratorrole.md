@@ -1,7 +1,7 @@
 ---
 title: APEX_ADMINISTRATOR_ROLE
 tags:
-  - APEX
+  - apex
 date: 2012-08-30 07:00:00
 alias:
 ---
@@ -18,7 +18,7 @@ SELECT *
 FROM apex_workspace_activity_log
 WHERE trunc(view_date) >= trunc(SYSDATE) - 1 -- Just look at the past 2 days
   AND elapsed_time > 1; -- 1 = 1 second
-</pre>This is just one of many examples where the APEX_ADMINISTRATOR_ROLE can be 
+</pre>This is just one of many examples where the APEX_ADMINISTRATOR_ROLE can be
 useful for system wide level analysis.
 
 The APEX_ADMINISTRATOR_ROLE also allows you to run procedures in the [APEX_INSTANCE_ADMIN](http://docs.oracle.com/cd/E23903_01/doc/doc.41/e21676/apex_instance.htm#CACGJEDD) package.

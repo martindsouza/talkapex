@@ -1,8 +1,8 @@
 ---
 title: Enhanced APEX Session Timeouts
 tags:
-  - APEX
-  - ORACLE
+  - apex
+  - security
 date: 2009-09-21 09:00:00
 alias:
 ---
@@ -48,7 +48,7 @@ This solution uses [jQuery](http://jquery.com) and the following plugins:
 - Process Point: On Demand
 - Name: AP_LOGOUT
 - Type: PL/SQL Anonymous Block
-- Process Text: 
+- Process Text:
 <pre class="brush: sql">
 BEGIN
   apex_custom_auth.LOGOUT (p_this_app                   => :app_id,
@@ -114,7 +114,7 @@ var gTimeout = {
   debug: false, //Set to True to turn on debugging
   debugFn: function(pMsg) {
     if (gTimeout.debug){
-      console.log(pMsg); 
+      console.log(pMsg);
     }
   }, //debug
   modalRegions: {
@@ -129,7 +129,7 @@ var gTimeout = {
         $('#timeoutCountdownDisplay').countdown('destroy');
         $('#timeoutCountdownDisplay').countdown({
           until: '+' + (gTimeout.timers.killSession.time / 1000),
-          compact: true, 
+          compact: true,
           format: 'M:S'
         });
         // Load modal box to give user option to extend session
@@ -164,7 +164,7 @@ var gTimeout = {
     }//sessionEnded
   },//modalRegions
   timers: {
-    //Ping APEX Session timer will update the database session timer 
+    //Ping APEX Session timer will update the database session timer
     pingApexSession: {
       id: -1,
       time: 5000, //Time to keep database session alive. This should be really close to the APEX idle time
@@ -175,7 +175,7 @@ var gTimeout = {
       },
       unloadFn: function(){
         gTimeout.debugFn('gTimeout.timers.pingApexSession.unloadFn:');
-        clearTimeout(this.id); 
+        clearTimeout(this.id);
         this.id = -1;
         return;
       },//unloadFn
@@ -201,9 +201,9 @@ var gTimeout = {
       },
       unloadFn: function(){
         gTimeout.debugFn('gTimeout.timers.killSession.unloadFn: ');
-        clearTimeout(this.id); 
+        clearTimeout(this.id);
         this.id = -1;
-        gTimeout.modalRegions.extendSession.closeFn(); // Close extendSession Modal 
+        gTimeout.modalRegions.extendSession.closeFn(); // Close extendSession Modal
         return;
       },
       killFn: function(){
@@ -211,7 +211,7 @@ var gTimeout = {
         // Open Logout modal window
         gTimeout.modalRegions.sessionEnded.openFn();
         // Stop ping Apex session
-        gTimeout.timers.pingApexSession.unloadFn(); 
+        gTimeout.timers.pingApexSession.unloadFn();
         // Logout APEX session
         jQuery.jApex.ajax({
           appProcess: 'AP_LOGOUT',

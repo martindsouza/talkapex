@@ -1,8 +1,7 @@
 ---
 title: APEX Page Locks
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-09-29 07:21:00
 alias:
 ---
@@ -14,7 +13,7 @@ APEX has a great feature called Page Locks which enables developers to lock a pa
 To lock a page, click on the lock icon located in the top right corner of the page as displayed in the following picture:
 
 [![](http://3.bp.blogspot.com/_33EF80fk9sM/TKM8h_AOwGI/AAAAAAAAD0o/h4QIeqGXmwA/s400/Page+Locks.jpg)](http://3.bp.blogspot.com/_33EF80fk9sM/TKM8h_AOwGI/AAAAAAAAD0o/h4QIeqGXmwA/s1600/Page+Locks.jpg)
-You will need to enter a comment and then click the Lock Checked button. For the comment it is recommended that you enter what case/bug number you're working on and what impact it may have on the page. The history of these comments, both for locking and unlocking the page, is logged. Before you invest a lot of time with detailed comments it's important to note the following points that may be relevant within your environment. 
+You will need to enter a comment and then click the Lock Checked button. For the comment it is recommended that you enter what case/bug number you're working on and what impact it may have on the page. The history of these comments, both for locking and unlocking the page, is logged. Before you invest a lot of time with detailed comments it's important to note the following points that may be relevant within your environment.
 
 Page locks are not retained when an application is copied or exported. This makes sense as you don't want page locks to propagate in an export file.
 

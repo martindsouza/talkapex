@@ -1,7 +1,7 @@
 ---
 title: Custom Download for APEX Interactive Reports
 tags:
-  - APEX
+  - apex
 date: 2009-04-20 07:44:00
 alias:
 ---

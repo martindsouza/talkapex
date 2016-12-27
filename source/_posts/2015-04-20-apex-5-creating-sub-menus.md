@@ -1,7 +1,8 @@
 ---
 title: 'APEX 5: Creating Sub-Menus'
 tags:
-  - APEX 5
+  - apex
+  - apex-5
 date: 2015-04-20 07:00:00
 alias:
 ---

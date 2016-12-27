@@ -1,14 +1,14 @@
 ---
 title: q Function Inside a q Function
 tags:
-  - PL/SQL
+  - plsql
 date: 2012-03-26 07:00:00
 alias:
 ---
 
 Two years ago I wrote about how to escape single quotes in string using the _q_ function: [http://www.talkapex.com/2009/03/q-function-escape-single-quotes.html](http://www.talkapex.com/2009/03/q-function-escape-single-quotes.html) If you've never seen this before or don't know what I'm talking about please read the article first before continuing.
 
-I recently had an issue where I had to use a _q_ function inside another _q_ function. Here's what I tried: 
+I recently had an issue where I had to use a _q_ function inside another _q_ function. Here's what I tried:
 <pre class="brush: sql;">DECLARE
   l_code varchar2(4000);
 

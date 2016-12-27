@@ -1,7 +1,7 @@
 ---
 title: 'APEX: How to Develop in 2 Browser Tabs'
 tags:
-  - APEX
+  - apex
 date: 2009-07-15 09:00:00
 alias:
 ---
@@ -23,7 +23,7 @@ Your hosts file should now look like:
 
 In your favorite web browser,
 
-[![](http://1.bp.blogspot.com/_33EF80fk9sM/Slv4uAHDDSI/AAAAAAAADpw/iKR9u6jqO-A/s400/reaons_for_using_ie.jpg)](http://1.bp.blogspot.com/_33EF80fk9sM/Slv4uAHDDSI/AAAAAAAADpw/iKR9u6jqO-A/s1600-h/reaons_for_using_ie.jpg) 
+[![](http://1.bp.blogspot.com/_33EF80fk9sM/Slv4uAHDDSI/AAAAAAAADpw/iKR9u6jqO-A/s400/reaons_for_using_ie.jpg)](http://1.bp.blogspot.com/_33EF80fk9sM/Slv4uAHDDSI/AAAAAAAADpw/iKR9u6jqO-A/s1600-h/reaons_for_using_ie.jpg)
 
 open the following URLs in 2 different tabs:
 

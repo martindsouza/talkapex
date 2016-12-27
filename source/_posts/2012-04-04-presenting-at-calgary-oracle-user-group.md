@@ -1,6 +1,7 @@
 ---
 title: Presenting at Calgary Oracle User Group (COUG) April 19th
-tags: []
+tags:
+  - meta
 date: 2012-04-04 08:12:00
 alias:
 ---
@@ -11,11 +12,11 @@ Here's the information about the presentation:
 
 **Title:** Common Questions DBA have about APEX
 
-**Abstract:** DBAs have many responsibilities managing the databases in their organizations. The introduction of Oracle Application Express (APEX) has added some more items to their already demanding list of tasks. This presentation will answer some of the common questions DBAs have about APEX. 
+**Abstract:** DBAs have many responsibilities managing the databases in their organizations. The introduction of Oracle Application Express (APEX) has added some more items to their already demanding list of tasks. This presentation will answer some of the common questions DBAs have about APEX.
 
 APEX items to be discussed include: development best practices, release management, automatic backups, and web server configurations. This presentation is also relevant to developers and they are encouraged to attend.
 
-**Date/Time/Location:** 
+**Date/Time/Location:**
 April 19th 8:30am (registration starts at 8:00 am)
 
 [Suncor Energy Centre (West Tower)](http://g.co/maps/kw523)

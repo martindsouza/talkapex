@@ -1,8 +1,7 @@
 ---
 title: How to Automatically Remove Items and Values in APEX URLs
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-01-03 23:25:00
 alias:
 ---

@@ -1,7 +1,7 @@
 ---
 title: Console Wrapper 1.0.4 - Beta
 tags:
-  - console wrapper
+  - javascript
 date: 2013-03-27 23:29:00
 alias:
 ---

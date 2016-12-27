@@ -1,6 +1,7 @@
 ---
 title: ODTUG APEXposed 2012
-tags: []
+tags:
+  - odtug
 date: 2012-07-30 07:14:00
 alias:
 ---
@@ -12,6 +13,6 @@ On a personal note, I'll be giving two talks on [APEX + HTML5](http://odtugapext
 
 For more information and to register go to [http://odtugapextraining.com](http://odtugapextraining.com/). If you register before August 15th you can take advantage of the early bird rate for only $399! This is a steal for the amount of information that you'll learn and the opportunity to ask the experts any of your APEX questions. To make things even more compelling if you use the code _CLARIFIT_ you will save an additional $50 off your registration cost.
 
-For those that are coming from out of town (Toronto, Ottawa, Quebec City, Southern US, etc) ODTUG has secured a preferred rate at Le St.Martin. For more information go to [http://odtugapextraining.com/Location.html](http://odtugapextraining.com/Location.html) and scroll to the bottom. 
+For those that are coming from out of town (Toronto, Ottawa, Quebec City, Southern US, etc) ODTUG has secured a preferred rate at Le St.Martin. For more information go to [http://odtugapextraining.com/Location.html](http://odtugapextraining.com/Location.html) and scroll to the bottom.
 
 I really hope that the Oracle community in Canada takes advantage of this opportunity. I'm not sure how often we'll get such an amazing list of presenters and presentations in our own back yard. See you there!

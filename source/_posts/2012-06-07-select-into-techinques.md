@@ -1,15 +1,14 @@
 ---
 title: SELECT INTO Techinques
 tags:
-  - ORACLE
-  - PL/SQL
+  - plsql
 date: 2012-06-07 11:01:00
 alias:
 ---
 
 One thing that bothers a lot of PL/SQL developers is when they have to select some data from a table into local variables. The problem is that the data may or may not exist (i.e. return 0..1 rows). They're several ways to write this code, some taking longer than others which is the pain point for developers.  
 
-I've listed out various ways to do this below and hopefully it'll help you find some easier ways to solve this issue. 
+I've listed out various ways to do this below and hopefully it'll help you find some easier ways to solve this issue.
 
  The first example is the classic case of handling the 0..1 rows issue in PL/SQL. They're a few issues (not problems) that I have with this. The first is that it adds some additional lines of code (highlighted) which can make the code harder to follow. The other issue is that instead of using "_WHEN no_data_found_" some developers tend to use "_WHEN OTHERS_" which is guaranteed to give you some false positives in the long run.  <pre class="brush: sql; highlight: [6,11,12,13,14]">
 DECLARE

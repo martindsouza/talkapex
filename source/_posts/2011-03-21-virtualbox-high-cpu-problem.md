@@ -1,8 +1,7 @@
 ---
 title: VirtualBox - High CPU Problem
 tags:
-  - ORACLE
-  - VIRTUALBOX
+  - oracle
 date: 2011-03-21 08:00:00
 alias:
 ---

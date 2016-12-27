@@ -2,7 +2,7 @@
 title: Presenting at Oracle Open World (OOW)
 tags:
   - logger
-  - OOW
+  - oow
 date: 2013-09-17 09:02:00
 alias:
 ---

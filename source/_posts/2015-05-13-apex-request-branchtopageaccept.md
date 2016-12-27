@@ -1,7 +1,7 @@
 ---
 title: 'APEX Request: BRANCH_TO_PAGE_ACCEPT'
 tags:
-  - APEX
+  - apex
 date: 2015-05-13 06:30:00
 alias:
 ---
@@ -34,7 +34,7 @@ What does not occur is the Page Rendering potion of P2\. This is important to no
 
 If everything runs smoothly on the P2 submit page processing (i.e no errors or validations fail) then you will branch to the defined page branch on P2\. If something does fail then you will be shown P2 along with the corresponding error message.
 
-It is important to note that currently the page item built-in validations are not executed when using BRANCH_TO_PAGE_ACCEPT. For example, suppose that you set Value Required attribute to Yes for <span style="font-family: inherit;">P2_X</span>. 
+It is important to note that currently the page item built-in validations are not executed when using BRANCH_TO_PAGE_ACCEPT. For example, suppose that you set Value Required attribute to Yes for <span style="font-family: inherit;">P2_X</span>.
 
 <div class="separator" style="clear: both; text-align: center;">[![](http://1.bp.blogspot.com/-eFh4HT4VARI/VVIvFz3CVCI/AAAAAAAAHEg/0J6vgLH0t0g/s1600/Snip20150512_5.png)](http://1.bp.blogspot.com/-eFh4HT4VARI/VVIvFz3CVCI/AAAAAAAAHEg/0J6vgLH0t0g/s1600/Snip20150512_5.png)</div>
 

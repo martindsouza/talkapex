@@ -1,8 +1,7 @@
 ---
 title: Conditional Validations in APEX
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-06-17 09:00:00
 alias:
 ---

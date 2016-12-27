@@ -1,6 +1,7 @@
 ---
 title: And the Winner Is...
-tags: []
+tags:
+  - meta
 date: 2013-03-24 23:26:00
 alias:
 ---
@@ -12,10 +13,10 @@ Two weeks ago I posted a question/contest for [Who's Birthday is it in "n" numbe
 One thing that most people got wrong was what happened if the hire date was on Feb 29th (during a leap year) while the current year did not have a leap year. I could do a search online to find some recent leap years, instead I decided to wrote a query to find recent leap years.
 <pre class="brush: sql;">-- Find past leap years
 -- https://forums.oracle.com/forums/thread.jspa?threadID=1128019
-select yr, 
-  case 
+select yr,
+  case
     when mod(yr,400) = 0 or mod(yr,4) = 0then 'Leap Year'
-    else null 
+    else null
   end leap
 from (
   select extract (year from add_months(sysdate, -8*12)) + level - 1 yr

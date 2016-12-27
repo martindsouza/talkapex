@@ -1,6 +1,8 @@
 ---
 title: APEX 4 + HTML5 = Awesome II - Slides
-tags: []
+tags:
+  - apex
+  - kscope
 date: 2012-07-06 12:06:00
 alias:
 ---

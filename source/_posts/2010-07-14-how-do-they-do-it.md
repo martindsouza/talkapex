@@ -1,8 +1,7 @@
 ---
 title: How do they do it?
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-07-14 09:00:00
 alias:
 ---

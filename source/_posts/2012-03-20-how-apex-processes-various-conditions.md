@@ -1,6 +1,7 @@
 ---
 title: How APEX Processes Various Conditions and Validations
-tags: []
+tags:
+  - apex
 date: 2012-03-20 11:05:00
 alias:
 ---
@@ -10,7 +11,7 @@ I was recently teaching an Intro to APEX course and the students had some questi
 <div class="separator" style="clear: both; text-align: center;">[![](http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s640/condition_types.png)](http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s1600/condition_types.png)</div>
 To help clear things up I've included a list of the various APEX conditions and validations along with code that demonstrates how APEX processes the value in _Expression 1_ based on the given _Type_. I didn't include the definition for each type as they are already well documented in the APEX documentation and popup help.
 
-_Note: the calls to DBMS_OUTPUT are there to show you if the validation/condition is true or false._ 
+_Note: the calls to DBMS_OUTPUT are there to show you if the validation/condition is true or false._
 
 **Exists**
 <pre class="brush: sql; highlight: [8,9,10]">DECLARE
@@ -20,8 +21,8 @@ BEGIN
   INTO l_rows
   FROM (
     -- Start Expression 1
-    SELECT 1 
-    FROM emp 
+    SELECT 1
+    FROM emp
     WHERE sal &gt; :p1_sal
     -- End Expression 1
   );
@@ -41,8 +42,8 @@ BEGIN
   INTO l_rows
   FROM (
     -- Start Expression 1
-    SELECT 1 
-    FROM emp 
+    SELECT 1
+    FROM emp
     WHERE sal &gt; :p1_sal
     -- End Expression 1
   );
@@ -62,7 +63,7 @@ BEGIN
   SELECT count(1)
   INTO l_rows
   FROM dual
-  WHERE 
+  WHERE
     -- Start Expression 1
     :p1_sal &gt; 500
     -- End Expression 1
@@ -141,7 +142,7 @@ END;
       FROM emp
       WHERE JOB = 'PRESIDENT';
 
-      IF l_rows &gt; 1 THEN 
+      IF l_rows &gt; 1 THEN
         RETURN 'Only 1 president can exist for the company';
       ELSE
         RETURN NULL; -- no error
@@ -175,7 +176,7 @@ END;
       FROM emp
       WHERE JOB = 'PRESIDENT';
 
-      IF l_rows &gt; 1 THEN 
+      IF l_rows &gt; 1 THEN
         raise_application_error(-20001, 'Only 1 president can exist for the company');
       END IF;
     END;

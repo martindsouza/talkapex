@@ -1,7 +1,7 @@
 ---
 title: APEX Meetups - Calgary
 tags:
-  - orclapex-yyc
+  - meta
 date: 2015-05-21 08:30:00
 alias:
 ---

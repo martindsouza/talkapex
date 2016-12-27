@@ -1,6 +1,7 @@
 ---
 title: Running for ODTUG Board of Directors
-tags: []
+tags:
+  - odtug
 date: 2011-10-12 09:52:00
 alias:
 ---

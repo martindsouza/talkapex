@@ -1,8 +1,7 @@
 ---
 title: 'APEX 4.0: New Columns in APEX_WORKSPACE_ACTIVITY_LOG'
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-12-08 08:00:00
 alias:
 ---

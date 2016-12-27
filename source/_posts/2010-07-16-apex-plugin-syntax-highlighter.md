@@ -1,17 +1,16 @@
 ---
 title: 'APEX Plugin: Syntax Highlighter'
 tags:
-  - APEX
-  - APEX PLUGIN
-  - ORACLE APEX
+  - apex
+  - apex-plugin
 date: 2010-07-16 09:00:00
 alias:
 ---
 
-I finally got around to developing my first APEX Plugin! 
+I finally got around to developing my first APEX Plugin!
 
 To summarize this plugin is a code syntax highlighter based on [http://alexgorbatchev.com/SyntaxHighlighter/](http://alexgorbatchev.com/SyntaxHighlighter/).
-. This is the same syntax highlighter for code samples on this site. You can download it here: [http://www.apex-plugin.com/oracle-apex-plugins/item-plugin/syntax-highlighter.html](http://www.apex-plugin.com/oracle-apex-plugins/item-plugin/syntax-highlighter.html). 
+. This is the same syntax highlighter for code samples on this site. You can download it here: [http://www.apex-plugin.com/oracle-apex-plugins/item-plugin/syntax-highlighter.html](http://www.apex-plugin.com/oracle-apex-plugins/item-plugin/syntax-highlighter.html).
 
 [![](http://2.bp.blogspot.com/_33EF80fk9sM/TD_pP31RMWI/AAAAAAAADxo/kWU0d3xwmzw/s400/syntax_highlighter.jpg)](http://2.bp.blogspot.com/_33EF80fk9sM/TD_pP31RMWI/AAAAAAAADxo/kWU0d3xwmzw/s1600/syntax_highlighter.jpg)
 Since this was my first APEX plugin that I created I thought I'd give some pointers to help others writing their first plugin:

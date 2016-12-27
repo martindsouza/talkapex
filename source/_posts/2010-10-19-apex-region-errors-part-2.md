@@ -1,8 +1,7 @@
 ---
 title: APEX Region Errors - Part 2
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-10-19 07:50:00
 alias:
 ---
@@ -11,7 +10,7 @@ alias:
 
 In my previous post on [APEX Region Errors](http://www.talkapex.com/2010/10/apex-region-errors-part-1.html) I wrote about logging region errors in APEX. In this post I'll cover how to automatically be notified when a region error occurs and store some additional log information.
 
-It's important that you actually read my previous posts on [APEX Region Errors](http://www.talkapex.com/2010/10/apex-region-errors-part-1.html) and  [Custom Error Messages in APEX](http://www.talkapex.com/2010/09/custom-error-messages-in-apex.html). The rest of this post will assume that you've read both of these posts. 
+It's important that you actually read my previous posts on [APEX Region Errors](http://www.talkapex.com/2010/10/apex-region-errors-part-1.html) and  [Custom Error Messages in APEX](http://www.talkapex.com/2010/09/custom-error-messages-in-apex.html). The rest of this post will assume that you've read both of these posts.
 
 Before we continue we need to review how the activity log works. APEX_WORKSPACE_ACTIVITY_LOG is a view which references APEX_040000\. WWV_FLOW_ACTIVITY_LOG. WWV_FLOW_ACTIVITY_LOG is a view which joins APEX_040000.WWV_FLOW_ACTIVITY_LOG1$ and APEX_040000.WWV_FLOW_ACTIVITY_LOG2$. The first paragraph of [APEX Logs: Storing Log Data](http://www.talkapex.com/2009/05/apex-logs-storing-log-data.html) provides a brief description of why the logs are stored in two tables.
 

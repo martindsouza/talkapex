@@ -1,7 +1,7 @@
 ---
 title: APEX_JSON.PARSE Issue with CLOBs and 11g
 tags:
-  - APEX 5
+  - apex-5
 date: 2015-05-12 10:07:00
 alias:
 ---

@@ -1,7 +1,7 @@
 ---
 title: Presenting at ODTUG Kaleidoscope 2009 - APEX
 tags:
-  - APEX
+  - kscope
 date: 2009-04-08 18:19:00
 alias:
 ---

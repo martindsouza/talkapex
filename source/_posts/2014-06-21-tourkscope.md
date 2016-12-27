@@ -1,6 +1,8 @@
 ---
 title: '#TourKscope'
-tags: []
+tags:
+  - odtug
+  - kscope
 date: 2014-06-21 08:49:00
 alias:
 ---

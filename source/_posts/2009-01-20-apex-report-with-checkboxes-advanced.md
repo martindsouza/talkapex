@@ -1,7 +1,8 @@
 ---
 title: APEX Report with checkboxes (advanced).
 tags:
-  - APEX
+  - apex
+  - checkbox
 date: 2009-01-20 23:58:00
 alias:
 ---
@@ -83,5 +84,5 @@ from emp
 where instr(:F_EMPNO_LIST, ':' || empno || ':') &gt; 0</pre>
 Please note there may be better/faster ways to implement the SQL code etc.
 
-Here are some links on the x01 code that I used: 
+Here are some links on the x01 code that I used:
 [http://carlback.blogspot.com/2008/03/new-stuff-2-x01-and-friends.html](http://carlback.blogspot.com/2008/03/new-stuff-2-x01-and-friends.html) and [http://carlback.blogspot.com/2008/04/new-stuff-q.html](http://carlback.blogspot.com/2008/04/new-stuff-q.html)

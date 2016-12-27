@@ -1,6 +1,7 @@
 ---
 title: Decoding Decode Data Types
-tags: []
+tags:
+  - sql
 date: 2012-12-27 09:06:00
 alias:
 ---

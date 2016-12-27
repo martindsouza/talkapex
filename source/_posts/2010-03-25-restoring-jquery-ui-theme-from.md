@@ -1,8 +1,8 @@
 ---
 title: Restoring jQuery UI Theme from ThemeRoller
 tags:
-  - APEX
-  - jQUERY UI
+  - apex
+  - jquery
 date: 2010-03-25 09:00:00
 alias:
 ---

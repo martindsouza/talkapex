@@ -1,6 +1,7 @@
 ---
 title: ClariFit Dialog Plugin
-tags: []
+tags:
+  - apex-plugin
 date: 2011-11-29 11:03:00
 alias:
 ---

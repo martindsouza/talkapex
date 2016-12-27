@@ -1,7 +1,8 @@
 ---
 title: How to Create an APEX Session in PL/SQL
 tags:
-  - APEX
+  - apex
+  - plsql
 date: 2012-08-15 08:38:00
 alias:
 ---
@@ -13,38 +14,38 @@ They're various examples on the [APEX forums](https://forums.oracle.com/forums/f
 <pre class="brush: sql;">CREATE OR REPLACE PROCEDURE sp_create_apex_session(
   p_app_id IN apex_applications.application_id%TYPE,
   p_app_user IN apex_workspace_activity_log.apex_user%TYPE,
-  p_app_page_id IN apex_application_pages.page_id%TYPE DEFAULT 1) 
+  p_app_page_id IN apex_application_pages.page_id%TYPE DEFAULT 1)
 AS
   l_workspace_id apex_applications.workspace_id%TYPE;
   l_cgivar_name  owa.vc_arr;
   l_cgivar_val   owa.vc_arr;
 BEGIN
 
-  htp.init; 
+  htp.init;
 
   l_cgivar_name(1) := 'REQUEST_PROTOCOL';
   l_cgivar_val(1) := 'HTTP';
 
-  owa.init_cgi_env( 
-    num_params => 1, 
-    param_name => l_cgivar_name, 
-    param_val => l_cgivar_val ); 
+  owa.init_cgi_env(
+    num_params => 1,
+    param_name => l_cgivar_name,
+    param_val => l_cgivar_val );
 
   SELECT workspace_id
   INTO l_workspace_id
   FROM apex_applications
   WHERE application_id = p_app_id;
 
-  wwv_flow_api.set_security_group_id(l_workspace_id); 
+  wwv_flow_api.set_security_group_id(l_workspace_id);
 
-  apex_application.g_instance := 1; 
-  apex_application.g_flow_id := p_app_id; 
-  apex_application.g_flow_step_id := p_app_page_id; 
+  apex_application.g_instance := 1;
+  apex_application.g_flow_id := p_app_id;
+  apex_application.g_flow_step_id := p_app_page_id;
 
-  apex_custom_auth.post_login( 
-    p_uname => p_app_user, 
+  apex_custom_auth.post_login(
+    p_uname => p_app_user,
     p_session_id => null, -- could use APEX_CUSTOM_AUTH.GET_NEXT_SESSION_ID
-    p_app_page => apex_application.g_flow_id||':'||p_app_page_id); 
+    p_app_page => apex_application.g_flow_id||':'||p_app_page_id);
 END;</pre>To create an APEX session (in PL/SQL) to mimic some tests I can do the following:  
 <pre class="brush: sql;">SQL> BEGIN
   2    sp_create_apex_session(
@@ -55,7 +56,7 @@ END;</pre>To create an APEX session (in PL/SQL) to mimic some tests I can do the
   7  /
 
 PL/SQL procedure successfully completed.
-</pre>View some APEX session state variables: 
+</pre>View some APEX session state variables:
 <pre class="brush: sql;">SQL> SELECT v('APP_USER') app_user, v('APP_SESSION') app_session,
   2    v('APP_PAGE_ID') page_id, v('P1_X') p1_x
   3  FROM dual;

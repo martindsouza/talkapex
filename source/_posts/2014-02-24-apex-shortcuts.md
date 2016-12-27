@@ -1,7 +1,7 @@
 ---
 title: APEX Shortcuts
 tags:
-  - APEX
+  - apex
 date: 2014-02-24 07:00:00
 alias:
 ---

@@ -1,7 +1,7 @@
 ---
 title: Changing Default Item Required Error Message in APEX
 tags:
-  - APEX
+  - apex
 date: 2014-01-15 07:00:00
 alias:
 ---

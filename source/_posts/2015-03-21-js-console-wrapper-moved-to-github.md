@@ -1,7 +1,7 @@
 ---
 title: JS Console Wrapper Moved to GitHub
 tags:
-  - console wrapper
+  - javascript
 date: 2015-03-21 17:41:00
 alias:
 ---

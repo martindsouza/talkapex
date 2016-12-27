@@ -1,6 +1,7 @@
 ---
 title: A New Chapter
-tags: []
+tags:
+  - meta
 date: 2015-06-08 08:18:00
 alias:
 ---

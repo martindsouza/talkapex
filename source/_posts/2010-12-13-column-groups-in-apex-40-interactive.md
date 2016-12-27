@@ -1,8 +1,7 @@
 ---
 title: Column Groups in APEX 4.0 Interactive Reports
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-12-13 19:02:00
 alias:
 ---

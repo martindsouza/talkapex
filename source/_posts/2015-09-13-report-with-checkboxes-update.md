@@ -1,9 +1,9 @@
 ---
 title: Report with Checkboxes (an update)
 tags:
-  - APEX
-  - Checkbox
-  - Tabular Form
+  - apex
+  - checkbox
+  - tabular-form
 date: 2015-09-13 20:40:00
 alias:
 ---
@@ -33,14 +33,14 @@ where 1=1
 #### <span style="font-weight: normal;">Create IR Report with Checkboxes</span>
 **
 **Create an IR with the query below. Note the <span style="font-family: Courier New, Courier, monospace;">p_attributes</span>&nbsp;value. This is critical as we need to identify the checkboxes that should be monitored.
-<pre class="brush: sql;">select 
+<pre class="brush: sql;">select
   apex_item.checkbox2(
     p_idx =&gt; 1,
     p_value =&gt; e.empno ,
     p_attributes =&gt; 'class="empno"',
     p_checked_values =&gt; :p1_empno_list,
     p_checked_values_delimiter =&gt; ',') checkbox,
-  e.ename, 
+  e.ename,
   e.job
 from emp e
 </pre>In the report attributes set the _Page Items to Submit_&nbsp;to&nbsp;<span style="font-family: Courier New, Courier, monospace;">P1_EMPNO_LIST</span>. Each time the report is refreshed (pagination, filters, sorting, etc) the active list of selected values will be submitted.

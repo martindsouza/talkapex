@@ -1,8 +1,7 @@
 ---
 title: Saving Saved Interactive Reports when Updating Application
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2009-10-26 08:25:00
 alias:
 ---

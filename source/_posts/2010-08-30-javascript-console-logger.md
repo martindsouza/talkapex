@@ -1,10 +1,7 @@
 ---
 title: JavaScript Console Logger
 tags:
-  - APEX
-  - console wrapper
-  - JavaScript
-  - ORACLE APEX
+  - javascript
 date: 2010-08-30 08:00:00
 alias:
 ---
@@ -26,7 +23,7 @@ Removing instrumentation code before going into production can be annoying, espe
 *   Will automatically set level to "log" if run in APEX and APEX is in Debug mode.
 A copy of the console wrapper is available here: [Download $logger_1.0.0](http://www.clarifit.com/files/blogs/talkapex/files/$logger_1.0.0.zip).
 
-The only change that you'll need to make is call <span style="font-style: italic;">$.console</span> instead of <span style="font-style: italic;">console</span>. The download file includes a HTML file with demos. I'd recommend looking at the .js file as well for inline documentation. 
+The only change that you'll need to make is call <span style="font-style: italic;">$.console</span> instead of <span style="font-style: italic;">console</span>. The download file includes a HTML file with demos. I'd recommend looking at the .js file as well for inline documentation.
 
 Here's an example along with its output:
 <pre class="brush: js">

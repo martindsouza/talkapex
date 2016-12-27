@@ -1,7 +1,6 @@
 ---
 title: Presenting at COUG (Calgary Oracle User Group) May 28th
 tags:
-  - APEX
 date: 2009-04-20 20:16:00
 alias:
 ---

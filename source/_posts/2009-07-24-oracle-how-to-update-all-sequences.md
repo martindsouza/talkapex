@@ -1,8 +1,8 @@
 ---
 title: 'Oracle: How to update all sequences'
 tags:
-  - ORACLE
-  - PL/SQL
+  - plsql
+  - oracle
 date: 2009-07-24 09:00:00
 alias:
 ---

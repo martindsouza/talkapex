@@ -1,6 +1,7 @@
 ---
 title: 'Embedding Files within APEX: WORKSPACE_IMAGES vs APP_IMAGES'
-tags: []
+tags:
+  - apex
 date: 2013-01-30 18:43:00
 alias:
 ---

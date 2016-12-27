@@ -1,8 +1,9 @@
 ---
 title: 'APEX Plugin: Javascript Attributes'
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex-plugin
+  - apex
+  - javascript
 date: 2010-08-17 21:04:00
 alias:
 ---
@@ -14,7 +15,7 @@ When I was testing my plugin it always behaved as though the user had selected <
 To resolve this problem I just changed my if statement:
 <pre class="brush: js;">
 //From
-if (this.action.attribute01) 
+if (this.action.attribute01)
   //do something
 
 //To

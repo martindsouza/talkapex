@@ -1,8 +1,7 @@
 ---
 title: ClariFit From/To Date Picker Plug-in Moved to OraOpenSource
 tags:
-  - APEX PLUGIN
-  - OraOpenSource
+  - apex-plugin
 date: 2015-11-16 07:00:00
 alias:
 ---

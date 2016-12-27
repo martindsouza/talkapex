@@ -1,6 +1,7 @@
 ---
 title: Installing SQLcl
-tags: []
+tags:
+  - sqlcl
 date: 2015-04-13 07:00:00
 alias:
 ---

@@ -1,6 +1,7 @@
 ---
 title: oracleapex.com (part 2)
-tags: []
+tags:
+  - apex
 date: 2014-03-16 21:01:00
 alias:
 ---

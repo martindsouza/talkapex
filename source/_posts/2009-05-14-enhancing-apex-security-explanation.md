@@ -1,7 +1,8 @@
 ---
 title: Enhancing APEX Security - Explanation
 tags:
-  - APEX
+  - apex
+  - security
 date: 2009-05-14 08:16:00
 alias:
 ---

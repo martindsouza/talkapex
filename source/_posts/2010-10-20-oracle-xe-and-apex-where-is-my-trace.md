@@ -1,10 +1,8 @@
 ---
 title: 'Oracle XE and APEX: Where is my Trace File?'
 tags:
-  - APEX
-  - ORACLE
-  - ORACLE APEX
-  - ORACLE XE
+  - apex
+  - oracle
 date: 2010-10-20 09:00:00
 alias:
 ---
@@ -36,6 +34,6 @@ To find the trace file that was created for your session:
 <pre class="brush: shell;">
 $ cd /usr/lib/oracle/xe/app/oracle/admin/XE/bdump
 $ grep -l "APP_SESSION" *.trc
-#example 
+#example
 $ grep -l "2603384364125271" *.trc
 </pre>

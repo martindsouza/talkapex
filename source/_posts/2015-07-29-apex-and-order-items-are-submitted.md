@@ -1,7 +1,7 @@
 ---
 title: APEX and the Order Items are Submitted
 tags:
-  - APEX
+  - apex
 date: 2015-07-29 06:30:00
 alias:
 ---

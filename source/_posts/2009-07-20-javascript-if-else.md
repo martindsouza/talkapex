@@ -1,8 +1,7 @@
 ---
 title: 'JavaScript: ? = If Else'
 tags:
-  - APEX
-  - JavaScript
+  - javascript
 date: 2009-07-20 09:00:00
 alias:
 ---
@@ -22,7 +21,7 @@ else
   window.alert('False');
 </pre>  
 
-Becomes this: 
+Becomes this:
 <pre class="brush: js">
 var x = 2;
 x>1 ? window.alert('True') : window.alert('False') ;

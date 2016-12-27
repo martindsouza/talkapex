@@ -1,7 +1,7 @@
 ---
 title: How to list APEX Dictionary views using SQL
 tags:
-  - APEX
+  - apex
 date: 2008-11-28 05:35:00
 alias:
 ---

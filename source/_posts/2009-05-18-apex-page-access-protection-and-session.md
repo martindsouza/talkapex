@@ -1,7 +1,8 @@
 ---
 title: 'APEX: Page Access Protection and Session State Protection'
 tags:
-  - APEX
+  - apex
+  - security
 date: 2009-05-18 09:10:00
 alias:
 ---

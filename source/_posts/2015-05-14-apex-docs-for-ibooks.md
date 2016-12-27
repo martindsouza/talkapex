@@ -1,7 +1,7 @@
 ---
 title: APEX Docs for iBooks
 tags:
-  - APEX
+  - apex
 date: 2015-05-14 06:00:00
 alias:
 ---

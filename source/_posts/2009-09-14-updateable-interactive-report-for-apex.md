@@ -1,8 +1,7 @@
 ---
 title: Updateable Interactive Report for APEX
 tags:
-  - APEX
-  - ORACLE
+  - apex
 date: 2009-09-14 09:00:00
 alias:
 ---
@@ -133,7 +132,7 @@ Note: This uses [jQuery](http://jquery.com/) and [Tyler Muth's](http://tylermuth
 <script src="#APP_IMAGES#jquery.jApex.0.9.2.js" type="text/javascript"></script>
 
 <script type="text/javascript">
-/** 
+/**
  * Updates a cell in a collection
  * @author Martin Giffy D'Souza. http://apex-smb.blogspot.com
  * @param pThis input item that was changed

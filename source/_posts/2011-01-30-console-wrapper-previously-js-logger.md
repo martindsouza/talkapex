@@ -1,9 +1,7 @@
 ---
 title: Console Wrapper (previously JS Logger)
 tags:
-  - console
-  - console wrapper
-  - JavaScript
+  - javascript
 date: 2011-01-30 17:52:00
 alias:
 ---

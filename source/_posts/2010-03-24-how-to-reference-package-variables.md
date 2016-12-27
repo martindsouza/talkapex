@@ -1,8 +1,7 @@
 ---
 title: How To Reference Package Variables Outside of PL/SQL
 tags:
-  - ORACLE
-  - PL/SQL
+  - plsql
 date: 2010-03-24 09:00:00
 alias:
 ---
@@ -51,7 +50,7 @@ So how can we refernce package variables in a non-PL/SQL setting? I created the 
 -- **
 -- * Returns Package Variable value
 -- * Note: for demo purposes I broke this function into various steps
--- * 
+-- *
 -- * @param p_pkg_var_name fully qualified variable reference. Ex: pkg_x.var_y
 -- * @return Varchar2 value
 -- * @author Martin Giffy D'Souza: http://apex-smb.blogspot.com

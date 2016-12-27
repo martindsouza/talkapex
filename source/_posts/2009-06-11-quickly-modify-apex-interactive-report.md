@@ -1,7 +1,7 @@
 ---
 title: Quickly Modify APEX Interactive Report Options
 tags:
-  - APEX
+  - apex
 date: 2009-06-11 09:00:00
 alias:
 ---

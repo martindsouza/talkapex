@@ -1,6 +1,7 @@
 ---
 title: Session State Protection in Detail
-tags: []
+tags:
+  - apex
 date: 2012-11-19 20:48:00
 alias:
 ---
@@ -23,7 +24,7 @@ To add SSP at the page level (technically called Page Access Protection at the p
 To modify a page and all its page items at the same time go to Shared Components &gt; Session State Protection &gt; Page Item and click on a page link.
 
 <div class="separator" style="clear: both; text-align: center;">[![](http://3.bp.blogspot.com/-9alTXvzvgck/UKr7Nrt1KxI/AAAAAAAAERo/ZRhi4oKVgOg/s400/secure_page_and_page_items.png)](http://3.bp.blogspot.com/-9alTXvzvgck/UKr7Nrt1KxI/AAAAAAAAERo/ZRhi4oKVgOg/s1600/secure_page_and_page_items.png)</div>
-**Two Layered Approach: Page vs Page Items** 
+**Two Layered Approach: Page vs Page Items**
 
 The easiest way to think of SSP in APEX is that it’s a two layered approach. First you must define which pages (not page items) require a checksum applied to it when passing in URL parameters. The second part is to define which page items require a checksum when set from the URL. You can’t do the later with out the former (i.e. if you just define a set of page items to have SSP it won’t work) but you can have pages with SSP without any page items with SSP.
 

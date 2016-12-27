@@ -1,7 +1,7 @@
 ---
 title: Parsing Imperfect JSON
 tags:
-  - JavaScript
+  - javascript
 date: 2014-01-08 07:00:00
 alias:
 ---
@@ -13,7 +13,7 @@ In JavaScript, each JSON attribute name should be wrapped in quotes for it to be
 var jsonStr = '{ename : "martin", sal: 100}';
 var jsonObj = JSON.parse(jsonStr);
 
-//Raises error: 
+//Raises error:
 SyntaxError: JSON.parse: expected property name or '}'
 
 //Correct JSON object (notice attribute names are quoted)
@@ -24,7 +24,7 @@ console.log (jsonObj);
 //Returns JSON object
 Object { ename="martin", sal=100}
 </pre><div>To get around this issue you can use JavaSript's <span style="font-family: Courier New, Courier, monospace;">[eval](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval)</span> method. It's not pretty but it does the job and will probably save you a lot of time trying to correct your JSON object.</div><pre class="brush: javascript;">var jsonStr = '{ename : "martin", sal: 100}';
-eval('jsonObj = ' + jsonStr + ';'); 
+eval('jsonObj = ' + jsonStr + ';');
 console.log(jsonObj);
 
 //Returns JSON object

@@ -1,7 +1,7 @@
 ---
 title: ClariFit From To Date Picker 1.0.1 Update
 tags:
-  - APEX PLUGIN
+  - apex-plugin
 date: 2012-05-06 17:27:00
 alias:
 ---

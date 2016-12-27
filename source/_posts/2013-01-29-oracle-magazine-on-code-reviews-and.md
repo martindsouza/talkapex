@@ -1,6 +1,7 @@
 ---
 title: Oracle Magazine - On Code Reviews and Standards
-tags: []
+tags:
+  - best-practice
 date: 2013-01-29 07:30:00
 alias:
 ---

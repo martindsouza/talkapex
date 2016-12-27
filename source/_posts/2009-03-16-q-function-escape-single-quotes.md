@@ -1,7 +1,8 @@
 ---
 title: 'q Function: Escape Single Quotes'
 tags:
-  - APEX
+  - plsql
+  - sql
 date: 2009-03-16 07:21:00
 alias:
 ---

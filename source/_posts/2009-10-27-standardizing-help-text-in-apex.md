@@ -1,8 +1,7 @@
 ---
 title: Standardizing Help Text in APEX
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2009-10-27 09:00:00
 alias:
 ---

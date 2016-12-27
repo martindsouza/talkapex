@@ -1,8 +1,7 @@
 ---
 title: Beginning Oracle Application Express 4 - Author Podcast
 tags:
-  - APEX
-  - ORACLE APEX
+  - meta
 date: 2011-06-13 07:00:00
 alias:
 ---

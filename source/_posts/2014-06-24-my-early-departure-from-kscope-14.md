@@ -1,6 +1,7 @@
 ---
 title: My Early Departure From Kscope 14
-tags: []
+tags:
+  - meta
 date: 2014-06-24 15:00:00
 alias:
 ---

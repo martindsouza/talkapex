@@ -1,9 +1,8 @@
 ---
 title: APEX 4.0 Interactive Reports - Customize Wait Display
 tags:
-  - APEX
-  - APEX PLUGIN
-  - ORACLE APEX
+  - apex
+  - apex-plugin
 date: 2010-08-18 22:37:00
 alias:
 ---

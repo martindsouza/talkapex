@@ -1,7 +1,8 @@
 ---
 title: Integrating Build Options in your PL/SQL Code
 tags:
-  - APEX
+  - apex
+  - plsql
 date: 2012-08-21 07:00:00
 alias:
 ---
@@ -25,7 +26,7 @@ Here is a function that I wrote that will allow you to easily see if a given Bui
  * @return Y or N
  * @author Martin Giffy DSouza http://www.talkapex.com
  * @created 15-Aug-2012
- */ 
+ */
 create or replace FUNCTION f_is_build_option_enabled(
   p_build_option_name IN apex_application_build_options.build_option_name%TYPE,
   p_app_id IN apex_application_build_options.application_id%TYPE DEFAULT nv('APP_ID'))

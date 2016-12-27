@@ -1,7 +1,7 @@
 ---
 title: APEX OOW 2016 Meetup
 tags:
-  - OOW
+  - oow
 date: 2016-08-24 06:01:00
 alias:
 ---

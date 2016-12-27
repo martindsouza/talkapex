@@ -1,7 +1,7 @@
 ---
 title: Command Line Backups for APEX Applications
 tags:
-  - APEX
+  - apex
 date: 2012-04-28 17:25:00
 alias:
 ---
@@ -12,7 +12,7 @@ One thing developers like to do is keep local backup copies of their development
 
 Thankfully APEX has a tool, that comes as part of the install zip file, which allows for command line exports. It's one of the lesser known tools that is extremely useful.
 
-Below is a simplified copy of a batch file which will automatically backup all the APEX applications on a given database using the APEX backup tool. I usually recommend that organizations run such a script on their development environments to store hourly backups of their development environments. The example is a very simple example which should be modified to tag the backup with the date/time or zip and store the backups in version control. I've also appended an extra script which lists all the APEX applications, workspaces, and IDs and stores this information as part of the backup in a _.html_ file. 
+Below is a simplified copy of a batch file which will automatically backup all the APEX applications on a given database using the APEX backup tool. I usually recommend that organizations run such a script on their development environments to store hourly backups of their development environments. The example is a very simple example which should be modified to tag the backup with the date/time or zip and store the backups in version control. I've also appended an extra script which lists all the APEX applications, workspaces, and IDs and stores this information as part of the backup in a _.html_ file.
 
 To use the script, create the files listed below in the same directory and make the appropriate modifications in _apex_backup.bat_
 

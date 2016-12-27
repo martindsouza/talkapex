@@ -1,10 +1,8 @@
 ---
 title: How to be Creative II - Presentation Slides
 tags:
-  - APEX
-  - KSCOPE
-  - ODTUG
-  - ORACLE APEX
+  - kscope
+  - best-practice
 date: 2011-07-12 07:00:00
 alias:
 ---

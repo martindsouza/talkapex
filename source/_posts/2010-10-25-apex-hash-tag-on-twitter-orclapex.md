@@ -1,9 +1,7 @@
 ---
 title: 'APEX Hash Tag on Twitter: #orclapex'
 tags:
-  - ORACLE
-  - ORACLE APEX
-  - twitter
+  - meta
 date: 2010-10-25 16:33:00
 alias:
 ---

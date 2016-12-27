@@ -1,7 +1,7 @@
 ---
 title: NO_DATA_FOUND Exceptions in PL/SQL Functions Called in Queries
 tags:
-  - PL/SQL
+  - plsql
 date: 2012-08-16 07:00:00
 alias:
 ---
@@ -61,7 +61,7 @@ SQL> SELECT f_generate_error FROM dual;
 F_GENERATE_ERROR
 ----------------------------------------------------------------
 
-1 row selected.</pre>When we run it in PL/SQL it raises an exception but when we run it in a query it doesn't. It just returns a null value which doesn't really tell the calling query that an exception was raised. This can obviously cause issues and unexpected behavior in your application. 
+1 row selected.</pre>When we run it in PL/SQL it raises an exception but when we run it in a query it doesn't. It just returns a null value which doesn't really tell the calling query that an exception was raised. This can obviously cause issues and unexpected behavior in your application.
 
 According to the [Oracle documentation](http://docs.oracle.com/cd/B13789_01/appdev.101/b10807/07_errs.htm) the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception will not propagate the exception if run in a query: "_Because this exception is used internally by some SQL functions to signal that they are finished, you should not rely on this exception being propagated if you raise it within a function that is called as part of a query._"
 

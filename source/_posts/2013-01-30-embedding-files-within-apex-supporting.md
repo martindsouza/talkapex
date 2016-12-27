@@ -1,6 +1,7 @@
 ---
 title: 'Embedding Files within APEX: Supporting Objects'
-tags: []
+tags:
+  - apex
 date: 2013-01-30 18:46:00
 alias:
 ---
@@ -18,7 +19,7 @@ In the previous post I uploaded a file into an application. If I were to export 
 &nbsp;- Select the file that is required for the application and click the Create Script button.
 
 <div class="separator" style="clear: both; text-align: center;">[![](http://2.bp.blogspot.com/--4987MLwu98/UQnJgPVEB6I/AAAAAAAAETc/Obl0w5HWcZs/s640/embed_apex_file_install_script_02.jpg)](http://2.bp.blogspot.com/--4987MLwu98/UQnJgPVEB6I/AAAAAAAAETc/Obl0w5HWcZs/s1600/embed_apex_file_install_script_02.jpg)</div>
-At this point in time, APEX will encode (base64) the file (in <u>**it's current state**</u>) and create a PL/SQL installation script that can be run when you import the application. <u>**If you change the file (_in Shared Components &gt; Static Files_) ****it has no impact on the installation script**</u> (i.e. it's a snapshot of the file at this point in time). 
+At this point in time, APEX will encode (base64) the file (in <u>**it's current state**</u>) and create a PL/SQL installation script that can be run when you import the application. <u>**If you change the file (_in Shared Components &gt; Static Files_) ****it has no impact on the installation script**</u> (i.e. it's a snapshot of the file at this point in time).
 
 Not updating the installation script with the latest version of the file is where a lot of issues occur** **when migrating the application from different environments. After someone initially creates the installation script, there's a high probability that you may change the base file, forgetting to update the installation script. This is one of the main reasons why I don't usually recommend embedding files into my application.
 

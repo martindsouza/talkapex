@@ -1,9 +1,9 @@
 ---
 title: APEX OOW 2015 Meetup
 tags:
-  - APEX
-  - ODTUG
-  - OOW
+  - apex
+  - odtug
+  - oow
 date: 2015-09-28 07:00:00
 alias:
 ---

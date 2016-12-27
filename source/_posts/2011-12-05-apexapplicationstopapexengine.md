@@ -1,7 +1,8 @@
 ---
 title: apex_application.stop_apex_engine
 tags:
-  - APEX
+  - apex
+  - plsql
 date: 2011-12-05 07:00:00
 alias:
 ---

@@ -1,7 +1,7 @@
 ---
 title: APEX Static Files Not For Secure Content
 tags:
-  - APEX
+  - apex
 date: 2009-06-12 09:00:00
 alias:
 ---

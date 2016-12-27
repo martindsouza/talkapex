@@ -1,7 +1,7 @@
 ---
 title: Column Groups in APEX Interactive Reports
 tags:
-  - APEX
+  - apex
 date: 2009-03-25 21:19:00
 alias:
 ---
@@ -67,7 +67,7 @@ dispIRColGrpHeader=function(){
     // retrieve the Interactive report table
     var vTbl = $('.apexir_WORKSHEET_DATA');
 
-    // change the look and feel of the IR table 
+    // change the look and feel of the IR table
     $(vTbl).attr("border","1");
 
     // Prevent Duplicate rows
@@ -102,9 +102,9 @@ dispIRColGrpHeader=function(){
       // Only print the col group header for the previous entry. This allows us to set the col span for similar groups
       // Have to do it this way to support IE  (otherwise we could look at the previous entry and update it's col span
 
-      // If the current 
+      // If the current
       if (vColGrp.length > 0 && vColGrp == vPrevColGrp){
-        // Don't display the 
+        // Don't display the
         vColSpan = vColSpan + 1;
       }
       else if(i > 0) {

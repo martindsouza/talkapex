@@ -1,8 +1,8 @@
 ---
 title: How to Find Current APEX Version
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
+  - plsql
 date: 2010-06-18 09:00:00
 alias:
 ---
@@ -13,7 +13,7 @@ Last week my DBA asked me what version of APEX we were running. Instinctively I 
 
 This worked, however he needed to dynamically obtain the current version for a script that he was writing. After some digging around he sent me the following query:
 <pre class="brush: sql;">
-SELECT * 
+SELECT *
 FROM apex_release
 </pre>
 <span style="font-style:italic;">Note: this isn't earth shattering but more for my reference</span>

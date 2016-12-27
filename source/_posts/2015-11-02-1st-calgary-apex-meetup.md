@@ -1,7 +1,7 @@
 ---
 title: 1st Calgary APEX Meetup
 tags:
-  - APEX
+  - apex
 date: 2015-11-02 09:00:00
 alias:
 ---

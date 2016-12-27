@@ -1,13 +1,10 @@
 ---
 title: CSS Specificity
 tags:
-  - APEX
-  - CSS
+  - css
 date: 2008-11-19 22:18:00
 alias:
 ---
-
-Hi,
 
 Most APEX developers will eventually get asked to brand their application or "make it look nice". If you are like myself, and are not a graphic artist, this can be quite a challenge since it is an art to make a web pages look really good.
 

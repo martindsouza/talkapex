@@ -1,6 +1,9 @@
 ---
 title: 'ODTUG: Enhanced APEX Security'
-tags: []
+tags:
+  - kscope
+  - apex
+  - security
 date: 2010-07-26 23:18:00
 alias:
 ---

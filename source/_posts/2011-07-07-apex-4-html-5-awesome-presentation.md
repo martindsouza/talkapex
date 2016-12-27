@@ -1,10 +1,8 @@
 ---
 title: 'APEX 4 + HTML 5 = Awesome: Presentation Slides'
 tags:
-  - APEX
-  - KSCOPE
-  - ODTUG
-  - ORACLE APEX
+  - apex
+  - kscope
 date: 2011-07-07 07:00:00
 alias:
 ---

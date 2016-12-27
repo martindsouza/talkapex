@@ -1,7 +1,7 @@
 ---
 title: Custom Authentication Status
 tags:
-  - APEX
+  - apex
 date: 2009-03-22 10:27:00
 alias:
 ---
@@ -33,9 +33,9 @@ Shared Components / Authentication Schemes:
 - Create
 - From Scratch
 - Name: BLOG_TEST
-- Keep hitting "Next" until: 
+- Keep hitting "Next" until:
   - Credentials Verification Method:
-    - return blog_cust_auth 
+    - return blog_cust_auth
   - Keep hitting "Next" until the end
 
 - Change the current authentication scheme to BLOG_TEST

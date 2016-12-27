@@ -1,8 +1,7 @@
 ---
 title: Variables in APEX
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2011-01-05 08:00:00
 alias:
 ---
@@ -24,7 +23,7 @@ Bind variables can be used in any block of SQL or PL/SQL code inside APEX. For e
 <span style="font-weight: bold;">Substitution Strings</span>
 Substitution strings use the <span style="font-style: italic;">&amp;variable.</span> notation. They can be used anywhere in your APEX application such as a HTML region or even a template. You can also use them in inline SQL and PL/SQL code but it is not recommended for security reasons. <span style="font-style: italic;">For more information on this security risk read the following Oracle white paper on [SQL Injection](http://www.oracle.com/technetwork/database/features/plsql/overview/how-to-write-injection-proof-plsql-1-129572.pdf)</span>
 
-A simple example of using a substitution string is in a HTML region which displays a welcome message. The region source would be: 
+A simple example of using a substitution string is in a HTML region which displays a welcome message. The region source would be:
 <pre class="brush: html;highlight:1">Hello &amp;APP_USER.
 
 Welcome to the demo application.</pre><span style="font-weight: bold;">V / NV Functions</span>

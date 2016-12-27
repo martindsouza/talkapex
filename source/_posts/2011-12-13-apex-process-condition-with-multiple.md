@@ -1,14 +1,15 @@
 ---
 title: APEX Process Condition with Multiple Buttons
-tags: []
+tags:
+  - apex
 date: 2011-12-13 07:00:00
 alias:
 ---
 
-For new APEX developers, adding a page process condition can be a bit confusing at first when basing it on multiple buttons. This post will go through a scenario on how to easily use multiple buttons in a page condition. 
+For new APEX developers, adding a page process condition can be a bit confusing at first when basing it on multiple buttons. This post will go through a scenario on how to easily use multiple buttons in a page condition.
 
 **<span style="font-size: small;">The Setup</span>**
-A classic example of having multiple buttons on a page is when you want to save or update a record. The Save button should only appear for new records, whereas the Update button should only appear for existing records. The catch is that when saving and updating the page you may need to run the same process. 
+A classic example of having multiple buttons on a page is when you want to save or update a record. The Save button should only appear for new records, whereas the Update button should only appear for existing records. The catch is that when saving and updating the page you may need to run the same process.
 
 The following setup highlights this classic example. Create a region in a page with two fields: P1_X and P1_Y. Then create three buttons: Save, Update, and Cancel. All three buttons should submit the page and an example of the page is shown below
 
@@ -19,7 +20,7 @@ Process Point: <span style="font-family: &quot;Courier New&quot;,Courier,monospa
 Process: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">:P1_Y := :P1_X * 2;</span>
 
 **The Problem**
-You'd like this process to run when both the Save and Update buttons are clicked. If you scroll down to the process's conditions area you'll notice that it has an option to restrict the process when a particular button is clicked (shown below). 
+You'd like this process to run when both the Save and Update buttons are clicked. If you scroll down to the process's conditions area you'll notice that it has an option to restrict the process when a particular button is clicked (shown below).
 
 <div class="separator" style="clear: both; text-align: center;">[![](http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png)](http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png)</div>
 As you can see you can only select one button from the list. At first glance the only option that you have to resolve the two button issue is to create a new process, which is a copy of the existing process, and set the condition to the other button. That doesn't necessarily make sense and can be an obvious maintenance nightmear.

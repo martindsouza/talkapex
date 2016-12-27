@@ -1,8 +1,8 @@
 ---
 title: APEX Backup Script
 tags:
-  - APEX
-  - OraOpenSource
+  - apex
+  - open-source
 date: 2015-04-21 11:35:00
 alias:
 ---

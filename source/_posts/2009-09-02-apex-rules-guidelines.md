@@ -1,9 +1,8 @@
 ---
 title: APEX Rules & Guidelines
 tags:
-  - APEX
-  - ORACLE
-  - PL/SQL
+  - apex
+  - best-practice
 date: 2009-09-02 09:00:00
 alias:
 ---

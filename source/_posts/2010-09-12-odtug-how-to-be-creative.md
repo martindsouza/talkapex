@@ -1,9 +1,8 @@
 ---
 title: 'ODTUG: How to be Creative'
 tags:
-  - APEX
-  - ODTUG
-  - ORACLE APEX
+  - best-practice
+  - kscope
 date: 2010-09-12 23:43:00
 alias:
 ---

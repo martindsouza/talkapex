@@ -1,6 +1,7 @@
 ---
 title: Oracle APEX Training
-tags: []
+tags:
+  - apex
 date: 2014-02-25 10:00:00
 alias:
 ---

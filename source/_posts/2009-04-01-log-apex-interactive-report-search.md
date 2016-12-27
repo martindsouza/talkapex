@@ -1,7 +1,7 @@
 ---
 title: Log APEX Interactive Report Search Filter
 tags:
-  - APEX
+  - apex
 date: 2009-04-01 07:22:00
 alias:
 ---
@@ -14,8 +14,8 @@ A few days ago someone posted a question on the forums [http://forums.oracle.com
 
 <pre class="brush: sql">
   CREATE TABLE tir_search_filter_log(
-    search_filter VARCHAR2(255) NULL, 
-    search_date DATE DEFAULT SYSDATE NOT NULL, 
+    search_filter VARCHAR2(255) NULL,
+    search_date DATE DEFAULT SYSDATE NOT NULL,
     username VARCHAR2(255) NOT NULL);
 </pre>
 <span style="font-weight:bold;">Step 2: Create Application Process</span>

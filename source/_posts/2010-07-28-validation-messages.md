@@ -1,7 +1,7 @@
 ---
 title: Validation Messages
 tags:
-  - APEX
+  - apex
 date: 2010-07-28 23:15:00
 alias:
 ---

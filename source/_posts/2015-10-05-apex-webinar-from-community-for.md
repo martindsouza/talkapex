@@ -1,7 +1,7 @@
 ---
 title: 'APEX Webinar: From the Community, for the Community'
 tags:
-  - APEX
+  - apex
 date: 2015-10-05 11:52:00
 alias:
 ---

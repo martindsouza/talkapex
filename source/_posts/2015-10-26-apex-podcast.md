@@ -1,8 +1,7 @@
 ---
 title: APEX Podcast
 tags:
-  - APEX
-  - Podcast
+  - apex
 date: 2015-10-26 10:00:00
 alias:
 ---

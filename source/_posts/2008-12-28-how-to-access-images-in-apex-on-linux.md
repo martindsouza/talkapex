@@ -1,7 +1,7 @@
 ---
 title: How to access images in APEX on Linux
 tags:
-  - APEX
+  - apex
 date: 2008-12-28 10:49:00
 alias:
 ---

@@ -1,6 +1,8 @@
 ---
 title: APEX OOW 2013 Meetup
-tags: []
+tags:
+  - apex
+  - oow
 date: 2013-08-30 10:32:00
 alias:
 ---

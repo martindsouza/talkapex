@@ -1,7 +1,7 @@
 ---
 title: 15 Minute Timer on Mac
 tags:
-  - OS X
+  - macos
 date: 2015-04-20 09:00:00
 alias:
 ---

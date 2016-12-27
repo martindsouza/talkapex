@@ -1,8 +1,7 @@
 ---
 title: 'Oracle: Advanced Error Messages'
 tags:
-  - ORACLE
-  - PL/SQL
+  - plsql
 date: 2009-07-22 09:00:00
 alias:
 ---
@@ -57,9 +56,9 @@ DBMS Output:
 > Old Err Code: 100
 > -- New Error Messages --
 > ORA-01403: no data found
-> 
+>
 > ORA-06512: at "GIFFY.PKG_ERR_TEST", line 9
-> 
+>
 > ----- PL/SQL Call Stack -----
 >   object      line  object
 >   handle    number  name

@@ -1,9 +1,8 @@
 ---
 title: Malicious Code in APEX Plugins - Feedback
 tags:
-  - APEX
-  - APEX PLUGIN
-  - ORACLE APEX
+  - apex-plugin
+  - security
 date: 2011-04-13 05:24:00
 alias:
 ---
@@ -12,7 +11,7 @@ My [previous post](http://www.talkapex.com/2011/04/malicious-code-in-apex-plugin
 
 <span style="font-weight:bold;">Oracle Maintaining Plugin Repository
 </span>
-The idea is for Oracle to host something similar to Apple's App Store so that all code must pass a set of standards etc. I don't work for Oracle so I can't comment on this too much and I think it's a good idea. That being said the current community plugin repository, [apex-plugin.com](http://www.apex-plugin.com/), has an approval process before plugins are released. 
+The idea is for Oracle to host something similar to Apple's App Store so that all code must pass a set of standards etc. I don't work for Oracle so I can't comment on this too much and I think it's a good idea. That being said the current community plugin repository, [apex-plugin.com](http://www.apex-plugin.com/), has an approval process before plugins are released.
 
 <span style="font-weight:bold;">Wrapped PL/SQL and Licensed Plugins</span>
 

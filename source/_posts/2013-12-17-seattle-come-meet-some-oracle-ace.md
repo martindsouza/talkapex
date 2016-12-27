@@ -1,6 +1,8 @@
 ---
 title: 'Seattle: Come Meet Some Oracle ACE Directors on Jan 9th'
-tags: []
+tags:
+  - odtug
+  - kscope
 date: 2013-12-17 22:38:00
 alias:
 ---

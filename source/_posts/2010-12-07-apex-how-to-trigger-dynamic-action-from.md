@@ -1,8 +1,7 @@
 ---
 title: 'APEX: How to Trigger Dynamic Action From Button'
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-12-07 20:32:00
 alias:
 ---
@@ -13,7 +12,7 @@ The following steps cover how to create a dynamic action on a button:
 
 <span style="font-weight:bold;">Modify Button Template:</span>
 
-You'll need to modify the button template to allow for the button attributes to be applied to the button. This will allow us to use an ID to identify a button. To apply the button attributes go to Shared Components > Templates > Select the default button template (for most instances called "Button"). Add #BUTTON_ATTRIBUTES# to the button tag in the Template section. For example from: 
+You'll need to modify the button template to allow for the button attributes to be applied to the button. This will allow us to use an ID to identify a button. To apply the button attributes go to Shared Components > Templates > Select the default button template (for most instances called "Button"). Add #BUTTON_ATTRIBUTES# to the button tag in the Template section. For example from:
 
 &lt;button value="#LABEL#" onclick="#LINK#" class="button-gray" type="button"&gt;
 

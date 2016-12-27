@@ -1,6 +1,8 @@
 ---
 title: Oracle Instant Client on Mac OS X
-tags: []
+tags:
+  - macos
+  - oracle
 date: 2013-03-29 18:37:00
 alias:
 ---
@@ -9,7 +11,7 @@ A while back I broke down to the peer pressure in the APEX community (you know w
 
 I finally got it working and thought I'd post what I did for others that are new to OS X.
 
-**Download Instant Client** 
+**Download Instant Client**
 
 First you'll nee to download the [Instant Client for OS X](http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html). I downloaded the following files for Version 11.2.0.3.0 (64-bit):
 

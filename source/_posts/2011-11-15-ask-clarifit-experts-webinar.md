@@ -1,6 +1,6 @@
 ---
 title: Ask the ClariFit Experts Webinar
-tags: []
+tags:
 date: 2011-11-15 08:47:00
 alias:
 ---

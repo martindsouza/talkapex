@@ -1,6 +1,8 @@
 ---
 title: ClariFit From/To Date Picker Plug-in
-tags: []
+tags:
+  - apex
+  - apex-plugin
 date: 2011-12-01 07:03:00
 alias:
 ---

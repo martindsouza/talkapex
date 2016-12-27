@@ -1,7 +1,7 @@
 ---
 title: APEX Interactive Reports - Customize Wait Display Part 2
 tags:
-  - APEX
+  - apex
 date: 2009-04-28 22:57:00
 alias:
 ---
@@ -20,7 +20,7 @@ An example of this can be found [here](http://apex.oracle.com/pls/otn/f?p=20195:
 
 <pre class="brush: sql">
 -- Trying to make this a slow query to demonstrate the IR loader
-SELECT     e.*, sum(e.sal) over() test 
+SELECT     e.*, sum(e.sal) over() test
       FROM emp e
 CONNECT BY LEVEL <= 5
 </pre>
@@ -46,7 +46,7 @@ goModal=function(pRegionStaticId, pOptions){
   pOptions = jQuery.extend(true,vDefaults, pOptions);
 
   // To maintain order of APEX items (see forum posting above
-  $('#' + pRegionStaticId).wrap('<div></div>'); 
+  $('#' + pRegionStaticId).wrap('<div></div>');
 
   // Make sure the region is visible
   $('#' + pRegionStaticId).show();

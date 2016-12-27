@@ -1,7 +1,8 @@
 ---
 title: SQLcl and login.sql
 tags:
-  - SQLcl
+  - sqlcl
+  - oracle
 date: 2015-05-18 08:59:00
 alias:
 ---

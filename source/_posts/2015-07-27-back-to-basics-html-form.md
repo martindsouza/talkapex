@@ -1,7 +1,7 @@
 ---
 title: 'Back to Basics: The HTML Form'
 tags:
-  - APEX
+  - apex
 date: 2015-07-27 06:30:00
 alias:
 ---

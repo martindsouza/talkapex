@@ -1,13 +1,12 @@
 ---
 title: APEX Region Errors - Part 1
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-10-18 09:00:00
 alias:
 ---
 
-A while ago I wrote about how to handle and customize the default unhandled exception error page in APEX: [http://www.talkapex.com/2010/09/custom-error-messages-in-apex.html](http://www.talkapex.com/2010/09/custom-error-messages-in-apex.html) The method described in the post catches page level errors and can notify administrators immediately when an undhandled exception occurs. 
+A while ago I wrote about how to handle and customize the default unhandled exception error page in APEX: [http://www.talkapex.com/2010/09/custom-error-messages-in-apex.html](http://www.talkapex.com/2010/09/custom-error-messages-in-apex.html) The method described in the post catches page level errors and can notify administrators immediately when an undhandled exception occurs.
 
 Region level errors are not caught using the method above. An example of a region error is when you have a query that has divisor is equal to zero error. To simulate this error create a standard report region with the following query:
 <pre class="brush: sql; highlight: 3">
@@ -41,7 +40,7 @@ They're a few caveats that you should be aware of:
 
 - When multiple region level errors occur only the first error is logged in the activity log.
 
-- From my limited testing, errors in Interactive Reports are not logged. Their may be other types of regions that don't log errors as well. 
+- From my limited testing, errors in Interactive Reports are not logged. Their may be other types of regions that don't log errors as well.
 
 Given the caveats listed above querying the activity logs help identify some, but not all, errors that happen in your application.
 

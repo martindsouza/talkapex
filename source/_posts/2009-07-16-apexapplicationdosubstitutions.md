@@ -1,7 +1,7 @@
 ---
 title: APEX_APPLICATION.DO_SUBSTITUTIONS
 tags:
-  - APEX
+  - apex
 date: 2009-07-16 09:00:00
 alias:
 ---

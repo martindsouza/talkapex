@@ -1,7 +1,8 @@
 ---
 title: APEX Theme Competition
 tags:
-  - APEX
+  - apex
+  - odtug
 date: 2014-02-08 12:01:00
 alias:
 ---

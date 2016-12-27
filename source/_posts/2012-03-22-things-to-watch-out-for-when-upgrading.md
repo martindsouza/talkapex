@@ -1,6 +1,7 @@
 ---
 title: Things to Watch Out for When Upgrading an APEX Plugin
-tags: []
+tags:
+  - apex-plugin
 date: 2012-03-22 08:00:00
 alias:
 ---

@@ -1,9 +1,7 @@
 ---
 title: ODTUG Kscope 11
 tags:
-  - APEX
-  - ODTUG
-  - ORACLE APEX
+  - kscope
 date: 2011-06-23 09:04:00
 alias:
 ---

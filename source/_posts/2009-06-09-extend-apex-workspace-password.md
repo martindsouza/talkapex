@@ -1,7 +1,8 @@
 ---
 title: Extend APEX Workspace Password
 tags:
-  - APEX
+  - apex
+  - security
 date: 2009-06-09 09:00:00
 alias:
 ---

@@ -1,10 +1,7 @@
 ---
 title: demo.talkapex.com
 tags:
-  - APEX
-  - demo
-  - demo.talkapex.com
-  - ORACLE APEX
+  - meta
 date: 2011-02-01 07:00:00
 alias:
 ---

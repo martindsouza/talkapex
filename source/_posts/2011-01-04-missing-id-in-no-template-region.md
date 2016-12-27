@@ -1,13 +1,12 @@
 ---
 title: Missing ID in the No Template Region Template
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2011-01-04 08:00:00
 alias:
 ---
 
-When you create or edit a region in APEX you can select a template. Region templates define the location of buttons in a region, how the region looks, etc. There is a  region template called "No Template" which is the first option in the template list. When you select No Template as the region template APEX will only display the content of the region an nothing else (no header, buttons, etc). 
+When you create or edit a region in APEX you can select a template. Region templates define the location of buttons in a region, how the region looks, etc. There is a  region template called "No Template" which is the first option in the template list. When you select No Template as the region template APEX will only display the content of the region an nothing else (no header, buttons, etc).
 
 [![](http://3.bp.blogspot.com/_33EF80fk9sM/TR3z1SvC0sI/AAAAAAAAD2k/DRv93FxN2UA/s400/no_template.jpg)](http://3.bp.blogspot.com/_33EF80fk9sM/TR3z1SvC0sI/AAAAAAAAD2k/DRv93FxN2UA/s1600/no_template.jpg)
 There is a problem with using No Template if you use Dynamic Actions or have any JavaScript code which references the region. The No Template region template does not contain an ID attribute which prevents dynamic actions from binding to the region.

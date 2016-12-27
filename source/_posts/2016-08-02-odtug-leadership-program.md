@@ -1,7 +1,7 @@
 ---
 title: ODTUG Leadership Program
 tags:
-  - ODTUG
+  - odtug
 date: 2016-08-02 07:00:00
 alias:
 ---

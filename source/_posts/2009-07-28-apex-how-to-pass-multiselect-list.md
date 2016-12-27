@@ -1,14 +1,14 @@
 ---
 title: 'APEX: How to Pass Multiselect List Values in URL'
 tags:
-  - APEX
+  - apex
 date: 2009-07-28 09:00:00
 alias:
 ---
 
 When passing multiselect list values, or any multi LOV, in the URL you may have some unexpected behaviors. Here's an example: [http://apex.oracle.com/pls/otn/f?p=20195:2100](http://apex.oracle.com/pls/otn/f?p=20195:2100)
 
-If you take a look at the example you'll notice that the URL doesn't contain all the values that you may have submitted. For example I selected KING (7839), BLAKE (7698), and CLARK (7782). I would expect the URL to contain these values when I pass them via the URL. Instead the URL looks like this: 
+If you take a look at the example you'll notice that the URL doesn't contain all the values that you may have submitted. For example I selected KING (7839), BLAKE (7698), and CLARK (7782). I would expect the URL to contain these values when I pass them via the URL. Instead the URL looks like this:
 > <span style="font-style:italic;">http://apex.oracle.com/pls/otn/f?p=20195:2100:1674288126968745::NO::<span style="font-weight:bold;">P2100_EMPNO_LIST:7839:7698</span></span>
 Notice how only 2 values are passed in? That's because the delimiter used in LOVs is the same that is used in the URL. What can be even more confusing is that I selected 3 values but when I pass them in the URL only 1 is "accepted". This is because the last value in the URL is the "PrinterFriendly" parameter (please see: [http://download.oracle.com/docs/cd/E14373_01/appdev.32/e11838/concept.htm#BEIJCIAG](http://download.oracle.com/docs/cd/E14373_01/appdev.32/e11838/concept.htm#BEIJCIAG))
 

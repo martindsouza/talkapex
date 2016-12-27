@@ -1,12 +1,12 @@
 ---
 title: APEX Interactive Reports - Customize Wait Display Part 1
 tags:
-  - APEX
+  - apex
 date: 2009-04-13 07:43:00
 alias:
 ---
 
-We recently needed to change, and move, the default Interactive Report (IR) AJAX "Loading" image (spinning wheel): 
+We recently needed to change, and move, the default Interactive Report (IR) AJAX "Loading" image (spinning wheel):
 [![](http://3.bp.blogspot.com/_33EF80fk9sM/SeNCCZQweaI/AAAAAAAADoA/25cGNbjO0ok/s400/01_cust_ir_wait.bmp)](http://3.bp.blogspot.com/_33EF80fk9sM/SeNCCZQweaI/AAAAAAAADoA/25cGNbjO0ok/s1600-h/01_cust_ir_wait.bmp)
   After some investigation they're several things you can do depending on your requirements. A demo application is available [here.](http://apex.oracle.com/pls/otn/f?p=20195:1200)
 
@@ -40,10 +40,10 @@ The easiest option is if all you need to do is change the image:
 
 <pre class="brush: js">
   $('#apexir_LOADER img')[0].src="#IMAGE_PREFIX#processing3.gif";
-</pre> 
+</pre>
 
 [![](http://2.bp.blogspot.com/_33EF80fk9sM/SeNCdmCqZNI/AAAAAAAADoI/y3d79iimB84/s400/02_cust_ir_wait.bmp)](http://2.bp.blogspot.com/_33EF80fk9sM/SeNCdmCqZNI/AAAAAAAADoI/y3d79iimB84/s1600-h/02_cust_ir_wait.bmp)
 
-The new image, processing3.gif, is part of APEX as well. You can reference your own images if you'd like. 
+The new image, processing3.gif, is part of APEX as well. You can reference your own images if you'd like.
 
 In Part 2 I'll go over changing the actual function that shows and hides the loading image. This will give you complete control of the loading message.

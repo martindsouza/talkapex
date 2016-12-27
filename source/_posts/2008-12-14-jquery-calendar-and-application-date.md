@@ -1,7 +1,8 @@
 ---
 title: jQuery Calendar and Application Date Format
 tags:
-  - APEX
+  - apex
+  - jquery
 date: 2008-12-14 22:54:00
 alias:
 ---

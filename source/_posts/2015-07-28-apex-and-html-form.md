@@ -1,7 +1,7 @@
 ---
 title: APEX and the HTML Form
 tags:
-  - APEX
+  - apex
 date: 2015-07-28 06:30:00
 alias:
 ---

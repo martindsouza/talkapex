@@ -1,9 +1,7 @@
 ---
 title: 'APEX Logs: Storing Mail Log Data'
 tags:
-  - APEX
-  - ORACLE
-  - ORACLE APEX
+  - apex
 date: 2010-04-13 09:00:00
 alias:
 ---

@@ -1,7 +1,7 @@
 ---
 title: Derived Columns in APEX Standard Reports
 tags:
-  - APEX
+  - apex
 date: 2014-01-06 07:00:00
 alias:
 ---

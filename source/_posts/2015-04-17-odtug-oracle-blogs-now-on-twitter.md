@@ -1,7 +1,7 @@
 ---
 title: ODTUG Oracle Blogs - Now on Twitter
 tags:
-  - ODTUG
+  - odtug
 date: 2015-04-17 08:38:00
 alias:
 ---

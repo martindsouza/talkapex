@@ -1,6 +1,8 @@
 ---
 title: ODTUG APEX Plug-In Competition
-tags: []
+tags:
+  - odtug
+  - apex-plugin
 date: 2012-03-27 14:23:00
 alias:
 ---

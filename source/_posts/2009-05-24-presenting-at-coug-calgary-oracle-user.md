@@ -1,7 +1,7 @@
 ---
 title: Presenting at COUG (Calgary Oracle User Group) this week
 tags:
-  - APEX
+  - meta
 date: 2009-05-24 21:02:00
 alias:
 ---
@@ -16,6 +16,6 @@ Presentation: 8:30 am
 
 [PetroCanada Building - West Tower](http://maps.google.ca/maps?f=q&source=s_q&hl=en&geocode=&q=150+6+Avenue+SW,+calgary&sll=51.048679,-114.064028&sspn=0.007622,0.022745&ie=UTF8&ll=51.047923,-114.064071&spn=0.007622,0.022745&z=16&iwloc=A)
 150 6th Avenue S.W.
-17th Floor, Meeting room B/C 
+17th Floor, Meeting room B/C
 
 For more information, please go to: [http://www.coug.ab.ca/events/20090528.htm](http://www.coug.ab.ca/events/20090528.htm)

@@ -1,11 +1,8 @@
 ---
 title: Oracle and APEX Jobs
 tags:
-  - APEX
-  - JOBS
-  - ORACLE
-  - ORACLE APEX
-  - PL/SQL
+  - apex
+  - plsql
 date: 2009-10-15 03:25:00
 alias:
 ---

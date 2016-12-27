@@ -1,8 +1,7 @@
 ---
 title: NTILE vs WIDTH_BUCKET
 tags:
-  - ORACLE
-  - PL/SQL
+  - sql
 date: 2014-04-12 21:40:00
 alias:
 ---
@@ -23,9 +22,9 @@ When an uneven amount of objects need to go into the buckets, NTILE will fill th
   select 3 as num_buckets
   from dual
 )
-select 
-  d.dname, 
-  e.ename, 
+select
+  d.dname,
+  e.ename,
   e.sal,
   ntile (data.num_buckets) over (order by sal asc) ntile,
   width_bucket(sal, 0, max(sal+1) over (), data.num_buckets) width_bucket

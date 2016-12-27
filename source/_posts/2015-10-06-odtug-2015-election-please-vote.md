@@ -1,7 +1,7 @@
 ---
 title: ODTUG 2015 Election - Please Vote
 tags:
-  - ODTUG
+  - odtug
 date: 2015-10-06 09:03:00
 alias:
 ---

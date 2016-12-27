@@ -1,9 +1,7 @@
 ---
 title: How to Quickly Append VARCHAR2 to CLOB
 tags:
-  - ORACLE
-  - PL/SQL
-  - SQL
+  - plsql
 date: 2009-06-15 09:00:00
 alias:
 ---

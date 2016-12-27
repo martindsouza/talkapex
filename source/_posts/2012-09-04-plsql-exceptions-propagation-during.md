@@ -1,7 +1,7 @@
 ---
 title: PL/SQL Exceptions Propagation during Variable Declaration
 tags:
-  - PL/SQL
+  - plsql
 date: 2012-09-04 07:00:00
 alias:
 ---

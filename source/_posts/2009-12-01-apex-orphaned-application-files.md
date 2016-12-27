@@ -1,8 +1,7 @@
 ---
 title: APEX Orphaned Application Files
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2009-12-01 09:00:00
 alias:
 ---

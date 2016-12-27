@@ -1,7 +1,7 @@
 ---
 title: 'New URL: http://TalkApex.com'
 tags:
-  - ORACLE APEX
+  - meta
 date: 2010-06-10 09:00:00
 alias:
 ---

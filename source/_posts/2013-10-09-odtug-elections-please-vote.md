@@ -1,6 +1,7 @@
 ---
 title: ODTUG Elections - Please Vote
-tags: []
+tags:
+  - odtug
 date: 2013-10-09 08:40:00
 alias:
 ---
@@ -17,7 +18,7 @@ I have included my campaign statement and profile below. Thank you for your supp
 
 Over the past two years, I have had the privilege to represent the Oracle APEX community as a director for ODTUG. I have made the decision to run again this year for the ODTUG board and am looking for your support in doing so.
 
-During my two-year tenure, I have been involved in several committees within ODTUG that have helped bring conferences around the world, improved marketing initiatives, and organized developer contests. 
+During my two-year tenure, I have been involved in several committees within ODTUG that have helped bring conferences around the world, improved marketing initiatives, and organized developer contests.
 
 I have been able to build strong relationships with other ODTUG board members, Oracle employees, and many developers in the APEX community. These relationships have allowed me to be a liaison between all three groups and help to relay ideas and opportunities to the appropriate parties. I hope to continue to be able to facilitate open communication over the next two years.
 

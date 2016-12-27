@@ -1,7 +1,7 @@
 ---
 title: How to Send/Upload a CLOB from the Browser to APEX via AJAX
 tags:
-  - APEX
+  - apex
 date: 2012-08-28 09:39:00
 alias:
 ---
@@ -20,9 +20,9 @@ Here's an example
 DECLARE
   l_clob CLOB;
 BEGIN
-  SELECT clob001 
+  SELECT clob001
   INTO l_clob
-  FROM apex_collections 
+  FROM apex_collections
   WHERE collection_name = 'CLOB_CONTENT';
 
   -- Now you can process the CLOB using l_clob
@@ -31,13 +31,13 @@ END;
 <pre class="brush: js; highlight: []">
 /**
  * Code to run once the upload is done
- * 
+ *
  * Clob is now accessible in the apex_collections view:
- * SELECT collection_name, seq_id, clob001 FROM apex_collections 
+ * SELECT collection_name, seq_id, clob001 FROM apex_collections
  * WHERE collection_name = 'CLOB_CONTENT';
  *  - Note: The collection name "CLOB_CONTENT" is not modifiable
- * 
- * Use this function to make an AJAX request to trigger 
+ *
+ * Use this function to make an AJAX request to trigger
  * an On Demand Process (i.e. run some PL/SQL code)
  */
 function clubUploadDone(){

@@ -1,7 +1,7 @@
 ---
 title: APEX Interactive Report - Download with One Click
 tags:
-  - APEX
+  - apex
 date: 2009-03-24 07:21:00
 alias:
 ---

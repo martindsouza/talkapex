@@ -1,6 +1,7 @@
 ---
 title: Min and Max Dates in APEX
-tags: []
+tags:
+  - apex
 date: 2011-11-30 13:20:00
 alias:
 ---

@@ -1,8 +1,7 @@
 ---
 title: Highlight Words in Standard Reports
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2011-06-08 06:22:00
 alias:
 ---

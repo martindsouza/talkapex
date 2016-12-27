@@ -1,8 +1,7 @@
 ---
 title: APEX Report Download Logger
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-07-06 09:00:00
 alias:
 ---
@@ -14,7 +13,7 @@ I developed a reporting application in APEX. The goal of the application is to h
 
 I've been a bit concerned that the application isn't achieving it's initial goal and that the reports are just used as data dumps. To validate this hypothesis I needed a way to track how many times a report was downloaded and compare it to the number of times it was viewed.
 
-I can find out how many times a report/page was displayed by looking at the APEX logs: 
+I can find out how many times a report/page was displayed by looking at the APEX logs:
 <pre class="brush: sql;">
 SELECT *
   FROM apex_workspace_activity_log
@@ -88,7 +87,7 @@ END sp_log_apex_dl_report;
 </pre>
 - Trigger the above procedure every time a report is downloaded:
 
-Since Standard Reports (STD) and Interactive Reports (IR) download functionalities are handled differently I can't use an Applicatiobn Process to trigger the logging function. Instead, I'm going to leverage the VPD section in APEX. For those of you new to APEX, the Virtual Private Database (VPD) section in APEX is a section in APEX where you can put a block of PL/SQL code. This code gets run right at the beginning of the page, after the APP_USER is defined. The label of VPD is a bit misleading since the code doesn't have to do any VPD tasks. <span style="font-style:italic;">Initially I had planned to handle IRs and STD Reports using a different method but thanks to the guys at Purdue Pharma for reminding me that I can leverage the VPD section in APEX.</span> 
+Since Standard Reports (STD) and Interactive Reports (IR) download functionalities are handled differently I can't use an Applicatiobn Process to trigger the logging function. Instead, I'm going to leverage the VPD section in APEX. For those of you new to APEX, the Virtual Private Database (VPD) section in APEX is a section in APEX where you can put a block of PL/SQL code. This code gets run right at the beginning of the page, after the APP_USER is defined. The label of VPD is a bit misleading since the code doesn't have to do any VPD tasks. <span style="font-style:italic;">Initially I had planned to handle IRs and STD Reports using a different method but thanks to the guys at Purdue Pharma for reminding me that I can leverage the VPD section in APEX.</span>
 
 - Shared Components
   - Security Attributes

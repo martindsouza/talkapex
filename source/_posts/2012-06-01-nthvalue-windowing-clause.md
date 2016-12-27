@@ -1,7 +1,7 @@
 ---
 title: NTH_VALUE Windowing Clause
 tags:
-  - PL/SQL
+  - sql
 date: 2012-06-01 07:55:00
 alias:
 ---
@@ -9,7 +9,7 @@ alias:
 In my [previous post](http://www.talkapex.com/2012/05/some-interesting-oracle-analytic.html), which highlighted some analytic functions, I mentioned that the windowing clause must be explicitly defined when using the [NTH_VALUE](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions114.htm#CJAFEJBE) function.
 
 To recap, here's the example I used for NTH_VALUE which lists the 2nd highest salary for each department:
-<pre class="brush: sql; highlight: 5">SELECT d.dname, e.ename, e.sal, 
+<pre class="brush: sql; highlight: 5">SELECT d.dname, e.ename, e.sal,
    nth_value(e.sal, 2) OVER (
     PARTITION BY e.deptno ORDER BY e.sal DESC
     -- windowing_clause
@@ -35,8 +35,8 @@ SALES          TURNER           1500              1600
 SALES          WARD             1250              1600
 SALES          MARTIN           1250              1600
 SALES          JAMES             950              1600
-</pre>What happens if we don't include the windowing clause? Here's the same query, but just focusing on the Accounting department, without the windowing clause: 
-<pre class="brush: sql; highlight: 12">SELECT d.dname, e.ename, e.sal, 
+</pre>What happens if we don't include the windowing clause? Here's the same query, but just focusing on the Accounting department, without the windowing clause:
+<pre class="brush: sql; highlight: 12">SELECT d.dname, e.ename, e.sal,
    nth_value(e.sal, 2) OVER (
     PARTITION BY e.deptno ORDER BY e.sal DESC) sec_high_sal_dept
 FROM emp e, dept d

@@ -1,7 +1,7 @@
 ---
 title: Running Custom Code for Tabular Forms (Part 1)
 tags:
-  - APEX
+  - apex
 date: 2014-03-31 08:34:00
 alias:
 ---

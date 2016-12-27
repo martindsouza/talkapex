@@ -1,8 +1,9 @@
 ---
 title: APEX and the Nest Thermostat
 tags:
-  - APEX
-  - IoT
+  - apex
+  - iot
+  - kscope
 date: 2016-02-21 18:21:00
 alias:
 ---

@@ -1,8 +1,7 @@
 ---
 title: 'APEX IR: Column Help'
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-09-09 08:00:00
 alias:
 ---
@@ -13,9 +12,9 @@ I was working with an Interactive Report (IR) in APEX 4.0 and noticed that when 
 When clicked it displays the column help:
 
 [![](http://1.bp.blogspot.com/_33EF80fk9sM/TIg-Hp9ooNI/AAAAAAAADzQ/Hi96X7SAiZ4/s400/ir_column_info_text.jpg)](http://1.bp.blogspot.com/_33EF80fk9sM/TIg-Hp9ooNI/AAAAAAAADzQ/Hi96X7SAiZ4/s1600/ir_column_info_text.jpg)
-At first I thought this was a new APEX 4.0 feature and then I tested it on a 3.2 instance and noticed that the column information button was present as well. 
+At first I thought this was a new APEX 4.0 feature and then I tested it on a 3.2 instance and noticed that the column information button was present as well.
 
-Either way, it's a really nice feature to have since you can provide column information to users. 
+Either way, it's a really nice feature to have since you can provide column information to users.
 
 The following query helps to identify which IR columns have the default "No help available for this page item." message. <span style="font-style:italic;">You may want to change this since it says "... page item." rather than "column"</span>
 <pre class="brush: sql">

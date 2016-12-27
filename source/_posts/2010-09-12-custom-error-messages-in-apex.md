@@ -1,9 +1,7 @@
 ---
 title: Custom Error Messages in APEX
 tags:
-  - APEX
-  - ODTUG
-  - ORACLE APEX
+  - apex
 date: 2010-09-12 23:32:00
 alias:
 ---
@@ -35,12 +33,12 @@ Compile this procedure in your schema. It will log all the page items, applicati
  * - All application level items
  * - All page items for p_page_id
  * - Items on other pages that are not null
- * 
+ *
  * Logs are stored in logger_logs
  * Requires: https://logger.samplecode.oracle.com/
  *
  * @param p_scope_prefix Scope prefix used in logger
- * @param p_application_id 
+ * @param p_application_id
  * @param p_page_id Page that error occured on
  * @param p_oracle_error_msg Oracle error message
  * @param p_apex_error_msg APEX error message
@@ -148,7 +146,7 @@ Create Page Process:
 Type: PL/SQL
 Name: Log Error
 Point: On Load - Before Header
-Source: 
+Source:
 <pre class="brush: sql">
 DECLARE
 BEGIN
@@ -175,7 +173,7 @@ Error Page Template:
 </script>
 </pre>
 <span style="font-weight:bold;">- End Result</span>
-When you have an unhandled exception the end users should see a message like: 
+When you have an unhandled exception the end users should see a message like:
 
 [![](http://3.bp.blogspot.com/_33EF80fk9sM/TI201ohhIrI/AAAAAAAAD0A/gFQ-6Bcu7CI/s400/error_msg_friendly.jpg)](http://3.bp.blogspot.com/_33EF80fk9sM/TI201ohhIrI/AAAAAAAAD0A/gFQ-6Bcu7CI/s1600/error_msg_friendly.jpg)
 You can view all the log information by running the following query:

@@ -1,14 +1,14 @@
 ---
 title: How to Avoid Bot Spammers in APEX
 tags:
-  - APEX
+  - apex
 date: 2010-02-11 09:00:00
 alias:
 ---
 
 If you've ever developed a public web application with a form on it you may notice that you may get bot spammers trying to enter information into your application.
 
-There's a simple trick that a friend of mine, Sean Rabey, at [Pump Interactive](http://www.pumpinteractive.ca/) showed me which will help you reject submissions from bots. 
+There's a simple trick that a friend of mine, Sean Rabey, at [Pump Interactive](http://www.pumpinteractive.ca/) showed me which will help you reject submissions from bots.
 
 Sean suggested that I use an input field and then hide it with CSS. Humans entering data into the form won't see the field and therefore won't enter anything into it. Bots on the other hand may try to fill out this field and can't detect whether or not it's visible in the browser. If your "special" field has data in it you can reject the submission since you know it's not a human entering the data.
 

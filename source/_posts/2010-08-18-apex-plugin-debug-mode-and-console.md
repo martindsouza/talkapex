@@ -1,8 +1,8 @@
 ---
 title: 'APEX Plugin: Debug Mode and Console'
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
+  - apex-plugin
 date: 2010-08-18 09:00:00
 alias:
 ---

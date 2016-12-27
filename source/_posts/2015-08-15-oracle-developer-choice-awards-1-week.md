@@ -1,7 +1,7 @@
 ---
 title: Oracle Developer Choice Awards - 1 Week Left to Nominate
 tags:
-  - ORACLE
+  - oracle
 date: 2015-08-15 06:23:00
 alias:
 ---

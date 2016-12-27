@@ -1,8 +1,7 @@
 ---
 title: Using Decimals in APEX Page Numbers
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2009-11-16 09:30:00
 alias:
 ---

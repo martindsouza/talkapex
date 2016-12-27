@@ -1,6 +1,7 @@
 ---
 title: Introducing OraOpenSource
-tags: []
+tags:
+  - open-source
 date: 2015-02-17 11:41:00
 alias:
 ---

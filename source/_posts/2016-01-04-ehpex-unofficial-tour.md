@@ -1,7 +1,7 @@
 ---
 title: Eh?PEX Unofficial Tour
 tags:
-  - APEX
+  - apex
 date: 2016-01-04 07:00:00
 alias:
 ---

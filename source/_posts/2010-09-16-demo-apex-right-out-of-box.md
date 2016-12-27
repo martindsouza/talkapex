@@ -1,15 +1,14 @@
 ---
 title: Demo APEX Right Out of the Box
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-09-16 08:00:00
 alias:
 ---
 
-If you want to quickly try out the new features after installing APEX 4.0 you don't need to do anything! APEX now comes with a built in demo. 
+If you want to quickly try out the new features after installing APEX 4.0 you don't need to do anything! APEX now comes with a built in demo.
 
-To access this demo, log into a workspace and click the "Learn more..." button. 
+To access this demo, log into a workspace and click the "Learn more..." button.
 
 [![](http://3.bp.blogspot.com/_33EF80fk9sM/TJGEV7qE4qI/AAAAAAAAD0Q/mBjE86WGL7c/s400/learn_more.jpg)](http://3.bp.blogspot.com/_33EF80fk9sM/TJGEV7qE4qI/AAAAAAAAD0Q/mBjE86WGL7c/s1600/learn_more.jpg)
 On the right hand side you'll see a list of features to demo.

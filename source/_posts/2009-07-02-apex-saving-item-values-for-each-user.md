@@ -1,7 +1,7 @@
 ---
 title: 'APEX: Saving item values for each user'
 tags:
-  - APEX
+  - apex
 date: 2009-07-02 09:00:00
 alias:
 ---
@@ -19,10 +19,10 @@ You can try the demo [here](http://apex.oracle.com/pls/otn/f?p=20195:1800) (foll
 <pre class="brush: sql">
 CREATE TABLE tapex_remember_page_item(
 application_id NUMBER NOT NULL,
-page_id NUMBER NOT NULL, 
+page_id NUMBER NOT NULL,
 item_name VARCHAR2(255) NOT NULL);
 
--- You don't need to add a UK, however it may be a good idea. 
+-- You don't need to add a UK, however it may be a good idea.
 ALTER TABLE tapex_remember_page_item ADD(
   CONSTRAINT tapex_remember_page_item_uk1
   UNIQUE (application_id, page_id, item_name));

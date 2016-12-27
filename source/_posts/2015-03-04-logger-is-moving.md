@@ -2,7 +2,6 @@
 title: Logger is Moving
 tags:
   - logger
-  - ORACLE
 date: 2015-03-04 07:47:00
 alias:
 ---

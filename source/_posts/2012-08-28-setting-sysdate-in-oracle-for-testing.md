@@ -1,7 +1,7 @@
 ---
 title: Setting SYSDATE in Oracle for Testing
 tags:
-  - PL/SQL
+  - plsql
 date: 2012-08-28 07:00:00
 alias:
 ---

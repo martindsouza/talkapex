@@ -1,7 +1,7 @@
 ---
 title: Manually Creating a Tabular Form
 tags:
-  - APEX
+  - apex
 date: 2008-07-31 21:11:00
 alias:
 ---

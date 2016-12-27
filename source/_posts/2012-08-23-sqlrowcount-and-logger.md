@@ -1,8 +1,8 @@
 ---
 title: SQL%ROWCOUNT and Logger
 tags:
-  - ORACLE
-  - PL/SQL
+  - plsql
+  - logger
 date: 2012-08-23 07:00:00
 alias:
 ---

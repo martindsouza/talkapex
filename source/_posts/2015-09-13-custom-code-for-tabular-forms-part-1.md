@@ -1,9 +1,9 @@
 ---
 title: Custom Code for Tabular Forms (Part 1)
 tags:
-  - APEX
-  - APEX 5
-  - Tabular Form
+  - apex
+  - apex-5
+  - tabular-form
 date: 2015-09-13 21:44:00
 alias:
 ---

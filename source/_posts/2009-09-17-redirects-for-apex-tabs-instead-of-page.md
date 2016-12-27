@@ -1,8 +1,7 @@
 ---
 title: Redirects for APEX Tabs instead of page submits
 tags:
-  - APEX
-  - ORACLE
+  - apex
 date: 2009-09-17 09:00:00
 alias:
 ---
@@ -53,7 +52,7 @@ END;
 <script type="text/javascript">
   $('span.apexTabURLs').each(function(i){
     var vTabName = $(this).attr('tabname');
-    var vNewUrl = $(this).attr('tabnewurl'); 
+    var vNewUrl = $(this).attr('tabnewurl');
     $('#t20Tabs a[href="javascript:doSubmit(\'' + vTabName + '\');"]').attr('href',vNewUrl);
   });
   // Remove the extra span tags

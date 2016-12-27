@@ -1,8 +1,7 @@
 ---
 title: Missing Views from the APEX_DICTIONARY
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-07-13 09:00:00
 alias:
 ---

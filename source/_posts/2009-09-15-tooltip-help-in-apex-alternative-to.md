@@ -1,8 +1,7 @@
 ---
 title: 'Tooltip Help in APEX: An alternative to popup help'
 tags:
-  - APEX
-  - ORACLE
+  - apex
 date: 2009-09-15 09:00:00
 alias:
 ---
@@ -16,7 +15,7 @@ Here's a link to the demo: [http://apex.oracle.com/pls/otn/f?p=20195:2400](http:
 [![](http://1.bp.blogspot.com/_33EF80fk9sM/Sq0Cb8Ae2WI/AAAAAAAADqc/flO0nQATWCA/s400/tooltiphelp.jpg)](http://1.bp.blogspot.com/_33EF80fk9sM/Sq0Cb8Ae2WI/AAAAAAAADqc/flO0nQATWCA/s1600-h/tooltiphelp.jpg)
 
 <span style="font-weight:bold;">- Create or Update Label Template</span>
-<span style="font-style: italic;">Note: You don't need to create a new template. If you want to, just update the existing templates</span> 
+<span style="font-style: italic;">Note: You don't need to create a new template. If you want to, just update the existing templates</span>
 - Copy the "Optional Label with Help" and rename to "Optional Label with ToolTip".
 <span style="font-style: italic;">Note: You can do this for required labels as well</span>
 
@@ -38,12 +37,12 @@ To:
 
 $(document).ready(function(){
   $('span.itemToolTip').each(function(i){
-    $('label[for="' +  $(this).attr('foritem') + '"]').attr('title',$(this).html()).tooltip({ 
-        track: true, 
-        delay: 0, 
-        showURL: false, 
-        showBody: " - ", 
-        fade: 250 
+    $('label[for="' +  $(this).attr('foritem') + '"]').attr('title',$(this).html()).tooltip({
+        track: true,
+        delay: 0,
+        showURL: false,
+        showBody: " - ",
+        fade: 250
       });
   });
   // Remove Original ToolTip Help Text

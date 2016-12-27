@@ -1,8 +1,7 @@
 ---
 title: How to only Display Column when Downloading
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-06-15 09:00:00
 alias:
 ---
@@ -17,7 +16,7 @@ If you were to download this report the "color" column would contain all the htm
 
 A workaround that I've used is to create 2 columns: color_html and color
 <pre class="brush: sql;">
-SELECT '<span style="color:' || color || '">"' || color || '</span>' color_html, 
+SELECT '<span style="color:' || color || '">"' || color || '</span>' color_html,
             color color
   FROM my_colors
 </pre>And modify each report column's attributes:

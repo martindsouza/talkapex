@@ -1,6 +1,8 @@
 ---
 title: Building a Better Team - Slides
-tags: []
+tags:
+  - kscope
+  - best-practice
 date: 2012-07-03 21:54:00
 alias:
 ---

@@ -1,8 +1,7 @@
 ---
 title: 'APEX IR: Subscriptions with Bind Variables and VPD'
 tags:
-  - APEX
-  - ORACLE APEX
+  - apex
 date: 2010-09-15 09:00:00
 alias:
 ---

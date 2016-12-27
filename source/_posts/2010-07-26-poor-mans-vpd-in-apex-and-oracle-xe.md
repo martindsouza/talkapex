@@ -1,11 +1,9 @@
 ---
 title: Poor Man's VPD in APEX and Oracle XE
 tags:
-  - APEX
-  - ORACLE
-  - ORACLE APEX
-  - ORACLE XE
-  - VPD
+  - apex
+  - plsql
+  - security
 date: 2010-07-26 23:03:00
 alias:
 ---
@@ -45,7 +43,7 @@ Hopefully you understood the small bit of background information I wrote before.
 -- ctx_vpd is our context name
 -- pkg_vpd is the only place where we can modify values in this context
 --  This provides a lot of security since single access point
-CREATE OR REPLACE CONTEXT ctx_vpd USING pkg_vpd ACCESSED GLOBALLY; 
+CREATE OR REPLACE CONTEXT ctx_vpd USING pkg_vpd ACCESSED GLOBALLY;
 </pre>
 <span style="font-style:italic;font-weight:bold;">Create pkg_vpd spec</span>
 <pre class="brush: sql;">
@@ -53,31 +51,31 @@ CREATE OR REPLACE CONTEXT ctx_vpd USING pkg_vpd ACCESSED GLOBALLY;
 -- @author Martin Giffy D'Souza - martin@talkapex.com
 CREATE OR REPLACE PACKAGE pkg_vpd
 AS
-   -- 
+   --
    -- Login function for APEX to login users
    -- Spec must be as is, as required by APEX for custom authentication schemes
    -- For demo purposes we'll use ENAME = ENAME from EMP
    -- @param p_username username
    -- @param p_password password
    -- @return TRUE or FALSE
-   -- 
+   --
   FUNCTION f_login (p_username IN VARCHAR2, p_password IN VARCHAR2)
     RETURN BOOLEAN;
 
-  -- 
+  --
   -- Set context identifier
   -- This will register our "key" which will be required each time we want to access a Context (name/value) pair
   -- @param p_session_key in APEX use :APP_USER || ':' || :APP_SESSION
-  -- 
+  --
   PROCEDURE sp_set_context_identifier (p_session_key IN VARCHAR2);
 
-  -- 
+  --
   -- Set context value
   -- i.e. Sets a value for the name/value pair
-  -- 
+  --
   PROCEDURE sp_set_context_value (p_name IN VARCHAR2, p_value IN VARCHAR2);
 
-  -- 
+  --
   -- Get Context Value
   -- i.e. Get value for name/value pair
   --
@@ -205,7 +203,7 @@ AS
 /
 </pre><span style="font-style:italic; font-weight:bold;">Create Custom Authentication Scheme</span>
 
-Shared Components / Authentication Schemes 
+Shared Components / Authentication Schemes
 Create
 From Scratch
 Name: VPD Demo
@@ -215,7 +213,7 @@ Invalid Session Target: Page in This Application - 101 Login
 Pre-Authentication Process:
 Credentials Verification Method: Use my custom function to authenticate: return pkg_vpd.f_login
 Post-Authentication Process: pkg_vpd.sp_apex_post_auth;  
-Cookies: 
+Cookies:
 Logout URL: wwv_flow_custom_auth_std.logout?p_this_flow=&APP_ID.&amp;p_next_flow_page_sess=&APP_ID.:1
 
 Change current Authentication Scheme to "VPD Demo". This will vary between APEX 3.x and APEX 4.0

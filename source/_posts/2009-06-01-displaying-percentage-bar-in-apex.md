@@ -1,7 +1,7 @@
 ---
 title: Displaying Percentage Bar in APEX Reports
 tags:
-  - APEX
+  - apex
 date: 2009-06-01 09:00:00
 alias:
 ---
@@ -18,7 +18,7 @@ SELECT e.ename,
        e.job,
        d.dname,
        e.sal,
-       ROUND (e.sal / SUM (e.sal) OVER (PARTITION BY e.deptno) * 100, 0) pct_dep_sal, 
+       ROUND (e.sal / SUM (e.sal) OVER (PARTITION BY e.deptno) * 100, 0) pct_dep_sal,
        ROUND (e.sal / SUM (e.sal) OVER (PARTITION BY e.deptno) * 100, 0) bar
   FROM emp e,
        dept d

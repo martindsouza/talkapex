@@ -1,9 +1,9 @@
 ---
 title: ODTUG Kaleidoscope - Twitter
 tags:
-  - APEX
-  - Kaleidoscope
-  - ODTUG
+  - meta
+  - kscope
+  - odtug
 date: 2009-06-16 09:30:00
 alias:
 ---

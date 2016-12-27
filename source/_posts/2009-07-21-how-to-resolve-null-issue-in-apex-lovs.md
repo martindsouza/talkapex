@@ -1,14 +1,14 @@
 ---
 title: How to resolve %null% issue in APEX LOVs
 tags:
-  - APEX
+  - apex
 date: 2009-07-21 09:00:00
 alias:
 ---
 
 [Patrick Wolf](http://www.inside-oracle-apex.com) mentioned this at [ODTUG Kaleidoscope](http://www.odtugkaleidoscope.com) this year.
 
-After you implement your first LOV in an APEX application you'll quickly learn about the %null% problem. APEX substitutes an empty string for <span style="font-style:italic;">Null return value</span> as %null%. 
+After you implement your first LOV in an APEX application you'll quickly learn about the %null% problem. APEX substitutes an empty string for <span style="font-style:italic;">Null return value</span> as %null%.
 
 They're several workarounds, like using "<span style="font-weight:bold;">-1</span>" as the NULL value. Or modifying your query using "<span style="font-weight:bold;">'%' || 'null%'</span>". For example:
 
