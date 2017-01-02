@@ -18,22 +18,24 @@ _If you follow this blog and the above sounds familiar, that's because it is. I 
 _
 _
 
-#### <span style="font-weight: normal;">Create Item to Hold List of IDs</span>
+### Create Item to Hold List of IDs
 
-Create a hidden APEX item which will contain a comma delimited list of all the IDs that are to be checked off (in this example it will be <span style="font-family: Courier New, Courier, monospace;">P1_EMPNO_LIST</span>_)_. **Be sure to modify the _Value Protected_&nbsp;attribute to _No_**. This is critical as this item will be updated via AJAX and can not have any hashing/security applied to it.
+Create a hidden APEX item which will contain a comma delimited list of all the IDs that are to be checked off (in this example it will be `P1_EMPNO_LIST`). **Be sure to modify the `Value Protected` attribute to `No`**. This is critical as this item will be updated via AJAX and can not have any hashing/security applied to it.
 
 If you are loading this from a cross reference table you can use the following query in a Before Header process. This query will load all the employees from the Accounting department.
-<pre class="brush: sql;">select listagg(e.empno, ',') within group (order by e.empno)
+```sql
+select listagg(e.empno, ',') within group (order by e.empno)
 from dept d, emp e
 where 1=1
   and e.deptno = d.deptno
   and d.dname = 'ACCOUNTING'
-</pre>
+```
 
-#### <span style="font-weight: normal;">Create IR Report with Checkboxes</span>
-**
-**Create an IR with the query below. Note the <span style="font-family: Courier New, Courier, monospace;">p_attributes</span>&nbsp;value. This is critical as we need to identify the checkboxes that should be monitored.
-<pre class="brush: sql;">select
+### Create IR Report with Checkboxes
+
+Create an IR with the query below. Note the `p_attributes` value. This is critical as we need to identify the checkboxes that should be monitored.
+```sql
+select
   apex_item.checkbox2(
     p_idx =&gt; 1,
     p_value =&gt; e.empno ,
@@ -43,14 +45,21 @@ where 1=1
   e.ename,
   e.job
 from emp e
-</pre>In the report attributes set the _Page Items to Submit_&nbsp;to&nbsp;<span style="font-family: Courier New, Courier, monospace;">P1_EMPNO_LIST</span>. Each time the report is refreshed (pagination, filters, sorting, etc) the active list of selected values will be submitted.
+```
 
-#### <span style="font-weight: normal;">Create Dynamic Action (DA)</span>
-<div>
-</div><div>Create a new DA with the attributes in the below image. This DA will append/remove the comma delimited list of IDs in <span style="font-family: Courier New, Courier, monospace;">P1_EMPNO_LIST</span>. Note the _jQuery Selector_ value must match what was used in the IR query above.</div><div>
-</div><div><div class="separator" style="clear: both; text-align: center;">[![](http://1.bp.blogspot.com/-xJNvFChTWxU/VfYM4-26OgI/AAAAAAABGdQ/17JvBPLA1NY/s320/Snip20150913_1.png)](http://1.bp.blogspot.com/-xJNvFChTWxU/VfYM4-26OgI/AAAAAAABGdQ/17JvBPLA1NY/s1600/Snip20150913_1.png)</div>
-</div><div>Configure a True action as shown below (JS code follows).</div><div>
-</div><div><div class="separator" style="clear: both; text-align: center;">[![](http://1.bp.blogspot.com/-ds8NWT305ks/VfYM5KF861I/AAAAAAABGdc/PrMHN9c60pk/s400/Snip20150913_3.png)](http://1.bp.blogspot.com/-ds8NWT305ks/VfYM5KF861I/AAAAAAABGdc/PrMHN9c60pk/s1600/Snip20150913_3.png)</div></div><div><pre class="brush: js;">var
+In the report attributes set the `Page Items to Submit` to `P1_EMPNO_LIST`. Each time the report is refreshed (pagination, filters, sorting, etc) the active list of selected values will be submitted.
+
+### Create Dynamic Action (DA
+
+Create a new DA with the attributes in the below image. This DA will append/remove the comma delimited list of IDs in `P1_EMPNO_LIST`. Note the `jQuery Selector` value must match what was used in the IR query above.
+
+[![](http://1.bp.blogspot.com/-xJNvFChTWxU/VfYM4-26OgI/AAAAAAABGdQ/17JvBPLA1NY/s320/Snip20150913_1.png)](http://1.bp.blogspot.com/-xJNvFChTWxU/VfYM4-26OgI/AAAAAAABGdQ/17JvBPLA1NY/s1600/Snip20150913_1.png)
+
+Configure a True action as shown below (JS code follows).
+
+[![](http://1.bp.blogspot.com/-ds8NWT305ks/VfYM5KF861I/AAAAAAABGdc/PrMHN9c60pk/s400/Snip20150913_3.png)](http://1.bp.blogspot.com/-ds8NWT305ks/VfYM5KF861I/AAAAAAABGdc/PrMHN9c60pk/s1600/Snip20150913_3.png)
+```js
+var
   //Checkbox that was changed
   $checkBox = $(this.triggeringElement),
   //DOM object for APEX Item that holds list.
@@ -73,18 +82,21 @@ else if (!$checkBox.is(':checked') && idIndex >= 0){
 
 //Convert array back to comma delimited list
 apexItemIDList.setValue(ids.join(','));
-</pre>
-</div>
+```
 
-#### <span style="font-weight: normal;">Demo</span>
-<div>
-</div><div>That's all that's required. Now each time a checkbox is checked/unchecked <span style="font-family: Courier New, Courier, monospace;">P1_EMPNO_LIST</span>&nbsp;will be updated to reflect these changes. The checkboxes will persist each time the report is refreshed. You can see the checkbox implantation in [this demo](https://apex.oracle.com/pls/apex/f?p=16406:1400).</div><div>
-</div>
 
-#### <span style="font-weight: normal;">Considerations</span>
-<div>
-</div><div>This solution is fairly simple to create an manage however it does have one small caveat. If the list of checked items is very large (more than 4000 characters) you may run into some <span style="font-family: Courier New, Courier, monospace;">varchar2</span> issues. In most cases this shouldn't be an issue but if it is you should test first.</div><div>
-</div><div>To process the list of comma delimited list you can use the <span style="font-family: Courier New, Courier, monospace;">[apex_util.string_to_table](https://docs.oracle.com/cd/E59726_01/doc.50/e39149/apex_util.htm#AEAPI185)</span> function and loop over the table values. If you want to use the comma delimited list in a query the following example should work (again it does have <span style="font-family: Courier New, Courier, monospace;">varchar2</span> size limitations).</div><pre class="brush: sql;">select regexp_substr(:p1_empno_list,'[^,]+', 1, level) empno
+### Demo
+
+That's all that's required. Each time a checkbox is checked/unchecked `P1_EMPNO_LIST` will be updated to reflect these changes. The checkboxes will persist each time the report is refreshed. You can see the checkbox implantation in [this demo](https://apex.oracle.com/pls/apex/f?p=16406:1400).
+
+
+### Considerations
+
+This solution is fairly simple to create an manage however it does have one small caveat. If the list of checked items is very large (more than 4000 characters) you may run into some `varchar2` issues. In most cases this shouldn't be an issue but if it is you should test first.
+To process the list of comma delimited list you can use the [`apex_util.string_to_table`](https://docs.oracle.com/cd/E59726_01/doc.50/e39149/apex_util.htm#AEAPI185) function and loop over the table values. If you want to use the comma delimited list in a query the following example should work (again it does have `varchar2` size limitations).
+
+```sql
+select regexp_substr(:p1_empno_list,'[^,]+', 1, level) empno
 from dual
 connect by regexp_substr(:p1_empno_list, '[^,]+', 1, level) is not null
-</pre>
+```
