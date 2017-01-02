@@ -1,10 +1,16 @@
 TODO Steps and any changes I did
 
 
-# TODOs
+# New posts
 
-- [ ] Date in drafts for scaffolds?
-- [ ] Logos in Theme
+```bash
+hexo new draft TITLE
+
+
+# Once ready to post
+hexo publish FILENAME 
+
+```
 
 # Build
 
