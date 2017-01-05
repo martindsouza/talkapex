@@ -8,9 +8,14 @@ hexo new draft TITLE
 
 
 # Once ready to post
-hexo publish FILENAME 
+hexo publish FILENAME
 
 ```
+
+# Testing
+This uses the `npm install hexo-browsersync --save` plugin
+
+`hexo server --draft`
 
 # Build
 
@@ -27,5 +32,5 @@ npm install
 hexo generate
 
 # Deployment
-hexo deploy
+hexo deploy -g
 ```
