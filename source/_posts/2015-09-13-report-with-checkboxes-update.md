@@ -15,8 +15,6 @@ Supposed you have a report with checkboxes. Once the user selects all the rows, 
 - When the user "scrolls" through the report (i.e. uses pagination), if they checked off a box it should remain checked the entire time (i.e. if they check an row in the 1st 15 rows, then view rows 16~30, then go back to rows 1~15 it should remain checked). Same applies if a user uses the IR filters.
 
 _If you follow this blog and the above sounds familiar, that's because it is. I [wrote about this problem](http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced.html) a very long time ago. A lot has changed since 2009 and an update on the original post is long overdue. Here's the updated (and simplified) solution._
-_
-_
 
 ### Create Item to Hold List of IDs
 
