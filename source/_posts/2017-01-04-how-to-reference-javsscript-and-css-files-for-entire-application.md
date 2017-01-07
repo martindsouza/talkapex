@@ -16,4 +16,4 @@ The answer isn't as straight forward as you think. Most people are used to refer
 
 In APEX 5 there's a specific area dedicated to reference custom web files. It's not the easiest thing to find at first (it takes me a few tries to find it sometimes if I haven't used it in a while).
 
-![](/assets/images/how-to-reference-javsscript-and-css-files-for-entire-application/js-storage.gif)
+{% asset_img js-storage.gif "" %}
