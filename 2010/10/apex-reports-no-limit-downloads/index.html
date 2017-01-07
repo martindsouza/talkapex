@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>APEX Reports: No Limit Downloads | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="When configuring a standard report in APEX you can define the maximum number of rows that the query will return. This setting is called Max Row Count and can be configured in the Report Attributes tab">
+<meta property="og:type" content="article">
+<meta property="og:title" content="APEX Reports: No Limit Downloads">
+<meta property="og:url" content="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="When configuring a standard report in APEX you can define the maximum number of rows that the query will return. This setting is called Max Row Count and can be configured in the Report Attributes tab">
+<meta property="og:image" content="http://4.bp.blogspot.com/_33EF80fk9sM/TMBHWaM0ypI/AAAAAAAAD1M/qQI-dhYYyuM/s400/max_row_count.jpg">
+<meta property="og:updated_time" content="2017-01-07T15:38:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="APEX Reports: No Limit Downloads">
+<meta name="twitter:description" content="When configuring a standard report in APEX you can define the maximum number of rows that the query will return. This setting is called Max Row Count and can be configured in the Report Attributes tab">
+<meta name="twitter:image" content="http://4.bp.blogspot.com/_33EF80fk9sM/TMBHWaM0ypI/AAAAAAAAD1M/qQI-dhYYyuM/s400/max_row_count.jpg">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Martin Giffy D&#39;Souza on Oracle APEX</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-apex-reports-no-limit-downloads" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/10/apex-reports-no-limit-downloads/" class="article-date">
+  <time datetime="2010-10-21T15:00:00.000Z" itemprop="datePublished">2010-10-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      APEX Reports: No Limit Downloads
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When configuring a standard report in APEX you can define the maximum number of rows that the query will return. This setting is called Max Row Count and can be configured in the Report Attributes tab. If you leave it blank it will default to 500 rows.</p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/TMBHWaM0ypI/AAAAAAAAD1M/qQI-dhYYyuM/s1600/max_row_count.jpg" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/TMBHWaM0ypI/AAAAAAAAD1M/qQI-dhYYyuM/s400/max_row_count.jpg" alt=""></a><br>It is recommended that you set the Max Row Count with a low value. Using a small number will help improve performance since it reduces the amount rows APEX must count in order to display the pagination information. On a business perspective, it may not make sense to return thousands of rows for a user to view online.</p>
+<p>What if the user wants to retrieve all the data when they download the report? From the end users perspective this makes sense since they may want to extract all the data to do some custom analysis.</p>
+<p>My first thought was to use a page item for the Maximum Row Count. I quickly discovered that it only takes a numeric value. As a work around you can control the rows returned directly from the SQL statement. Here’s an example of this:</p>
+<p><span style="font-weight:bold;">- Create a large table:</span></p>
+<p><pre class="brush: sql"><br>CREATE TABLE large_emp<br>AS<br>      SELECT *<br>        FROM emp<br>  CONNECT BY LEVEL &lt;= 5;</pre><span style="font-weight:bold;">- Create standard report</span><br>Create a standard report using the following query. Set the Max Row Count to 999999999 (i.e. some very large number)</p>
+<p><pre class="brush: sql; highlight: 6;"><br>SELECT ename,<br>       job,<br>       sal,<br>       comm<br>  FROM large_emp<br> WHERE ROWNUM &lt;= CASE WHEN :request LIKE (‘FLOW_EXCEL_OUTPUT%’) THEN ROWNUM ELSE 500 END;</pre>You are manually defining the Max Row Count by adding in ROWNUM predicate.</p>
+<p>When users <span style="font-weight:bold;">views</span> the report in APEX it will only display a maximum of 500 rows. When they <span style="font-weight:bold;">download</span> the report the csv file will contain all the rows.</p>
+<p>A caveat with this approach is that if your report has more than 500 rows you won’t see the “<span style="font-style:italic;">… of more than 500</span>“ rows message as part of the pagination. Instead users will see “<span style="font-style:italic;">rows … of 500</span>“ in the pagination. Users may be misled to think that the report only has 500 rows of data.</p>
+<p>When I reviewed this technique I was concerned about performance issues when viewing the report in APEX. Here are the TKPROF outputs of the original query (with Max Row Count = 500) and the alternate query with the ROWNUM predicate (Max Row Count = 999999999):</p>
+<p><pre class="brush: sql; highlight: 42;"></pre></p>
+<h2 id="–-Both-outputs-are-for-VIEWING-the-report-not-downloading-it"><a href="#–-Both-outputs-are-for-VIEWING-the-report-not-downloading-it" class="headerlink" title="– Both outputs are for VIEWING the report (not downloading it)"></a>– Both outputs are for VIEWING the report (not downloading it)</h2><p>– Original Query<br>– Max Row Count = 500<br>– Run for displaying rows 1~15<br>SELECT ename, job, sal, comm<br>  FROM large_emp<br> order by 3 – Automatically added by APEX</p>
+<p>call     count       cpu    elapsed       disk      query    current        rows</p>
+<hr>
+<p>Parse        1      0.00       0.00          0          1          0           0<br>Execute      2      0.00       0.00          0          0          0           0<br>Fetch      501      0.65       1.42         14       3417          3         501</p>
+<hr>
+<p>total      504      0.65       1.42         14       3418          3         501</p>
+<p>Misses in library cache during parse: 1<br>Optimizer mode: ALL_ROWS<br>Parsing user id: 40     (recursive depth: 2)</p>
+<p>Rows     Row Source Operation</p>
+<hr>
+<pre><code>501  SORT ORDER BY (cr=3417 pr=14 pw=2053 time=1417580 us)
+</code></pre><p> 579194   TABLE ACCESS FULL LARGE_EMP (cr=3417 pr=0 pw=0 time=1158549 us)</p>
+<p>Elapsed times include waiting on following events:<br>  Event waited on                             Times   Max. Wait  Total Waited<br>  —————————————-   Waited  ———-  ————<br>  direct path write temp                         70        0.00          0.00<br>  direct path read temp                           2        0.00          0.00</p>
+<hr>
+<p>– New Query<br>– Max Row Count = 9999999999<br>– Run for displaying rows 1~15<br>SELECT ename, job, sal, comm<br>  FROM large_emp<br> WHERE ROWNUM &lt;= CASE WHEN :request LIKE (‘FLOW_EXCEL_OUTPUT%’) THEN ROWNUM ELSE 500 END<br> order by 3 – Automatically added by APEX</p>
+<p>call     count       cpu    elapsed       disk      query    current        rows</p>
+<hr>
+<p>Parse        2      0.00       0.00          0          0          0           0<br>Execute      2      0.00       0.00          0          0          1           0<br>Fetch      501      0.38       0.53          0       3417          0         500</p>
+<hr>
+<p>total      505      0.38       0.54          0       3417          1         500</p>
+<p>Misses in library cache during parse: 1<br>Parsing user id: 40     (recursive depth: 2)</p>
+<p>Rows     Row Source Operation</p>
+<hr>
+<pre><code>500  SORT ORDER BY (cr=3417 pr=0 pw=0 time=535125 us)
+500   COUNT  (cr=3417 pr=0 pw=0 time=3376 us)
+500    FILTER  (cr=3417 pr=0 pw=0 time=2298 us)
+</code></pre><p> 579194     TABLE ACCESS FULL LARGE_EMP (cr=3417 pr=0 pw=0 time=5212959 us)I’m not a performance guru and I can’t comment too much on these outputs. If you think this will have negative effects on performance please add your feedback as a comment on this post.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/" data-id="cixneaybl0053lyn9vozp4alq" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2010/10/apex-hash-tag-on-twitter-orclapex/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          APEX Hash Tag on Twitter: #orclapex
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2010/10/oracle-xe-and-apex-where-is-my-trace/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Oracle XE and APEX: Where is my Trace File?</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-8016477-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+  </div>
+</body>
+</html>

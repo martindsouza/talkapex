@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Some Interesting Oracle Analytic Functions | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="I had to write some reports for a personal application of mine last night and needed to expand beyond my usual set of analytic functions that I normally use. I thought it would be a good idea to do a">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Some Interesting Oracle Analytic Functions">
+<meta property="og:url" content="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="I had to write some reports for a personal application of mine last night and needed to expand beyond my usual set of analytic functions that I normally use. I thought it would be a good idea to do a">
+<meta property="og:updated_time" content="2017-01-07T15:38:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Some Interesting Oracle Analytic Functions">
+<meta name="twitter:description" content="I had to write some reports for a personal application of mine last night and needed to expand beyond my usual set of analytic functions that I normally use. I thought it would be a good idea to do a">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Martin Giffy D&#39;Souza on Oracle APEX</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-some-interesting-oracle-analytic" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/05/some-interesting-oracle-analytic/" class="article-date">
+  <time datetime="2012-05-22T13:00:00.000Z" itemprop="datePublished">2012-05-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Some Interesting Oracle Analytic Functions
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I had to write some reports for a personal application of mine last night and needed to expand beyond my usual set of analytic functions that I normally use. I thought it would be a good idea to do a quick blog post on these analytic functions.</p>
+<p>_If you’ve never heard of or used Oracle analytic functions please read <a href="http://orafaq.com/node/55" target="_blank" rel="external">this article</a> first. It’s by far the best article I’ve read at explaining what analytic functions are and how to use them. The Oracle analytic function documentation can be found <a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions004.htm#SQLRF06174" target="_blank" rel="external">here</a>._</p>
+<p><strong>RATIO_TO_REPORT</strong></p>
+<p><a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions142.htm#i85800" target="_blank" rel="external">RATIO_TO_REPORT</a> compares the current value against the sum of the other set of values.   The following example shows the percentage of each employees salary when compared to the sum of their department’s salary. You’ll notice that you can calculate the same value using a different method (_sal_dept<em>ratio2</em>) which may be why I haven’t seen RATIO_TO_REPORT used that often.  </p>
+<pre class="brush: sql; highlight: 2">SELECT d.dname, e.ename, e.sal,
+  round(ratio_to_report(sal) OVER (PARTITION BY e.deptno),2) sal_dept_ratio,
+  round(sal / sum(e.sal) OVER (PARTITION BY e.deptno),2) sal_dept_ratio2
+FROM emp e, dept d
+WHERE e.deptno = d.deptno;
+
+-- Result
+
+DNAME          ENAME             SAL SAL_DEPT_RATIO SAL_DEPT_RATIO2
+-------------- ---------- ---------- -------------- ---------------
+ACCOUNTING     CLARK            2450            .28             .28
+ACCOUNTING     MILLER           1300            .15             .15
+ACCOUNTING     KING             5000            .57             .57
+RESEARCH       FORD             3000            .28             .28
+RESEARCH       SCOTT            3000            .28             .28
+RESEARCH       JONES            2975            .27             .27
+RESEARCH       SMITH             800            .07             .07
+RESEARCH       ADAMS            1100             .1              .1
+SALES          WARD             1250            .13             .13
+SALES          MARTIN           1250            .13             .13
+SALES          TURNER           1500            .16             .16
+SALES          JAMES             950             .1              .1
+SALES          ALLEN            1600            .17             .17
+SALES          BLAKE            2850             .3              .3
+</pre>
+**NTH_VALUE**
+
+[NTH_VALUE](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions114.htm#CJAFEJBE) returns the nth row in the window clause. It's extremely important that you <u>explicitly define the window</u> or your values may not make sense. I'll write another post explaining this later. _Update: [NTH_VALUE Windowing Clause](http://www.talkapex.com/2012/06/nthvalue-windowing-clause.html)_
+
+The following example shows the 2nd highest salary in each department.  
+<pre class="brush: sql; highlight: [2,3,4,5]">SELECT d.dname, e.ename, e.sal,
+   nth_value(e.sal, 2) OVER (
+    PARTITION BY e.deptno ORDER BY e.sal DESC
+    -- Don't forget to define the window
+    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) sec_high_sal_dept
+FROM emp e, dept d
+WHERE e.deptno = d.deptno;
+
+-- Result
+
+DNAME          ENAME             SAL SEC_HIGH_SAL_DEPT
+-------------- ---------- ---------- -----------------
+ACCOUNTING     KING             5000              2450
+ACCOUNTING     CLARK            2450              2450
+ACCOUNTING     MILLER           1300              2450
+RESEARCH       FORD             3000              3000
+RESEARCH       SCOTT            3000              3000
+RESEARCH       JONES            2975              3000
+RESEARCH       ADAMS            1100              3000
+RESEARCH       SMITH             800              3000
+SALES          BLAKE            2850              1600
+SALES          ALLEN            1600              1600
+SALES          TURNER           1500              1600
+SALES          WARD             1250              1600
+SALES          MARTIN           1250              1600
+SALES          JAMES             950              1600
+</pre>
+**LISTAGG**
+
+[LISTAGG](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions089.htm#CJABDFBD) was a highly requested feature that was implemented in 11gR2\. Overall LISTAGG allows you to group values in multiple rows and put them in a comma delimited column on one row.
+
+The following example (which is not an analytic function) shows all the employees for each department:  
+<pre class="brush: sql; highlight: 2">SELECT d.dname,
+  listagg(e.ename, ',') WITHIN GROUP (ORDER BY e.ename) dept_emp_list
+FROM emp e, dept d
+WHERE e.deptno = d.deptno
+GROUP BY d.dname;
+
+-- Result
+
+DNAME          DEPT_EMP_LIST
+-------------- ----------------------------------------
+
+ACCOUNTING     CLARK,KING,MILLER
+RESEARCH       ADAMS,FORD,JONES,SCOTT,SMITH
+SALES          ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+</pre>Using the LISTAGG as an analytic function you can see each employee's colleagues in their department, including themselves.  
+<pre class="brush: sql; highlight: [2,3]">SELECT d.dname, e.ename,
+  listagg(e.ename, ',') WITHIN GROUP (ORDER BY e.ename)
+    OVER (PARTITION BY e.deptno) dept_colleagues
+FROM emp e, dept d
+WHERE e.deptno = d.deptno;
+
+-- Result
+
+DNAME          ENAME      DEPT_COLLEAGUES
+-------------- ---------- --------------------------------------
+
+ACCOUNTING     CLARK      CLARK,KING,MILLER
+ACCOUNTING     KING       CLARK,KING,MILLER
+ACCOUNTING     MILLER     CLARK,KING,MILLER
+RESEARCH       ADAMS      ADAMS,FORD,JONES,SCOTT,SMITH
+RESEARCH       FORD       ADAMS,FORD,JONES,SCOTT,SMITH
+RESEARCH       JONES      ADAMS,FORD,JONES,SCOTT,SMITH
+RESEARCH       SCOTT      ADAMS,FORD,JONES,SCOTT,SMITH
+RESEARCH       SMITH      ADAMS,FORD,JONES,SCOTT,SMITH
+SALES          ALLEN      ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          BLAKE      ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          JAMES      ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          MARTIN     ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          TURNER     ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+SALES          WARD       ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
+</pre>
+**NTILE**
+
+[NTILE](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions115.htm#i85619) allows you to divide your values into buckets and see which bucket the current row belongs to. For educational institutions this is a very good function to let students know that they're in the top _x%_ of the class.
+
+_**Update (12-Apr-2014):** [NTILE vs WIDTH_BOX](http://www.talkapex.com/2014/04/ntile-vs-widthbucket.html) describes the different ways to bucket data in Oracle. It also explains why SAL 1250 exists in both buckets 2 and 3._
+
+The following example shows the 3 tiers (or buckets) of salaries across the entire company. It allows you to easily see who's in the top 33% of salaries.   
+<pre class="brush: sql; highlight: [2]">SELECT d.dname, e.ename, e.sal,
+  ntile (3) over (order by sal desc) three_tier_sal
+FROM emp e, dept d
+WHERE e.deptno = d.deptno;
+
+-- Result
+
+DNAME          ENAME             SAL THREE_TIER_SAL
+-------------- ---------- ---------- --------------
+ACCOUNTING     KING             5000              1
+RESEARCH       SCOTT            3000              1
+RESEARCH       FORD             3000              1
+RESEARCH       JONES            2975              1
+SALES          BLAKE            2850              1
+ACCOUNTING     CLARK            2450              2
+SALES          ALLEN            1600              2
+SALES          TURNER           1500              2
+ACCOUNTING     MILLER           1300              2
+SALES          WARD             1250              2
+SALES          MARTIN           1250              3
+RESEARCH       ADAMS            1100              3
+SALES          JAMES             950              3
+RESEARCH       SMITH             800              3
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="cixneayew0079lyn9e11qv6pm" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2012/06/nthvalue-windowing-clause/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          NTH_VALUE Windowing Clause
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2012/05/clarifit-from-to-date-picker-101-update/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">ClariFit From To Date Picker 1.0.1 Update</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-8016477-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Enhancing APEX Security | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Note: Full explanation available here. Please read before continuing with this post.
+The best way to secure data in your APEX application, or any application, is to secure your data in the database. Y">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Enhancing APEX Security">
+<meta property="og:url" content="http://www.talkapex.com/2009/05/enhancing-apex-security/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="Note: Full explanation available here. Please read before continuing with this post.
+The best way to secure data in your APEX application, or any application, is to secure your data in the database. Y">
+<meta property="og:updated_time" content="2017-01-07T15:38:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Enhancing APEX Security">
+<meta name="twitter:description" content="Note: Full explanation available here. Please read before continuing with this post.
+The best way to secure data in your APEX application, or any application, is to secure your data in the database. Y">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Martin Giffy D&#39;Souza on Oracle APEX</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-enhancing-apex-security" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/enhancing-apex-security/" class="article-date">
+  <time datetime="2009-05-11T13:27:00.000Z" itemprop="datePublished">2009-05-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Enhancing APEX Security
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><span style="font-style:italic;color:red;">Note: Full explanation available <a href="http://apex-smb.blogspot.com/2009/05/enhancing-apex-security-explanation.html" target="_blank" rel="external">here</a>. Please read before continuing with this post.</span></p>
+<p>The best way to secure data in your APEX application, or any application, is to secure your data in the database. You can do this using Oracle’s Virtual Private Database (VPD), also known as Fine Grained Access Control (FGAC). APEX also has Session State Protection (SSP) which helps prevent front-end modification of data by preventing URL tampering.</p>
+<p>I’m a big advocate of using both VPD and SSP. In some situations VPD may not be implemented for various reasons so developers must rely on SSP. SSP is great and allows developers to quickly and easily help prevent malicious users from trying to access data that they aren’t supposed to. It’s important to note that SSP only prevents URL tampering. If users wanted to alter data on a form they could easily do that with Firebug (I won’t go into that in this post). SSP also prevents users from setting values using AJAX. This can be circumvented using the “x01” .. “x10” parameters (please see Carl’s <a href="http://carlback.blogspot.com/2008/03/new-stuff-2-x01-and-friends.html" target="_blank" rel="external">post</a> for more info) but still leaves the door open for users to alter items in session state that they shouldn’t.</p>
+<p>How can you use SSP, make AJAX calls, and ensure that users aren’t altering data on a form? This question has been bugging me for a while and I think I’ve come up with a solution that should work with minimal changes to existing code. For this example I’m going to use a select list containing a list of IDs (this is where the issue has come up the most for me). I’ll use the emp table, with empno as the id, for this example.</p>
+<p>Some notation before we begin: “Secure” items (i.e. ones that have a hashed value appended to them) will be called PX_ITEM_NAME_SEC while it’s corresponding unsecured item is called PX_ITEM_NAME. The code only looks at “secure” items that have a matching “unsecured” item. “Unsecure” items are really items that are Hidden and Protected so they have a checksum associated to them.</p>
+<p>The demo can be found <a href="http://apex.oracle.com/pls/otn/f?p=20195:1500" target="_blank" rel="external">here</a></p>
+<p><span style="font-weight:bold;">Step 1- Compile Package</span></p>
+<p><span style="font-style:italic">Since I don’t have access to DMBS_CRYPTO on apex.oracle.com I’ve used a dummy encryption method.</span> You’ll need to grant execute on DBMS_CRYPTO from SYS:</p>
+<pre class="brush: sql">
+GRANT EXECUTE ON DBMS_CRYPTO TO giffy; -- Where "giffy" is your schema name
+</pre>
+
+<p>Compile the following code in your schema</p>
+<p><span style="font-style:italic;">pkg_apex_sec.pks</span></p>
+<pre class="brush: sql">
+CREATE OR REPLACE PACKAGE pkg_apex_sec
+AS
+  /**
+   * Returns secure value
+   * @param p_value
+   * @return
+   */
+  FUNCTION f_get_sec_val (
+    p_value IN VARCHAR2
+  )
+    RETURN VARCHAR2;
+
+  /**
+   * Checks if secured value is valid
+   * @param p_hashed_val (case sensitive
+   * @return 'Y' or 'N'
+   */
+  FUNCTION is_valid_hashed_val (
+    p_hash IN VARCHAR2
+  )
+    RETURN VARCHAR2;
+
+  /**
+   * unsecure value given the hash
+   * @param p_hash
+   * @return unsecure number
+   */
+  FUNCTION f_get_val (
+    p_hash IN VARCHAR2
+  )
+    RETURN VARCHAR2;
+
+   /**
+  * Sets unsec values in the page given the secure values
+  * @param p_page_id Page ID to set. Default current page
+  */
+  PROCEDURE sp_set_page_unsec_values (
+    p_page_id IN apex_application_pages.page_id%TYPE DEFAULT v ('APP_PAGE_ID')
+  );
+
+  /**
+   * Set all the secure values given the unsecure values
+   * @param p_page_id Page ID. Default current page
+   */
+  PROCEDURE sp_set_page_sec_values (
+    p_page_id IN apex_application_pages.page_id%TYPE DEFAULT v ('APP_PAGE_ID')
+  );
+END pkg_apex_sec;
+</pre>
+
+<p><span style="font-style:italic;">pkg_apex_sec.pkb</span></p>
+<pre class="brush: sql">
+CREATE OR REPLACE PACKAGE BODY pkg_apex_sec
+AS
+  -- Constants
+  gc_delim CONSTANT VARCHAR2 (1) := '@';
+
+/**
+ * Returns hashed value
+ * May require sys to grant access to dbms_crypto
+ *  - GRANT EXECUTE ON DBMS_CRYPTO TO <schema>;
+ * @param p_source
+ * @param p_key
+ * @return hashed value
+ */
+  FUNCTION f_get_md5 (
+    p_source IN VARCHAR2,
+    p_key IN VARCHAR2
+  )
+    RETURN VARCHAR2
+  IS
+    v_key VARCHAR2 (4000) := p_key;
+  BEGIN
+    -- Normally your key should be different from the source. (this is up to you to maintain)
+    -- For simplicity this function will see if they are the same. If so we'll append the app_id
+    IF p_source = p_key THEN
+      v_key := p_key || v ('APP_ID');
+    END IF;
+
+    -- Can't use DBMS_CRYPTO in apex.oracle.com. Using generic coding
+    -- RETURN DBMS_CRYPTO.mac (src => UTL_RAW.cast_to_raw (p_source), typ => 2, KEY => UTL_RAW.cast_to_raw (v_key));
+    RETURN p_source || p_key || 123;                                                                     -- DELETE THIS.
+  END f_get_md5;
+
+/**
+ * Returns secure value
+ * @param p_value
+ * @return
+ */
+  FUNCTION f_get_sec_val (
+    p_value IN VARCHAR2
+  )
+    RETURN VARCHAR2
+  AS
+  BEGIN
+    -- For the Key value I'm arbitrarily appending the app id. You should change this to something that is secure to your code.
+    -- You can add :app_session as well, provided you're not using session 0 or external links (ie. from emails etc)
+    RETURN p_value || gc_delim || f_get_md5 (p_source => p_value, p_key => p_value || v ('APP_ID'));
+  END f_get_sec_val;
+
+  /**
+   * Checks if secured value is valid
+   * @param p_hashed_val (case sensitive
+   * @return 'Y' or 'N'
+   */
+  FUNCTION is_valid_hashed_val (
+    p_hash IN VARCHAR2
+  )
+    RETURN VARCHAR2
+  AS
+    v_value VARCHAR2 (4000);
+  BEGIN
+    v_value := REPLACE (REGEXP_SUBSTR (p_hash, '^[[:print:]]+' || gc_delim), gc_delim);
+
+    IF p_hash = f_get_sec_val (p_value => v_value) THEN
+      RETURN 'Y';
+    ELSE
+      RETURN 'N';
+    END IF;
+  EXCEPTION
+    WHEN OTHERS THEN
+      RETURN 'N';
+  END is_valid_hashed_val;
+
+  /**
+   * unsecure value given the hash
+   * @param p_hash
+   * @return unsecure number
+   */
+  FUNCTION f_get_val (
+    p_hash IN VARCHAR2
+  )
+    RETURN VARCHAR2
+  AS
+  BEGIN
+    IF is_valid_hashed_val (p_hash => p_hash) = 'N' THEN
+      RETURN NULL;
+    END IF;
+
+    RETURN (REPLACE (REGEXP_SUBSTR (p_hash, '^[[:print:]]+' || gc_delim), gc_delim));
+  EXCEPTION
+    WHEN OTHERS THEN
+      RETURN NULL;
+  END f_get_val;
+
+  /**
+   * Sets unsec values in the page given the secure values
+   * @param p_page_id Page ID to set. Default current page
+   */
+  PROCEDURE sp_set_page_unsec_values (
+    p_page_id IN apex_application_pages.page_id%TYPE DEFAULT v ('APP_PAGE_ID')
+  )
+  AS
+    v_app_id apex_applications.application_id%TYPE := v ('APP_ID');
+  BEGIN
+    BEGIN
+      -- Set all the unsecure values from the secure values
+      FOR x IN (SELECT a1.item_name item_name_sec,
+                       a2.item_name
+                  FROM apex_application_page_items a1,
+                       apex_application_page_items a2
+                 WHERE a1.application_id = v_app_id
+                   AND a1.page_id = p_page_id
+                   AND a1.item_name LIKE '%_SEC'
+                   -- Find corresponding item name
+                   AND a2.application_id = a1.application_id
+                   AND a2.page_id = a1.page_id
+                   AND RTRIM (a1.item_name, '_SEC') = a2.item_name) LOOP
+        apex_util.set_session_state (x.item_name, pkg_apex_sec.f_get_val (v (x.item_name_sec)));
+      END LOOP;
+    END;
+  END sp_set_page_unsec_values;
+
+  /**
+   * Set all the secure values given the unsecure values
+   * @param p_page_id Page ID. Default current page
+   */
+  PROCEDURE sp_set_page_sec_values (
+    p_page_id IN apex_application_pages.page_id%TYPE DEFAULT v ('APP_PAGE_ID')
+  )
+  AS
+    v_app_id apex_applications.application_id%TYPE := v ('APP_ID');
+  BEGIN
+    -- Set all the secure values from the secure values
+    FOR x IN (SELECT a1.item_name item_name_sec,
+                     a2.item_name
+                FROM apex_application_page_items a1,
+                     apex_application_page_items a2
+               WHERE a1.application_id = v_app_id
+                 AND a1.page_id = p_page_id
+                 AND a1.item_name LIKE '%_SEC'
+                 -- Find corresponding item name
+                 AND a2.application_id = a1.application_id
+                 AND a2.page_id = a1.page_id
+                 AND RTRIM (a1.item_name, '_SEC') = a2.item_name) LOOP
+      IF v (x.item_name) IS NOT NULL THEN
+        apex_util.set_session_state (x.item_name_sec, pkg_apex_sec.f_get_sec_val (v (x.item_name)));
+      END IF;
+    END LOOP;
+  END sp_set_page_sec_values;
+END pkg_apex_sec;
+</schema></pre>
+
+<p><span style="font-weight:bold;">Step 2- Create Application Processes</span></p>
+<p>Create Application Processes (On Load Before Header) called: AP_SET_SEC_PAGE_ITEMS. This will allow you to pass IDs in the URL as you normally would.</p>
+<pre class="brush: sql">
+BEGIN
+  pkg_apex_sec.sp_set_page_sec_values;
+END;
+</pre>
+
+<p>Create Application Processes (On Submit and Before Computation ) called: AP_SET_UNSEC_PAGE_ITEMS</p>
+<pre class="brush: sql">
+BEGIN
+  pkg_apex_sec.sp_set_page_unsec_values;
+END;
+</pre>
+
+<p>Create Application Process (On Demand) called AP_NULL to set values in session (using AJAX).</p>
+<pre class="brush: sql">
+BEGIN
+  pkg_apex_sec.sp_set_page_unsec_values; -- Update the unsec values from secure values for the current page
+  NULL;
+END;
+</pre>
+
+<p><span style="font-weight:bold;">Step 3 - Create page with Interactive Report (IR)</span></p>
+<pre class="brush: sql">
+SELECT *
+  FROM emp
+ WHERE empno = NVL (:p1500_empno, empno)
+</pre>
+
+<p><span style="font-weight:bold;">Step 4 - Create “Secure” Id LOV and a “Hidden and Protected” unsecured fields</span></p>
+<p>Create P1500_EMPNO as Hidden and Protected. It’s extremely important that you make the field Hidden and Protected so users can’t alter the value in the form.<br>Create P1500_EMPNO_SEC as a Select List. LOV:</p>
+<p>Instead of:</p>
+<pre class="brush: sql">
+SELECT e.ename d,
+       e.empno r
+  FROM emp e
+</pre>  
+
+<p>Use:</p>
+<pre class="brush: sql">
+SELECT e.ename d,
+       pkg_apex_sec.f_get_sec_val (e.empno) r
+  FROM emp e
+</pre>  
+
+<p><span style="font-style:italic;color:red">Besides adding the application processes etc, this is the only significant change that you’ll need to make to your application</span></p>
+<p>At this point your application is good to go. Steps 5 and 6 are included only for demonstration purposes.</p>
+<p><span style="font-weight:bold;">Step 5 - JavaScript</span><br>This JavaScript will be used to simulate the onChange event for a select list</p>
+<pre class="brush: js">
+function onLovChange(pThisId){
+  var get = new htmldb_Get(null,$v('pFlowId'),'APPLICATION_PROCESS=AP_NULL',$v('pFlowStepId'));  
+  get.add(pThisId, $v(pThisId));
+  vReturn = get.get();  
+}
+</pre>
+
+<p><span style="font-weight:bold;">Step 6 - Button </span><br>Create a Submit button that will submit and branch to the same page. This will demonstrate a “normal” submit process<br>Create a button called “AJAX”. URL = javascript:onLovChange(‘P1500_EMPNO_SEC’);</p>
+<p>I haven’t used this in production yet so their may be some changes that I add to the code. If you have any feedback please leave a comment.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/05/enhancing-apex-security/" data-id="cixneaxff0011lyn9vkf9h4nc" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/05/enhancing-apex-security/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/security/">security</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2009/05/enhancing-apex-security-explanation/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Enhancing APEX Security - Explanation
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2009/04/apex-interactive-reports-customize-wait_28/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">APEX Interactive Reports - Customize Wait Display Part 2</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'http://www.talkapex.com/2009/05/enhancing-apex-security/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-8016477-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+  </div>
+</body>
+</html>
