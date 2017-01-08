@@ -58,3 +58,5 @@ hexo deploy -g
 {% asset_img slug %}
 // <img src="/2015/01/16/hello-world/example.jpg">
 ```
+
+Reference other posts: `{% post_link how-to-reference-package-variables %}`
