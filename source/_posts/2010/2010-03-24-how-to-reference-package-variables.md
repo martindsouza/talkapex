@@ -9,26 +9,28 @@ alias:
 When developing with PL/SQL you may store public variables in the package specification. This has many uses, none of which I will get into for this post. The only catch in Oracle is that you can not easily reference these values in SQL statements outside of PL/SQL. The following example demonstrates this:
 
 - Create Package Spec with Variable
-<pre class="brush: sql">
+```sql
 CREATE OR REPLACE PACKAGE pkg_var
 AS
   c_my_var   CONSTANT VARCHAR2 (5) := 'hello';
 END pkg_var;
-</pre>
+```
 
 - Reference the variable in a SQL statement in SQL*Plus
-<pre class="brush: sql">
+```sql
 SQL> SELECT pkg_var.c_my_var x
   2    FROM DUAL;
 SELECT pkg_var.c_my_var x
        *
 ERROR at line 1:
 ORA-06553: PLS-221: 'C_MY_VAR' is not a procedure or is undefined
-</pre>
-<span style="font-style:italic;">This results in an Oracle error.</span>
+```
+
+_This results in an Oracle error._
 
 - Try the same code, but in an block of PL/SQL
-<pre class="brush: sql">
+
+```sql
 SQL> DECLARE
   2    v_x   VARCHAR2 (5);
   3  BEGIN
@@ -42,11 +44,13 @@ SQL> DECLARE
 hello
 
 PL/SQL procedure successfully completed.
-</pre>
-<span style="font-style:italic;">As you can see this worked.</span>
+```
 
-So how can we refernce package variables in a non-PL/SQL setting? I created the following function to do so. It will handle values that are of type VARCHAR2\. I've also removed any spaces from the parameter (pkg_name.var_name) to ensure that no SQL injection will occur.
-<pre class="brush: sql">
+_As you can see this worked._
+
+So how can we reference package variables in a non-PL/SQL setting? I created the following function to do so. It will handle values that are of type `VARCHAR2`. I've also removed any spaces from the parameter (`pkg_name.var_name`) to ensure that no SQL injection will occur.
+
+```sql
 -- **
 -- * Returns Package Variable value
 -- * Note: for demo purposes I broke this function into various steps
@@ -71,10 +75,10 @@ BEGIN
 
   RETURN v_string;
 END f_get_pkg_val_vc2;
-</pre>
+```
 
 Now when you run in SQL*Plus you get the following:
-<pre class="brush: sql">
+```sql
 SQL> SELECT f_get_pkg_val_vc2 ('pkg_var.c_my_var') x
   2    FROM DUAL;
 
@@ -82,4 +86,4 @@ X
 -----------------------------------------------------
 
 hello
-</pre>
+```
