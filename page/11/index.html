@@ -66,6 +66,67 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-setting-sysdate-in-oracle-for-testing" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/setting-sysdate-in-oracle-for-testing/" class="article-date">
+  <time datetime="2012-08-28T13:00:00.000Z" itemprop="datePublished">2012-08-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/setting-sysdate-in-oracle-for-testing/">Setting SYSDATE in Oracle for Testing</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago two very smart guys (<a href="http://ruepprich.wordpress.com/" target="_blank" rel="external">Cristian Ruepprich</a> and <a href="http://sql-plsql-de.blogspot.ca/" target="_blank" rel="external">Carsten Czarski</a>) had a conversation on Twitter about how to modify the value of <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SYSDATE</span> in Oracle for testing purposes. The ability to modify the value of <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SYSDATE</span> can be very valuable if you have to do time-sensitive testing.</p>
+<p>Thankfully they did have a solution, by setting the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">FIXED_DATE</span> system parameter. Here’s an example on how to use it:</p>
+<p><pre class="brush: sql; highlight: [10]">DECLARE<br>SQL&gt; SELECT SYSDATE FROM dual;</pre></p>
+<h2 id="SYSDATE"><a href="#SYSDATE" class="headerlink" title="SYSDATE"></a>SYSDATE</h2><p>22-AUG-2012 10:20:19</p>
+<p>SQL&gt; – Do this now as priviledged user (ex: SYSTEM)<br>SQL&gt; – Note: this affects the entire database (not just your session)<br>SQL&gt; ALTER SYSTEM SET fixed_date=’2010-01-01-14:10:00’;</p>
+<p>System altered.</p>
+<p>SQL&gt; SELECT SYSDATE FROM dual;</p>
+<h2 id="SYSDATE-1"><a href="#SYSDATE-1" class="headerlink" title="SYSDATE"></a>SYSDATE</h2><p>01-JAN-2010 14:10:00</p>
+<p>SQL&gt; – Reset SYSDATE back to “Current Time”<br>SQL&gt; ALTER SYSTEM SET fixed_date=NONE;</p>
+<p>System altered.</p>
+<p>SQL&gt; SELECT SYSDATE FROM dual;</p>
+<h2 id="SYSDATE-2"><a href="#SYSDATE-2" class="headerlink" title="SYSDATE"></a>SYSDATE</h2><p>22-AUG-2012 10:21:29<br><br>They’re a few things to know about <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">FIXED_DATE</span> before using it:</p>
+<ul>
+<li><p>Setting it requires access to <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">ALTER SYSTEM</span>. This can be mitigated by creating a procedure to handle this as a privledged user (see Tom Kyte’s suggestion <a href="http://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:26070651474562" target="_blank" rel="external">here</a>).</p>
+</li>
+<li><p><span style="color:red;">It affects the entire system, not just your session</span>. If you have multiple users testing on a system then you may not be able to use it. Hopefully in the future we’ll be able to modify it at a session level.</p>
+</li>
+<li><p>It <span style="color:red;">only</span> affects SYSDATE and not date/time functions such as systimestamp (see Sean’s comment below</p>
+</li>
+</ul>
+<p>The documentation for <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">FIXED_DATE</span> can be found <a href="http://docs.oracle.com/cd/E11882_01/server.112/e25513/initparams093.htm#REFRN10062" target="_blank" rel="external">here</a>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/" data-id="cixpi6q0a001d26n9pndhplsh" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-sqlrowcount-and-logger" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/08/sqlrowcount-and-logger/" class="article-date">
@@ -139,7 +200,7 @@ END IF;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/" data-id="cixnn4jdx003c8tn9q0x8zocj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/" data-id="cixpi6q05001926n925p6bpwp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -226,7 +287,7 @@ END IF;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="cixnn4jdv00388tn9zwogqsp8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="cixpi6q03001626n92kw9jsej" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -346,7 +407,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cixnn4jdw003a8tn93l0sc0jm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cixpi6q02001526n9cdopqrsq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -410,7 +471,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="cixnn4jdu00368tn9j4d3uwzw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="cixpi6q01001226n9as3f7s8h" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -455,7 +516,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="cixnn4jdt00348tn94xcujltj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="cixpi6pzz001126n906ilhquf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/odtug-apexposed-2012/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -497,7 +558,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="cixnn4jdr00318tn9ue98athr" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="cixpi6pzy000z26n9w1jaz0g1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -539,7 +600,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="cixnn4jdq002z8tn90fh6834s" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="cixpi6pzw000x26n95sof6xau" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/building-better-team-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -589,7 +650,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="cixnn4jdj002r8tn9tkivsdh3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="cixpi6pzu000s26n95jpjx3j0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -638,64 +699,12 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="cixnn4jdm002w8tn9fcs9zjkh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="cixpi6pzv000v26n98au3jxrh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/select-into-techinques/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-nthvalue-windowing-clause" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/06/nthvalue-windowing-clause/" class="article-date">
-  <time datetime="2012-06-01T13:55:00.000Z" itemprop="datePublished">2012-06-01</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/06/nthvalue-windowing-clause/">NTH_VALUE Windowing Clause</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>In my <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic.html">previous post</a>, which highlighted some analytic functions, I mentioned that the windowing clause must be explicitly defined when using the <a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions114.htm#CJAFEJBE" target="_blank" rel="external">NTH_VALUE</a> function.</p>
-<p>To recap, here’s the example I used for NTH_VALUE which lists the 2nd highest salary for each department:</p>
-<p><pre class="brush: sql; highlight: 5">SELECT d.dname, e.ename, e.sal,<br>   nth_value(e.sal, 2) OVER (<br>    PARTITION BY e.deptno ORDER BY e.sal DESC<br>    – windowing_clause<br>    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) sec_high_sal_dept<br>FROM emp e, dept d<br>WHERE e.deptno = d.deptno;</pre></p>
-<p>– Result</p>
-<p>DNAME          ENAME             SAL SEC_HIGH_SAL_DEPT</p>
-<hr>
-<p>ACCOUNTING     KING             5000              2450<br>ACCOUNTING     CLARK            2450              2450<br>ACCOUNTING     MILLER           1300              2450<br>RESEARCH       FORD             3000              3000<br>RESEARCH       SCOTT            3000              3000<br>RESEARCH       JONES            2975              3000<br>RESEARCH       ADAMS            1100              3000<br>RESEARCH       SMITH             800              3000<br>SALES          BLAKE            2850              1600<br>SALES          ALLEN            1600              1600<br>SALES          TURNER           1500              1600<br>SALES          WARD             1250              1600<br>SALES          MARTIN           1250              1600<br>SALES          JAMES             950              1600<br>What happens if we don’t include the windowing clause? Here’s the same query, but just focusing on the Accounting department, without the windowing clause:</p>
-<p><pre class="brush: sql; highlight: 12">SELECT d.dname, e.ename, e.sal,<br>   nth_value(e.sal, 2) OVER (<br>    PARTITION BY e.deptno ORDER BY e.sal DESC) sec_high_sal_dept<br>FROM emp e, dept d<br>WHERE e.deptno = d.deptno<br>  AND d.dname = ‘ACCOUNTING’;</pre></p>
-<p>– Result</p>
-<p>DNAME          ENAME             SAL SEC_HIGH_SAL_DEPT</p>
-<hr>
-<p>ACCOUNTING     KING             5000<br>ACCOUNTING     CLARK            2450              2450<br>ACCOUNTING     MILLER           1300              2450<br>You’ll notice that the first row (KING) has a NULL returned for the SEC_HIGH_SAL_DEPT column. That’s because when it looks at the first row (KING) it still hasn’t had a chance to evaluate at least 2 values.   Obviously writing some test queries will identify this “issue” which may or may not be what you’re looking for. If it isn’t then just add the windowing clause (above).</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="cixnn4jdl002u8tn9fwp7ypu6" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
 
     </footer>
   </div>
@@ -742,7 +751,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -779,7 +788,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

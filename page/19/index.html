@@ -66,6 +66,93 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-logs-storing-mail-log-data" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/04/apex-logs-storing-mail-log-data/" class="article-date">
+  <time datetime="2010-04-13T15:00:00.000Z" itemprop="datePublished">2010-04-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/04/apex-logs-storing-mail-log-data/">APEX Logs: Storing Mail Log Data</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago (almost a year ago) I wrote about how to permanently store APEX logs into your own tables (<a href="http://apex-smb.blogspot.com/2009/05/apex-logs-storing-log-data.html" target="_blank" rel="external">http://apex-smb.blogspot.com/2009/05/apex-logs-storing-log-data.html</a>). I covered the APEX_WORKSPACE_ACCESS_LOG and APEX_WORKSPACE_ACTIVITY_LOG logs. I forgot to include how to permanently store the APEX_MAIL_LOG. You’ll only need to do this if you use APEX_MAIL to send email.</p>
+<p><span style="font-weight:bold;">1- Create the APEX Mail Log table</span></p>
+<pre class="brush: sql">
+-- Mail Log
+CREATE TABLE tapex_mail_log
+AS  SELECT * FROM apex_mail_log;
+</pre><span style="font-weight:bold;">2- Update the APEX Mail Log table</span>
+
+<span style="font-style:italic;">Note: You may want to store this in a procedure and run as a nightly scheduled job so you don't forget to update the tables</span>
+<pre class="brush: sql">
+BEGIN
+  -- apex_mail_log is linked to the workspace.
+  -- Need to access all the mail sent for each workspace that is linked to this schema
+
+  FOR x IN (SELECT workspace_id FROM apex_workspaces) LOOP
+    -- Set the workspace ID
+    wwv_flow_api.set_security_group_id (x.workspace_id);
+
+    INSERT INTO tapex_mail_log (mail_to,
+                                mail_from,
+                                mail_replyto,
+                                mail_subj,
+                                mail_cc,
+                                mail_bcc,
+                                mail_send_error,
+                                last_updated_on)
+      SELECT aml.mail_to,
+             aml.mail_from,
+             aml.mail_replyto,
+             aml.mail_subj,
+             aml.mail_cc,
+             aml.mail_bcc,
+             aml.mail_send_error,
+             aml.last_updated_on
+        FROM tapex_mail_log x, apex_mail_log aml
+       WHERE     NVL (aml.mail_to, -1) = NVL (x.mail_to(+), -1)
+             AND NVL (aml.mail_from, -1) = NVL (x.mail_from(+), -1)
+             AND NVL (aml.mail_replyto, -1) = NVL (x.mail_replyto(+), -1)
+             AND NVL (aml.mail_subj, -1) = NVL (x.mail_subj(+), -1)
+             AND NVL (aml.mail_cc, -1) = NVL (x.mail_cc(+), -1)
+             AND NVL (aml.mail_bcc, -1) = NVL (x.mail_bcc(+), -1)
+             AND NVL (aml.mail_send_error, -1) = NVL (x.mail_send_error(+), -1)
+             AND aml.last_updated_on = x.last_updated_on(+)
+             AND x.ROWID IS NULL;
+  END LOOP;
+END;
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/" data-id="cixpi6q0t002426n9f32tp6y5" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-restoring-jquery-ui-theme-from" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2010/03/restoring-jquery-ui-theme-from/" class="article-date">
@@ -96,7 +183,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/" data-id="cixnn4jgj006w8tn9o4vso0kw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/" data-id="cixpi6q0r001z26n9k8l3913u" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -135,64 +222,26 @@
         <p>When developing with PL/SQL you may store public variables in the package specification. This has many uses, none of which I will get into for this post. The only catch in Oracle is that you can not easily reference these values in SQL statements outside of PL/SQL. The following example demonstrates this:</p>
 <ul>
 <li><p>Create Package Spec with Variable</p>
-<pre class="brush: sql">
-CREATE OR REPLACE PACKAGE pkg_var
-AS
-c_my_var   CONSTANT VARCHAR2 (5) := 'hello';
-END pkg_var;
-</pre>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">PACKAGE</span> pkg_var</div><div class="line"><span class="keyword">AS</span></div><div class="line">  c_my_var   <span class="keyword">CONSTANT</span> VARCHAR2 (<span class="number">5</span>) := <span class="string">'hello'</span>;</div><div class="line"><span class="keyword">END</span> pkg_var;</div></pre></td></tr></table></figure>
 </li>
-<li><p>Reference the variable in a SQL statement in SQL*Plus<br><pre class="brush: sql"><br>SQL&gt; SELECT pkg_var.c_my_var x<br>2    FROM DUAL;<br>SELECT pkg_var.c_my_var x</pre></p>
-<pre><code>*
-</code></pre><p>ERROR at line 1:<br>ORA-06553: PLS-221: ‘C_MY_VAR’ is not a procedure or is undefined<br><br><span style="font-style:italic;">This results in an Oracle error.</span></p>
-</li>
-<li><p>Try the same code, but in an block of PL/SQL<br><pre class="brush: sql"><br>SQL&gt; DECLARE<br>2    v_x   VARCHAR2 (5);<br>3  BEGIN<br>4    SELECT pkg_var.c_my_var x<br>5      INTO v_x<br>6      FROM DUAL;<br>7<br>8    DBMS_OUTPUT.put_line (v_x);<br>9  END;<br>10  /<br>hello</pre></p>
+<li><p>Reference the variable in a SQL statement in SQL*Plus</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">SQL&gt; SELECT pkg_var.c_my_var x</div><div class="line">  2    FROM DUAL;</div><div class="line">SELECT pkg_var.c_my_var x</div><div class="line">       *</div><div class="line">ERROR at line 1:</div><div class="line">ORA-06553: PLS-221: 'C_MY_VAR' is not a procedure or is undefined</div></pre></td></tr></table></figure>
 </li>
 </ul>
-<p>PL/SQL procedure successfully completed.<br><br><span style="font-style:italic;">As you can see this worked.</span></p>
-<p>So how can we refernce package variables in a non-PL/SQL setting? I created the following function to do so. It will handle values that are of type VARCHAR2. I’ve also removed any spaces from the parameter (pkg_name.var_name) to ensure that no SQL injection will occur.</p>
-<pre class="brush: sql">
--- **
--- * Returns Package Variable value
--- * Note: for demo purposes I broke this function into various steps
--- *
--- * @param p_pkg_var_name fully qualified variable reference. Ex: pkg_x.var_y
--- * @return Varchar2 value
--- * @author Martin Giffy D'Souza: http://apex-smb.blogspot.com
--- **
-CREATE OR REPLACE FUNCTION f_get_pkg_val_vc2 (p_pkg_var_name in varchar2)
-  RETURN VARCHAR2
-AS
-  v_string          VARCHAR2 (4000);
-  -- Full Variable Name (i.e. pkg.var)
-  v_var_full_name   VARCHAR2 (61);                             -- Max of 61 chars since 30 + . + 30
-BEGIN
-  v_var_full_name := p_pkg_var_name;
-  -- Remove any spaces to avoid SQL injections
-  v_var_full_name := REGEXP_REPLACE (v_var_full_name, '[[:space:]]', '');
-
-  EXECUTE IMMEDIATE 'begin :v_string := ' || v_var_full_name || '; end;'
-              USING OUT v_string;
-
-  RETURN v_string;
-END f_get_pkg_val_vc2;
-</pre>
-
-<p>Now when you run in SQL*Plus you get the following:</p>
-<pre class="brush: sql">
-SQL> SELECT f_get_pkg_val_vc2 ('pkg_var.c_my_var') x
-  2    FROM DUAL;
-
-X
------------------------------------------------------
-
-hello
-</pre>
+<p><em>This results in an Oracle error.</em></p>
+<ul>
+<li>Try the same code, but in an block of PL/SQL</li>
+</ul>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">SQL&gt; DECLARE</div><div class="line">  2    v_x   VARCHAR2 (5);</div><div class="line">  3  BEGIN</div><div class="line">  4    SELECT pkg_var.c_my_var x</div><div class="line">  5      INTO v_x</div><div class="line">  6      FROM DUAL;</div><div class="line">  7</div><div class="line">  8    DBMS_OUTPUT.put_line (v_x);</div><div class="line">  9  END;</div><div class="line"> 10  /</div><div class="line">hello</div><div class="line"></div><div class="line">PL/SQL procedure successfully completed.</div></pre></td></tr></table></figure>
+<p><em>As you can see this worked.</em></p>
+<p>So how can we reference package variables in a non-PL/SQL setting? I created the following function to do so. It will handle values that are of type <code>VARCHAR2</code>. I’ve also removed any spaces from the parameter (<code>pkg_name.var_name</code>) to ensure that no SQL injection will occur.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- **</span></div><div class="line"><span class="comment">-- * Returns Package Variable value</span></div><div class="line"><span class="comment">-- * <span class="doctag">Note:</span> for demo purposes I broke this function into various steps</span></div><div class="line"><span class="comment">-- *</span></div><div class="line"><span class="comment">-- * @param p_pkg_var_name fully qualified variable reference. Ex: pkg_x.var_y</span></div><div class="line"><span class="comment">-- * @return Varchar2 value</span></div><div class="line"><span class="comment">-- * @author Martin Giffy D'Souza: http://apex-smb.blogspot.com</span></div><div class="line"><span class="comment">-- **</span></div><div class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">FUNCTION</span> f_get_pkg_val_vc2 (p_pkg_var_name <span class="keyword">in</span> varchar2)</div><div class="line">  <span class="keyword">RETURN</span> VARCHAR2</div><div class="line"><span class="keyword">AS</span></div><div class="line">  v_string          VARCHAR2 (<span class="number">4000</span>);</div><div class="line">  <span class="comment">-- Full Variable Name (i.e. pkg.var)</span></div><div class="line">  v_var_full_name   VARCHAR2 (61);                             <span class="comment">-- Max of 61 chars since 30 + . + 30</span></div><div class="line"><span class="keyword">BEGIN</span></div><div class="line">  v_var_full_name := p_pkg_var_name;</div><div class="line">  <span class="comment">-- Remove any spaces to avoid SQL injections</span></div><div class="line">  v_var_full_name := REGEXP_REPLACE (v_var_full_name, '[[:space:]]', '');</div><div class="line"></div><div class="line">  <span class="keyword">EXECUTE</span> <span class="keyword">IMMEDIATE</span> <span class="string">'begin :v_string := '</span> || v_var_full_name || <span class="string">'; end;'</span></div><div class="line">              <span class="keyword">USING</span> <span class="keyword">OUT</span> v_string;</div><div class="line"></div><div class="line">  RETURN v_string;</div><div class="line"><span class="keyword">END</span> f_get_pkg_val_vc2;</div></pre></td></tr></table></figure>
+<p>Now when you run in SQL*Plus you get the following:<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">SQL&gt; SELECT f_get_pkg_val_vc2 ('pkg_var.c_my_var') x</div><div class="line">  2    FROM DUAL;</div><div class="line"></div><div class="line">X</div><div class="line">-----------------------------------------------------</div><div class="line"></div><div class="line">hello</div></pre></td></tr></table></figure></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="cixnn4jgg006q8tn93g3er75p" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="cixpi6q0l001s26n94wmw9bm0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/03/how-to-reference-package-variables/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -251,7 +300,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="cixnn4jgi006u8tn9z0gjzq38" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="cixpi6q0s002126n99ilpza3e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -298,7 +347,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="cixnn4jgf006o8tn9d02xebml" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="cixpi6q0p001x26n9tmxr0bvs" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -444,7 +493,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="cixnn4jgh006s8tn9mwcnyy1c" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="cixpi6q0m001u26n90n2iq1ib" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -522,7 +571,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cixnn4jge006m8tn92h6n7v1u" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cixpi6q8y00ek26n9in7syzno" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/12/apex-orphaned-application-files/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -566,7 +615,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cixnn4jgb006g8tn9xwb4cv9k" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cixpi6q8z00em26n9ygy8evfj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -643,7 +692,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cixnn4jgd006k8tn9aqwjs2zq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cixpi6q8x00ei26n9f6l5aq0w" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -709,62 +758,12 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cixnn4jg9006e8tn9bg6iad3o" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cixpi6q8w00eg26n9ckwuuduq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-designing-apex-applications-ui-mockups" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/10/designing-apex-applications-ui-mockups/" class="article-date">
-  <time datetime="2009-10-22T14:30:00.000Z" itemprop="datePublished">2009-10-22</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/10/designing-apex-applications-ui-mockups/">Designing APEX Applications: UI Mockups</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>When doing any sort of development it’s important to use the right tool for the right job. With that in mind, I thought I’d discuss mockups for APEX applications, or better yet any GUI.</p>
-<p>One of my biggest pet peeves is when I get a functional or technical spec with modified screen shots of existing applications for the UI mockups. I’m not a graphic artist or a UI expert but I do know that taking a screen shot of a similar application, then spending several hours moving things around in Paint isn’t very good. Using MS Paint, or similar applications, would be like developing your application using a typewriter (I’ve included a picture for those that have never used one :-).<br><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Stbwntt0aJI/AAAAAAAADr8/o3pfdONNC-A/s1600-h/typewriter.jpg" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Stbwntt0aJI/AAAAAAAADr8/o3pfdONNC-A/s320/typewriter.jpg" alt=""></a>I know some people have developed basic APEX applications and used screen shots for their UI mockups. I think APEX is a great tool for creating demo applications but it shouldn’t be used for mockups. People reviewing the design may get carried away with the specifics since it looks like a real application.</p>
-<p>What should you use to create application mockups? Personally I like a good old-fashion hand drawn diagram (I’ve been known to ask colleagues to give me their mockups on scrap paper). Though they are quick they don’t work well in documents and they aren’t great when doing several design iterations. Wireframe diagrams are an excellent alternative as they’re exactly like hand drawn diagrams with pre-defined shapes.<br><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Stb0cEpQevI/AAAAAAAADtI/6GJPWXyhwlc/s1600-h/balsamiq_example.PNG" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Stb0cEpQevI/AAAAAAAADtI/6GJPWXyhwlc/s400/balsamiq_example.PNG" alt=""></a><br>Why use wireframe diagrams?</p>
-<ul>
-<li>Quick to develop <span style="font-style:italic;">(the example above took me 2 minutes to create)</span></li>
-<li>Easy to modify</li>
-<li>Focus on flow and useability, not specifics</li>
-<li>Cheap/Easy to do multiple design iterations<br>The list could go on, but I’ll stop there. I’d like to emphasize on the fact that people will focus on specifics rather than the flow and usability of the application when looking at screen shots. For example: if you use have a screen shot with a drop down list of 100 countries and you only include 2 or 3 in the diagram, readers may wonder where the other 100 or so countries are etc. They aren’t focused on the fact that it’s a drop down list with countries, rather there’s something wrong with the list. With a wireframe diagram it will be extremly clear that it’s a drop down list of countries with no real focus on the values inside the select list.</li>
-</ul>
-<p>I’ve you’re looking for an application to do wireframe diagrams I’d recommend <a href="http://www.balsamiq.com/products/mockups" target="_blank" rel="external">Balsamiq</a>. I’ve been really impressed with it so far as it allows me to do UI mockups really quickly <span style="font-style:italic">(I have no affiliation with Balsamiq, so please don’t take this as an advertisement)</span>. Of course they’re many other tools out there that will do this so I encourage you to find one that is suitable for your organization.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cixnn4jgc006i8tn9jiwwzfjr" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/best-practice/">best-practice</a></li></ul>
 
     </footer>
   </div>
@@ -811,7 +810,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -848,7 +847,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
