@@ -35,11 +35,11 @@ Create an IR with the query below. Note the `p_attributes` value. This is critic
 ```sql
 select
   apex_item.checkbox2(
-    p_idx =&gt; 1,
-    p_value =&gt; e.empno ,
-    p_attributes =&gt; 'class="empno"',
-    p_checked_values =&gt; :p1_empno_list,
-    p_checked_values_delimiter =&gt; ',') checkbox,
+    p_idx => 1,
+    p_value => e.empno ,
+    p_attributes => 'class="empno"',
+    p_checked_values => :p1_empno_list,
+    p_checked_values_delimiter => ',') checkbox,
   e.ename,
   e.job
 from emp e
