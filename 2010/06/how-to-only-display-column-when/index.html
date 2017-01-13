@@ -5,16 +5,16 @@
   
   <title>How to only Display Column when Downloading | TalkApex</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called “color” and you want to display the color in the report. Your query would look like t">
+  <meta name="description" content="Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called color and you want to display the color in the report. Your query would look like thi">
 <meta property="og:type" content="article">
 <meta property="og:title" content="How to only Display Column when Downloading">
 <meta property="og:url" content="http://www.talkapex.com/2010/06/how-to-only-display-column-when/index.html">
 <meta property="og:site_name" content="TalkApex">
-<meta property="og:description" content="Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called “color” and you want to display the color in the report. Your query would look like t">
-<meta property="og:updated_time" content="2017-01-07T15:38:36.000Z">
+<meta property="og:description" content="Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called color and you want to display the color in the report. Your query would look like thi">
+<meta property="og:updated_time" content="2017-01-13T16:28:05.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="How to only Display Column when Downloading">
-<meta name="twitter:description" content="Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called “color” and you want to display the color in the report. Your query would look like t">
+<meta name="twitter:description" content="Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called color and you want to display the color in the report. Your query would look like thi">
 <meta name="twitter:creator" content="@martindsouza">
   
     <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
@@ -90,23 +90,61 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called “color” and you want to display the color in the report. Your query would look like this:</p>
-<p><pre class="brush: sql;"><br>SELECT ‘<span style="color:' || color || '">“‘ || color || ‘</span>‘ color<br>FROM my_colors<br></pre><span style="font-style:italic;">Note: That they’re ways to get around this simple example using Report Templates and Column Formatting. I’m just using it for demo purposes</span></p>
-<p>If you were to download this report the “color” column would contain all the html (i.e. span tags etc). This may confuse users since they expected to see “red, green, blue, etc…” in their download file, but instead see the colors wrapped in a lot of html.</p>
-<p>A workaround that I’ve used is to create 2 columns: color_html and color</p>
-<p><pre class="brush: sql;"><br>SELECT ‘<span style="color:' || color || '">“‘ || color || ‘</span>‘ color_html,<br>            color color<br>  FROM my_colors<br></pre>And modify each report column’s attributes:</p>
-<p><span style="font-style:italic; font-weight:bold">Standard Reports</span></p>
-<p><span style="font-style:italic;">color_html</span><br>Column Definition:<br>Include In Export: No</p>
-<p><span style="font-style:italic;">color</span><br>Conditional Display:<br>PL/SQL Function Body Returning a Boolean: return apex_application.g_excel_format</p>
-<p><span style="font-style:italic; font-weight:bold">Interactive Reports</span></p>
-<p><span style="font-style:italic;">color_html</span><br>Conditional Display:<br>Request is NOT Contained within Expression 1: CSV,HTMLD</p>
-<p><span style="font-style:italic;">color</span><br>Conditional Display:<br>Request is Contained within Expression 1: CSV,HTMLD</p>
+        <p>Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called <code>color</code> and you want to display the color in the report. Your query would look like this:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> <span class="string">'&lt;span style="color:'</span> || color || <span class="string">'"&gt;"'</span> || color || <span class="string">'&lt;/span&gt;'</span> color</div><div class="line"><span class="keyword">FROM</span> my_colors</div></pre></td></tr></table></figure></p>
+<p><em>Note: That they’re ways to get around this simple example using Report Templates and Column Formatting. I’m just using it for demo purposes</em></p>
+<p>If you were to download this report the “color” column would contain all the html (i.e. <code>span</code> tags etc). This may confuse users since they expected to see “red, green, blue, etc…” in their download file, but instead see the colors wrapped in a lot of html.</p>
+<p>A workaround that I’ve used is to create 2 columns: color_html and color<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> <span class="string">'&lt;span style="color:'</span> || color || <span class="string">'"&gt;"'</span> || color || <span class="string">'&lt;/span&gt;'</span> color_html,</div><div class="line">            color color</div><div class="line">  <span class="keyword">FROM</span> my_colors</div></pre></td></tr></table></figure></p>
+<p>And modify each report column’s attributes:</p>
+<p><strong>Standard Reports</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Column Definition</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color_html</code></td>
+<td>Include In Export</td>
+<td><code>No</code></td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td>PL/SQL Function Body Returning a Boolean</td>
+<td><code>return apex_application.g_excel_format</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interactive Reports</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Column Definition</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color_html</code></td>
+<td>Conditional Display</td>
+<td>Request is NOT Contained within Expression 1: <code>CSV,HTMLD</code></td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td>Conditional Display</td>
+<td>Request is Contained within Expression 1: <code>CSV,HTMLD</code></td>
+</tr>
+</tbody>
+</table>
 <p>Now when a user downloads the report they’ll get the non-html version of the column. This solution works in APEX 4.0 and APEX 3.x</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/how-to-only-display-column-when/" data-id="cixpi6q0z002j26n9nhantnel" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/how-to-only-display-column-when/" data-id="cixw0u8ui001z64n9wam2dzbo" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/how-to-only-display-column-when/#disqus_thread" class="article-comment-link">Comments</a>
       
