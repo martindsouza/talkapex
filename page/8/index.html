@@ -66,6 +66,80 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-logger-210-insloggerlogs" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/08/logger-210-insloggerlogs/" class="article-date">
+  <time datetime="2013-08-08T13:00:00.000Z" itemprop="datePublished">2013-08-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/08/logger-210-insloggerlogs/">Logger 2.1.0 - ins_logger_logs</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>In preparation for the release of Logger 2.1.0 I’ve decided to write a few posts highlighting some of the new features.</em> </p>
+<p>Prior to 2.1.0, Logger used a trigger when inserting into the <span style="font-family: inherit;">LOGGER_LOGS</span> table. Though their was never a compelling reason to remove the trigger a <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/26" target="_blank" rel="external">bug request</a> and an unrelated <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/17" target="_blank" rel="external">enhancement request</a> prompted me to reexamine the need for it.</p>
+<p>Starting with 2.1.0 there is no trigger on the primary Logger table: <span style="font-family: inherit;">LOGGER_LOGS</span>. Instead all insert statements are handled by a single procedure:&nbsp; <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API#wiki-procedure-ins_logger_logs" target="_blank" rel="external"><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">ins_logger_logs</span></a>. I’m sure this will make <a href="https://twitter.com/OracleAskTom" target="_blank" rel="external">Tom Kyte</a> happy as there’s one less trigger in the world now.</p>
+<p>On the performance perspective, initial testing has shown a ~15% performance increase when using the standard logging procedures. Though this may not seem like a lot, in large systems where Logger is called often it can start to add up. </p>
+<p>As you can imagine, if you have a direct insert into <span style="font-family: inherit;">LOGGER_LOGS</span> and leveraged some of the features that the trigger had (i.e. obtaining the sequence for the ID column) then your application will have a run time error. I was very hesitant about removing the trigger for this sole reason but am able to justify it by the fact that directly inserting into the table has never been supported by Logger. Regardless, if you do have insert statements into the table you can simply replace them with calls to the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">ins_logger_logs</span> procedure.</p>
+<p><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">ins_logger_logs</span> should not be used often and only makes sense in very specific cases. A few things to note about this procedure:</p>
+<ul>
+<li>It is an <a href="http://www.oracle-base.com/articles/misc/autonomous-transactions.php" target="_blank" rel="external">autonomous transaction</a> procedure. This means that an explicit commit occurs at the end of the procedure. Since it is an autonomous transaction it will not affect (i.e. not commit) your current session.</li>
+<li>It will always insert the value into the <span style="font-family: inherit;">LOGGER_LOGS t</span>able. No check is performed to factor in the current logging level. For this reason you’re better off using the standard Logger procedures.</li>
+</ul>
+<p>On a side note, you may be wondering why you would manually do a direct insert into the <span style="font-family: inherit;">LOGGER_LOGS</span> table? In rare occasions you may need the ID that was generated from a log statement for other purposes. None of primary log procedures returns the ID. One situation that I’ve seen in the past is to log all the APEX info on the APEX error handling page. On that page the user would see an error code that developers can reference. That unique code is actually the ID from Logger.</p>
+<p>Here is an example of the new procedure:</p>
+<pre class="brush: sql;">set serveroutput on
+
+declare
+  l_id logger_logs.id%type;
+begin
+  -- Note: Commented out parameters not used for this demo (but still accessible via API)
+  logger.ins_logger_logs(
+    p_logger_level =&gt; logger.g_debug,
+    p_text =&gt; 'Custom Insert',
+    p_scope =&gt; 'demo.logger.custom_insert',
+--    p_call_stack =&gt; ''
+    p_unit_name =&gt; 'Dynamic PL/SQL',
+--    p_line_no =&gt; ,
+--    p_extra =&gt; ,
+    po_id =&gt; l_id
+  );
+
+  dbms_output.put_line('ID: ' || l_id);
+end;
+/
+
+ID: 2930650
+</pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-insloggerlogs/" data-id="ciy946dd0007bhcn9h6g265xs" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2013/08/logger-210-insloggerlogs/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-logger-210-oktolog" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2013/08/logger-210-oktolog/" class="article-date">
@@ -107,7 +181,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-oktolog/" data-id="cixw0u8zh00ay64n9ivn4wbs0" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-oktolog/" data-id="ciy946dcy0075hcn9az0rq6ls" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-oktolog/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -150,7 +224,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-demo-scripts/" data-id="cixw0u8zn00b264n93tjeabkt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-demo-scripts/" data-id="ciy946dcx0073hcn9ueiwfqah" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-demo-scripts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -196,7 +270,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-documentation-overhaul/" data-id="cixw0u8zo00b464n9w239mb86" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-documentation-overhaul/" data-id="ciy946dcz0077hcn9fq4o5spj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-documentation-overhaul/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -241,7 +315,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-text-length-4000-characters/" data-id="cixw0u8zm00b064n9eaw91w7p" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-text-length-4000-characters/" data-id="ciy946dcu006zhcn9yj0vfm4p" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-text-length-4000-characters/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -297,7 +371,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/07/5-years-later/" data-id="cixw0u8zg00aw64n9tm4x9g03" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/07/5-years-later/" data-id="ciy946dct006whcn9x0qkj031" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/07/5-years-later/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -348,7 +422,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/07/apexposed-en-montreal-sept-1011/" data-id="cixw0u8ze00at64n90qnk7gum" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/07/apexposed-en-montreal-sept-1011/" data-id="ciy946dcw0071hcn97mnl8dz9" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/07/apexposed-en-montreal-sept-1011/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -392,7 +466,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/07/its-up-to-you-oracle-and-apex-open/" data-id="cixw0u8zc00ar64n9jrdof8n6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/07/its-up-to-you-oracle-and-apex-open/" data-id="ciy946dcs006uhcn96859atls" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/07/its-up-to-you-oracle-and-apex-open/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -442,7 +516,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/06/logger-200-released/" data-id="cixw0u8za00an64n9omnprg09" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/06/logger-200-released/" data-id="ciy946dcq006qhcn9rhjdiyeu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/06/logger-200-released/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -497,79 +571,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/" data-id="cixw0u8zc00ap64n90iksvmmj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/" data-id="ciy946dcp006ohcn93hkl5rp3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-logger-200-enable-session-specific" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/05/logger-200-enable-session-specific/" class="article-date">
-  <time datetime="2013-05-07T13:30:00.000Z" itemprop="datePublished">2013-05-07</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/05/logger-200-enable-session-specific/">Logger 2.0.0 - Enable Session Specific Logging</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger 2.0.0 </a>I’ve decided to write a few posts highlighting some of the new features.</em></p>
-<p>One of the most common feature request for Logger has been the ability to enable logging (or setting the logger level) for a given session. This post covers how to set and unset session specific logging.</p>
-<p><strong>Logger Levels</strong></p>
-<p>There is no “on/off” switch for Logger. Instead, like most other logging and code instrumentation tools, it supports <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#logger-levels" target="_blank" rel="external">multiple levels</a>. This allows developers to turn up and down the amount of logging. In most development systems the logging level is set to debug mode and in most production instances it’s set to error mode. This means that in production only items that are explicitly logged using <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">logger.log_error</span> will be stored. For more information read the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#configuration" target="_blank" rel="external">configuration</a> section of the documentation.</p>
-<p><strong>Setting the Logger Level</strong></p>
-<p>Prior to Logger 2.0.0 you could only configure the logging level for the entire schema. To following code snippet highlights this: <pre class="brush: sql;"><br>exec logger.set_level(‘DEBUG’);</pre></p>
-<p>begin<br>  – All of these will be logged<br>  logger.log(‘Logging log level’);<br>  logger.log_information(‘Logging information level’);<br>  logger.log_warning(‘Logging warning level’);<br>  logger.log_error(‘Logging error level’);<br>end;<br>/</p>
-<p>exec logger.set_level(‘WARNING’);</p>
-<p>begin<br>  logger.log(‘Logging log level’); – Not stored<br>  logger.log_information(‘Logging information level’); – Not stored<br>  logger.log_warning(‘Logging warning level’); – Stored<br>  logger.log_error(‘Logging error level’); – Stored<br>end;<br>/<br>What happens in production systems when a user is experiencing some issues and you want to see all their logging information? The only way to do this before was to set the logging level to debug mode and the entire schema would be affected. This could slow down all the applications in the schema which is an undesired affect. </p>
-<p><strong>Setting by Session</strong><br><strong>&nbsp;</strong><br>The term “session” is a bit misleading. Since more most Oracle applications are stateless it’s not realistic to enable logging for a specific Oracle session (SID). Instead Logger uses the client_identifier (also referred to as client_id). Client identifiers can easily be configured and are commonly used in stateless applications. For example, APEX sets the client_id with: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">:APP_USER || ‘:’ || :APP_SESSION</span></p>
-<p>The following example demonstrates how to enable “session” specific logging in Logger: <pre class="brush: sql;"><br>– Connection 1<br>exec logger.set_level (‘ERROR’);</pre></p>
-<p>begin<br>  logger.log(‘will not get stored’);<br>  logger.log_error(‘will get stored’);<br>end;<br>/</p>
-<p>select id, logger_level, text, client_identifier<br>from logger_logs_5_min;</p>
-<p>  ID LOGGER_LEVEL TEXT                 CLIENT_IDENTIFIER</p>
-<hr>
-<p>  13            2 will get stored      </p>
-<p>– Connection 2 (i.e a different connection)<br>exec dbms_session.set_identifier(‘logger_demo’);</p>
-<p>exec logger.set_level(‘DEBUG’, sys_context(‘userenv’,’client_identifier’));<br>– Or could have used: logger.set_level(‘DEBUG’, ‘logger_demo’);</p>
-<p>begin<br>  logger.log(‘will get stored’);<br>  logger.log_error(‘will get stored’);<br>end;<br>/</p>
-<p>select id, logger_level, text, client_identifier<br>from logger_logs_5_min;</p>
-<p>  ID LOGGER_LEVEL TEXT                 CLIENT_IDENTIFIER</p>
-<hr>
-<p>  14           16 will get stored      logger_demo<br>  15            2 will get stored      logger_demo<br><strong>Unsettting by Session</strong></p>
-<p>When setting a session specific logging level, Logger will apply an expiration time to it. By default&nbsp; this is set to 12 hours but can be configured by setting the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">logger_prefs</span> value:&nbsp; <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">PREF_BY_CLIENT_ID_EXPIRE_HOURS</span>&nbsp; You can also pass in the time using the parameter <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">p_client_id_expire_hours</span>. If you don’t explicitly unset a specific session then logger will automatically clean up these sessions after the desired time.</p>
-<p>They’re three ways to explicitly unset session specific logging: <pre class="brush: sql;"><br>– Unset by specific client_id<br>exec logger.unset_client_level(p_client_id =&gt; ‘logger_demo’);</pre></p>
-<p>– Unset all sessions that have expired<br>exec logger.unset_client_level;</p>
-<p>– Unset all sessions (regardless of expiration time)<br>exec logger.unset_client_level_all<br><strong>Summary</strong></p>
-<p>By setting session specific logging you can allow for an individual connection to have logging enabled without affecting the rest of the applications in the schema.</p>
-<hr>
-<p>They’re some other interesting features in session specific logging that I wasn’t able to fit this article. In the <a href="http://www.talkapex.com/2013/05/logger-200-session-specific-logging.html">next article</a> I’ll discuss these features.<br><strong>&nbsp;</strong></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/" data-id="cixw0u8z900al64n9xo7medif" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
@@ -619,7 +623,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -656,7 +660,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

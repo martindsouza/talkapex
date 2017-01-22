@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.talkapex.com/"/>
-  <updated>2017-01-09T03:01:57.000Z</updated>
+  <updated>2017-01-22T17:04:34.000Z</updated>
   <id>http://www.talkapex.com/</id>
   
   <author>
@@ -14,6 +14,32 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Using Pivot for Aggregations</title>
+    <link href="http://www.talkapex.com/2017/01/using-pivot-for-aggregations/"/>
+    <id>http://www.talkapex.com/2017/01/using-pivot-for-aggregations/</id>
+    <published>2017-01-22T22:45:28.000Z</published>
+    <updated>2017-01-22T17:04:34.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Suppose you had a requirement in which you needed to return one row which had two columns. The two columns would contain the number of employees in the two different departments. This sounds like a trivial problem to solve but isn’t as easy when you get to coding it.</p>
+<p>One way to do this is to use <code>case</code> statements in the aggregation function such as :</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span></div><div class="line">  <span class="keyword">count</span>(<span class="keyword">case</span> <span class="keyword">when</span> d.dname = <span class="string">'ACCOUNTING'</span> <span class="keyword">then</span> <span class="number">1</span> <span class="keyword">else</span> <span class="literal">null</span> <span class="keyword">end</span>) acct_dept_cnt,</div><div class="line">  <span class="keyword">count</span>(<span class="keyword">case</span> <span class="keyword">when</span> d.dname = <span class="string">'RESEARCH'</span> <span class="keyword">then</span> <span class="number">1</span> <span class="keyword">else</span> <span class="literal">null</span> <span class="keyword">end</span>) rsch_dept_cnt</div><div class="line"><span class="keyword">from</span> emp e, dept d</div><div class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">  <span class="keyword">and</span> e.deptno = d.deptno</div><div class="line">;</div><div class="line"></div><div class="line">ACCT_DEPT_CNT  RSCH_DEPT_CNT</div><div class="line">3              5</div></pre></td></tr></table></figure>
+<p>Another neat way to do this is to use the <code>pivot</code> function:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span></div><div class="line">  acct_dept_cnt,</div><div class="line">  rsch_dept_cnt</div><div class="line"><span class="keyword">from</span> (</div><div class="line">  <span class="keyword">select</span> e.deptno, d.dname</div><div class="line">  <span class="keyword">from</span> emp e, dept d</div><div class="line">  <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">    <span class="keyword">and</span> e.deptno = d.deptno)</div><div class="line"><span class="keyword">pivot</span> (<span class="keyword">count</span>(deptno) <span class="keyword">as</span> dept_cnt <span class="keyword">for</span> (dname) <span class="keyword">in</span> (<span class="string">'ACCOUNTING'</span> <span class="keyword">as</span>  acct, <span class="string">'RESEARCH'</span> <span class="keyword">as</span> rsch))</div><div class="line">;</div></pre></td></tr></table></figure></p>
+<p>In this example they both have the same explain plan as shown below. If using on larger / more complex data sets it would be a good idea to compare the explain plans for both queries to see if there’s performance gain between the two.</p>
+<img src="/2017/01/using-pivot-for-aggregations/explain-plan.png" alt="explain-plan.png" title="">
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Suppose you had a requirement in which you needed to return one row which had two columns. The two columns would contain the number of em
+    
+    </summary>
+    
+    
+      <category term="sql" scheme="http://www.talkapex.com/tags/sql/"/>
+    
+  </entry>
   
   <entry>
     <title>How to Reference Package Variables in SQL</title>
@@ -63,9 +89,9 @@
     </summary>
     
     
-      <category term="css" scheme="http://www.talkapex.com/tags/css/"/>
-    
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
+    
+      <category term="css" scheme="http://www.talkapex.com/tags/css/"/>
     
       <category term="javascript" scheme="http://www.talkapex.com/tags/javascript/"/>
     
@@ -78,7 +104,7 @@
     <link href="http://www.talkapex.com/2016/12/new-blog-platform-based-on-markdown-and-git/"/>
     <id>http://www.talkapex.com/2016/12/new-blog-platform-based-on-markdown-and-git/</id>
     <published>2016-12-27T17:45:25.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:07:36.000Z</updated>
     
     <content type="html"><![CDATA[<p>If you’ve followed this blog for a while you’ll notice that I had a significant drop in articles over the past year. So much so that I went from 35 posts in 2015 to just 4 posts in 2016. They’re various reasons for the reduction of posts which all came down to time, more specifically the lack of it.</p>
 <p>I realized that I had the time to write the <em>content</em> for posts but I didn’t have the time to deal with all the formatting that was required on the <a href="blogger.com">blogger.com</a> platform (which used to host <a href="talkapex.com">talkapex.com</a>). It’s a great platform when writing basic text articles however when adding code samples it becomes an absolute pain to manage code formatting, especially editing an existing post.</p>
@@ -139,16 +165,16 @@
     <link href="http://www.talkapex.com/2016/08/odtug-leadership-program/"/>
     <id>http://www.talkapex.com/2016/08/odtug-leadership-program/</id>
     <published>2016-08-02T13:00:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:09:38.000Z</updated>
     
-    <content type="html"><![CDATA[<p>_ODTUG has long been recognized as an outstanding source for the technical content Oracle professionals desire, but that’s only half of the story. We’re providing our members with yet another avenue to add to their skills and increase their value to their employer or client. ODTUG is pleased to open&nbsp;enrolment&nbsp;for&nbsp;the fourth class of the <a href="http://www.odtug.com/p/cm/ld/fid=127?utm_source=email&amp;utm_campaign=leadership&amp;cmp=1&amp;utm_medium=HTMLEmail" target="_blank" rel="external">ODTUG Leadership Program</a>_</p>
+    <content type="html"><![CDATA[<p><em>ODTUG has long been recognized as an outstanding source for the technical content Oracle professionals desire, but that’s only half of the story. We’re providing our members with yet another avenue to add to their skills and increase their value to their employer or client. ODTUG is pleased to open enrollment for the fourth class of the</em> <a href="http://www.odtug.com/p/cm/ld/fid=127?utmsource=email&amp;utmcampaign=leadership&amp;cmp=1&amp;utm_medium=HTMLEmail" target="_blank" rel="external"><em>ODTUG Leadership Program</em></a></p>
 <p>I’ve had the opportunity to work with some of the classes and individuals from the Leadership Program and have heard some amazing stories on how this program changed peoples lives and carriers!</p>
 <p>If you, or someone you know, is interested I encourage you to <a href="http://www.odtug.com/p/cm/ld/fid=127?utm_source=email&amp;utm_campaign=leadership&amp;cmp=1&amp;utm_medium=HTMLEmail" target="_blank" rel="external">submit an application</a>. Applications must be submitted by August 14th so hurry up!</p>
 ]]></content>
     
     <summary type="html">
     
-      &lt;p&gt;_ODTUG has long been recognized as an outstanding source for the technical content Oracle professionals desire, but that’s only half of t
+      &lt;p&gt;&lt;em&gt;ODTUG has long been recognized as an outstanding source for the technical content Oracle professionals desire, but that’s only half o
     
     </summary>
     
@@ -162,10 +188,10 @@
     <link href="http://www.talkapex.com/2016/02/apex-and-nest-thermostat/"/>
     <id>http://www.talkapex.com/2016/02/apex-and-nest-thermostat/</id>
     <published>2016-02-22T01:21:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:09:54.000Z</updated>
     
     <content type="html"><![CDATA[<p>At ODTUG <a href="http://kscope15.com/" target="_blank" rel="external">Kscope 15</a> last year I gave a presentation about APEX plugins. During the presentation I built a plugin from scratch to control my <a href="https://nest.com/" target="_blank" rel="external">Nest Thermostat</a>. Everything went well until I did a live demo connecting the APEX plugin with my home Nest. I forgot to enable a service and unfortunately the demo didn’t work.</p>
-<p>I recently gave a talk to the Vancouver Oracle User Group on&nbsp;<a href="http://martindsouza.github.io/pres-apex-ent-dev/#/" target="_blank" rel="external">APEX and the Future of Enterprise Development</a>. During this presentation I pre-recorded a video of APEX controlling my home Nest to highlight that APEX can work with the Internet of Things (IoT).</p>
+<p>I recently gave a talk to the Vancouver Oracle User Group on <a href="http://martindsouza.github.io/pres-apex-ent-dev/#/" target="_blank" rel="external">APEX and the Future of Enterprise Development</a>. During this presentation I pre-recorded a video of APEX controlling my home Nest to highlight that APEX can work with the Internet of Things (IoT).</p>
 <p>There has been some interest to see this in action so I have included a copy of the video below. On the right is a Nest plugin that I wrote for APEX, the left is the Nest app on an Android tablet, and in the center is the actual Nest.</p>
 <div class="separator" style="clear: both; text-align: center;"><iframe allowfullscreen class="YOUTUBE-iframe-video" data-thumbnail-src="https://i.ytimg.com/vi/dpsqVgE-WQg/0.jpg" frameborder="0" height="266" src="https://www.youtube.com/embed/dpsqVgE-WQg?feature=player_embedded" width="320"></iframe></div>
 ]]></content>
@@ -190,12 +216,26 @@
     <link href="http://www.talkapex.com/2016/01/ehpex-unofficial-tour/"/>
     <id>http://www.talkapex.com/2016/01/ehpex-unofficial-tour/</id>
     <published>2016-01-04T14:00:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:13:47.000Z</updated>
     
     <content type="html"><![CDATA[<p>This year I will be taking some trips across Canada and have been given the opportunity to speak in various cities. Thus the unofficial Eh? PEX tour.</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-UX6cWQfVT7k/Vom9knE4DyI/AAAAAAABJPs/Gl4R0GlT24Q/s1600/canada2.jpg" target="_blank" rel="external"><img src="https://2.bp.blogspot.com/-UX6cWQfVT7k/Vom9knE4DyI/AAAAAAABJPs/Gl4R0GlT24Q/s200/canada2.jpg" alt=""></a></div><br>Here are the different cities and links to each event:<br><br><em>   <a href="http://www.meetup.com/GTA-Oracle-APEX-Development-Meetup/events/227780110/" target="_blank" rel="external">12-Jan GTA/Toronto APEX Meetup</a>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-UX6cWQfVT7k/Vom9knE4DyI/AAAAAAABJPs/Gl4R0GlT24Q/s1600/canada2.jpg" target="_blank" rel="external"><img src="https://2.bp.blogspot.com/-UX6cWQfVT7k/Vom9knE4DyI/AAAAAAABJPs/Gl4R0GlT24Q/s200/canada2.jpg" alt=""></a></div>
 
-</em>   <a href="http://martindsouza.github.io/pres-apex-ent-dev/" target="_blank" rel="external">Open Source and APEX</a><br><em>   Q&amp;A (bring your Oracle &amp; APEX questions)</em>   <a href="http://coug.ab.ca/events/" target="_blank" rel="external">21-Jan Calgary Oracle User Group</a><br><br><em>   <a href="http://martindsouza.github.io/pres-open-source-oracle/#/" target="_blank" rel="external">Open Source Oracle: Tools That Make My Life Easier</a></em>   <a href="https://www.eventbrite.ca/e/orclapex-yvr-meetup-3-tickets-20446209162" target="_blank" rel="external">4-Feb Vancouver Oracle User Group</a><div>Special thanks to <a href="http://insum.ca/" target="_blank" rel="external">Insum Solutions</a> for helping make this all possible.</div><div><br></div><div>For those located in Calgary we have our monthly <a href="http://www.meetup.com/orclapex-YYC/" target="_blank" rel="external">YYC APEX Meetup</a> group.</div>
+<p>Here are the different cities and links to each event:</p>
+<ul>
+<li><a href="http://www.meetup.com/GTA-Oracle-APEX-Development-Meetup/events/227780110/" target="_blank" rel="external">12-Jan GTA/Toronto APEX Meetup</a><ul>
+<li><a href="http://martindsouza.github.io/pres-apex-ent-dev/" target="_blank" rel="external">Open Source and APEX</a></li>
+<li>Q&amp;A (bring your Oracle &amp; APEX questions)</li>
+</ul>
+</li>
+<li><a href="http://coug.ab.ca/events/" target="_blank" rel="external">21-Jan Calgary Oracle User Group</a><ul>
+<li><a href="http://martindsouza.github.io/pres-open-source-oracle/#/" target="_blank" rel="external">Open Source Oracle: Tools That Make My Life Easier</a></li>
+<li><a href="https://www.eventbrite.ca/e/orclapex-yvr-meetup-3-tickets-20446209162" target="_blank" rel="external">4-Feb Vancouver Oracle User Group</a></li>
+</ul>
+</li>
+</ul>
+<p>Special thanks to <a href="http://insum.ca/" target="_blank" rel="external">Insum Solutions</a> for helping make this all possible.</p>
+<p>For those located in Calgary we have our monthly <a href="http://www.meetup.com/orclapex-YYC/" target="_blank" rel="external">YYC APEX Meetup</a> group.</p>
 ]]></content>
     
     <summary type="html">
@@ -214,12 +254,12 @@
     <link href="http://www.talkapex.com/2015/11/clarifit-fromto-date-picker-plug-in/"/>
     <id>http://www.talkapex.com/2015/11/clarifit-fromto-date-picker-plug-in/</id>
     <published>2015-11-16T14:00:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:14:51.000Z</updated>
     
     <content type="html"><![CDATA[<p><em>This article is for people looking for help with the ClariFit From/To Date Picker</em>.</p>
 <p>I’m currently in the process of updating some of the plugins I created for ClariFit to support APEX 5.0. As part of these changes some additional things are happening, mainly listing the plugins in the new <a href="http://apex.world/" target="_blank" rel="external">apex.world</a> site and moving the plugins ownership over to <a href="https://github.com/OraOpenSource" target="_blank" rel="external">OraOpenSource</a>.</p>
 <p>The first plugin that has been moved/updated is the ClariFit From/To Date Picker. The plugin is now called OraOpenSource From/To Date Picker and is hosted <a href="https://github.com/OraOpenSource/apex-plugin-from-to-datepicker" target="_blank" rel="external">here</a>. To help with backwards compatibility the plugin’s internal name has remained the same. This means that upgrades will be seamless.</p>
-<p>Please post all bugs and enhancement requests on the project’s&nbsp;<a href="https://github.com/OraOpenSource/apex-plugin-from-to-datepicker/issues" target="_blank" rel="external">issue page</a>.</p>
+<p>Please post all bugs and enhancement requests on the project’s <a href="https://github.com/OraOpenSource/apex-plugin-from-to-datepicker/issues" target="_blank" rel="external">issue page</a>.</p>
 <p>The next plugin that will be updated is the ClariFit Dialog (to be called OraOpenSource Dialog). It is currently being tested and will be officially released pending any major bugs. If you’d like any other ClariFit plugins updated to APEX 5.0 please leave a comment and I’ll look into it.</p>
 ]]></content>
     
@@ -265,14 +305,33 @@
     <link href="http://www.talkapex.com/2015/11/odtug-election/"/>
     <id>http://www.talkapex.com/2015/11/odtug-election/</id>
     <published>2015-11-09T14:00:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:17:27.000Z</updated>
     
     <content type="html"><![CDATA[<p>If you were at Oracle Open World a few weeks ago you may have missed that the <a href="http://archive.skem1.com/Campaigner/Public/t.show?9331d--5txha-19v43px8&amp;_v=2" target="_blank" rel="external">ODTUG Board of Directors election results</a> were posted.</p>
-<div><br></div><div>The newly elected directors are:</div><div><br><br><em>   <a href="https://twitter.com/opal_epm" target="_blank" rel="external">Opal Alapat</a>
-</em>   <a href="https://twitter.com/dbaontap" target="_blank" rel="external">Danny Bryant</a><br><em>   <a href="https://twitter.com/garycrisci" target="_blank" rel="external">Gary Crisci</a>
-</em>   <a href="https://twitter.com/essbaselady" target="_blank" rel="external">Natalie Delemar</a><br><em>   <a href="https://twitter.com/martindsouza" target="_blank" rel="external">Martin D’Souza</a><div><br></div><div>I first must thank all the people that voted for me again this year. It means a lot that I have the support of the APEX and Oracle communities.&nbsp;</div><div><br></div><div>They’re a few board members who will not be returning next year. They all have done a lot for ODTUG and its members.</div></em></div><div>
-
-   <a href="https://twitter.com/monty_latiolais" target="_blank" rel="external">Monty Latiolais</a><br><br><em>   Monty has been the President of ODTUG for the past few years. He’s done an amazing job leading the organization. Monty’s lasting legacy at ODTUG will be the <a href="http://www.odtug.com/p/cm/ld/fid=127" target="_blank" rel="external">Leadership Program</a>. He took a risk trying it out and it has been a very big success helping develop leaders within the ODTUG community.</em>   <a href="https://twitter.com/dschleis" target="_blank" rel="external">David Schleis</a><br><br><em>   David has helped re-energize the traditional developer and DBA communities. Over the past two years he helped merged them into one united “database” community. I look forward to David to continue help out with the database community in the coming years.</em>   <a href="https://twitter.com/miaurman" target="_blank" rel="external">Mia Urman</a><div>I also need to say a special thank you to the current board for supporting me over the past year. Last year was a very difficult time for me personally and they all stepped up and supported me along the way. This is something I will never forget and will always be thankful for.</div></div><div><br></div><div>As ODTUG has a six year term limit for directors, this will be my last two years. I look forward to making them as good as the first four. If you have any feedback or things you’d like to see happen within the community please let me know.</div><div><br></div><div>- Martin</div>
+<p>The newly elected directors are:</p>
+<ul>
+<li><a href="https://twitter.com/opal_epm" target="_blank" rel="external">Opal Alapat</a></li>
+<li><a href="https://twitter.com/dbaontap" target="_blank" rel="external">Danny Bryant</a></li>
+<li><a href="https://twitter.com/garycrisci" target="_blank" rel="external">Gary Crisci</a></li>
+<li><a href="https://twitter.com/essbaselady" target="_blank" rel="external">Natalie Delemar</a></li>
+<li><a href="https://twitter.com/martindsouza" target="_blank" rel="external">Martin D’Souza</a></li>
+</ul>
+<p>I first must thank all the people that voted for me again this year. It means a lot that I have the support of the APEX and Oracle communities</p>
+<p>They’re a few board members who will not be returning next year. They all have done a lot for ODTUG and its members.</p>
+<ul>
+<li><a href="https://twitter.com/monty_latiolais" target="_blank" rel="external">Monty Latiolais</a><ul>
+<li>Monty has been the President of ODTUG for the past few years. He’s done an amazing job leading the organization. Monty’s lasting legacy at ODTUG will be the <a href="http://www.odtug.com/p/cm/ld/fid=127" target="_blank" rel="external">Leadership Program</a>. He took a risk trying it out and it has been a very big success helping develop leaders within the ODTUG community.</li>
+</ul>
+</li>
+<li><a href="https://twitter.com/dschleis" target="_blank" rel="external">David Schleis</a><ul>
+<li>David has helped re-energize the traditional developer and DBA communities. Over the past two years he helped merged them into one united “database” community. I look forward to David to continue help out with the database community in the coming years.</li>
+</ul>
+</li>
+<li><a href="https://twitter.com/miaurman" target="_blank" rel="external">Mia Urman</a></li>
+</ul>
+<p>I also need to say a special thank you to the current board for supporting me over the past year. Last year was a very difficult time for me personally and they all stepped up and supported me along the way. This is something I will never forget and will always be thankful for.</p>
+<p>As ODTUG has a six year term limit for directors, this will be my last two years. I look forward to making them as good as the first four. If you have any feedback or things you’d like to see happen within the community please let me know.</p>
+<p>– Martin</p>
 ]]></content>
     
     <summary type="html">
@@ -291,16 +350,24 @@
     <link href="http://www.talkapex.com/2015/11/1st-calgary-apex-meetup/"/>
     <id>http://www.talkapex.com/2015/11/1st-calgary-apex-meetup/</id>
     <published>2015-11-02T16:00:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:18:51.000Z</updated>
     
-    <content type="html"><![CDATA[<div>We’re having our <a href="http://www.meetup.com/orclapex-YYC/events/226256566/" target="_blank" rel="external">1st inaugural APEX meetup</a> on Thursday Nov 12th! I’ll be giving a presentation about APEX 5 and the new <a href="http://apex.world/" target="_blank" rel="external">apex.world</a> site.</div><div><br></div><div>FAQs I’ve received about this meetup:</div><div><br><br><em>   Does it cost anything? <em>No, it’s entirely free&nbsp;</em>
-</em>   What should I bring? <em>Yourself. Some people like to bring their laptop to try things out at the same time.&nbsp;</em><br><em>   Is this a sales pitch: <em>No, it’s by the APEX community, for the APEX community.&nbsp;</em>
-</em>   Will only APEX items be covered? <em>Primarily we’ll be talking about APEX but may deviate a bit in the future to cover some SQL, PL/SQL, and web technologies. These topics are all relevant for APEX developers.&nbsp;</em><br>*   Where can I get one of the cool APEX stickers I see everyone has on Twitter? <em>At the meetup. I’ve got a whole stack to give away.</em></div><div><br></div><div>Location details:</div><div><br></div><div>Trident Limited Partnership&nbsp;</div><div><a href="https://goo.gl/maps/Fx5jG4CoMHt" target="_blank" rel="external">1000, 444 - 7 Avenue SW (Barclay building)&nbsp;</a></div><div><a href="https://goo.gl/maps/Fx5jG4CoMHt" target="_blank" rel="external">Calgary, Alberta T2P 0X8</a></div><div><br></div><div><em>10th floor – Must sign-in at reception desk</em></div><div><br></div><div><br></div><div>Special thanks to Jean Paradis and <a href="http://www.tridentexploration.ca/" target="_blank" rel="external">Trident Limited Partnership</a> for securing the meeting space!</div><div><br></div><div><br></div><div>Please <a href="http://www.meetup.com/orclapex-YYC/events/226256566/" target="_blank" rel="external">RSVP</a> to let us know if you’re coming.</div>
+    <content type="html"><![CDATA[<p>We’re having our <a href="http://www.meetup.com/orclapex-YYC/events/226256566/" target="_blank" rel="external">1st inaugural APEX meetup</a> on Thursday Nov 12th! I’ll be giving a presentation about APEX 5 and the new <a href="http://apex.world/" target="_blank" rel="external">apex.world</a> site.<br>FAQs I’ve received about this meetup:</p>
+<ul>
+<li>Does it cost anything? <em>No, it’s entirely free</em></li>
+<li>What should I bring? <em>Yourself. Some people like to bring their laptop to try things out at the same time.</em></li>
+<li>Is this a sales pitch: <em>No, it’s by the APEX community, for the APEX community.</em></li>
+<li>Will only APEX items be covered? <em>Primarily we’ll be talking about APEX but may deviate a bit in the future to cover some SQL, PL/SQL, and web technologies. These topics are all relevant for APEX developers.</em></li>
+<li>Where can I get one of the cool APEX stickers I see everyone has on Twitter? <em>At the meetup. I’ve got a whole stack to give away.</em></li>
+</ul>
+<p><strong>Location details:</strong><br>Trident Limited Partnership <a href="https://goo.gl/maps/Fx5jG4CoMHt" target="_blank" rel="external">1000, 444 - 7 Avenue SW (Barclay building)&nbsp;</a><a href="https://goo.gl/maps/Fx5jG4CoMHt" target="_blank" rel="external">Calgary, Alberta T2P 0X8</a><br><em>10th floor – Must sign-in at reception desk</em></p>
+<p>Special thanks to Jean Paradis and <a href="http://www.tridentexploration.ca/" target="_blank" rel="external">Trident Limited Partnership</a> for securing the meeting space!</p>
+<p>Please <a href="http://www.meetup.com/orclapex-YYC/events/226256566/" target="_blank" rel="external">RSVP</a> to let us know if you’re coming.</p>
 ]]></content>
     
     <summary type="html">
     
-      &lt;div&gt;We’re having our &lt;a href=&quot;http://www.meetup.com/orclapex-YYC/events/226256566/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;1st inaugural APEX meetu
+      &lt;p&gt;We’re having our &lt;a href=&quot;http://www.meetup.com/orclapex-YYC/events/226256566/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;1st inaugural APEX meetup&lt;
     
     </summary>
     
@@ -314,17 +381,19 @@
     <link href="http://www.talkapex.com/2015/10/apex-podcast/"/>
     <id>http://www.talkapex.com/2015/10/apex-podcast/</id>
     <published>2015-10-26T16:00:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:19:26.000Z</updated>
     
-    <content type="html"><![CDATA[<p>If you can’t get enough APEX there’s now an <a href="http://apex.press/talkshow" target="_blank" rel="external">APEX Podcast</a>!&nbsp;This is a great opportunity to know more about the people behind APEX and some key people in the APEX community.</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://apex.press/" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-w9ZPJV0Q50w/Vi0QVYfWV5I/AAAAAAABHBo/bYWjQBXAcW8/s1600/JSPodcastdesign150px.jpg" alt=""></a></div><br><a href="https://twitter.com/juergenschuster" target="_blank" rel="external">Juergen Schuster</a>&nbsp;and I co-host the show (I only joined on recently) and it has been a lot of fun so far.</p>
+    <content type="html"><![CDATA[<p>If you can’t get enough APEX there’s now an <a href="http://apex.press/talkshow" target="_blank" rel="external">APEX Podcast</a>! This is a great opportunity to know more about the people behind APEX and some key people in the APEX community.</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://apex.press/" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-w9ZPJV0Q50w/Vi0QVYfWV5I/AAAAAAABHBo/bYWjQBXAcW8/s1600/JSPodcastdesign150px.jpg" alt=""></a></div>
+
+<p><a href="https://twitter.com/juergenschuster" target="_blank" rel="external">Juergen Schuster</a> and I co-host the show (I only joined on recently) and it has been a lot of fun so far.</p>
 <p>You can download each episode on the official site (<a href="http://apex.press/talkshow" target="_blank" rel="external">apex.press/talkshow</a>) or subscribe on <a href="https://itunes.apple.com/gb/podcast/the-oracle-apex-talkshow/id979577290?mt=2" target="_blank" rel="external">iTunes</a>.</p>
-<p><em>Note: In the latest podcast we mentioned that we’re looking for sponsors for the show. If you or your&nbsp;organization&nbsp;is interested in the opportunity please <a href="mailto:martin@talkapex.com" target="_blank" rel="external">email me</a>.</em></p>
+<p><em>Note: In the latest podcast we mentioned that we’re looking for sponsors for the show. If you or your organization is interested in the opportunity please <a href="mailto:martin@talkapex.com" target="_blank" rel="external">email me</a>.</em></p>
 ]]></content>
     
     <summary type="html">
     
-      &lt;p&gt;If you can’t get enough APEX there’s now an &lt;a href=&quot;http://apex.press/talkshow&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;APEX Podcast&lt;/a&gt;!&amp;nbsp;Th
+      &lt;p&gt;If you can’t get enough APEX there’s now an &lt;a href=&quot;http://apex.press/talkshow&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;APEX Podcast&lt;/a&gt;! This is
     
     </summary>
     
@@ -338,7 +407,7 @@
     <link href="http://www.talkapex.com/2015/10/oow-15-presentations/"/>
     <id>http://www.talkapex.com/2015/10/oow-15-presentations/</id>
     <published>2015-10-19T13:00:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:20:03.000Z</updated>
     
     <content type="html"><![CDATA[<p>If you’re attending <a href="https://www.oracle.com/openworld/index.html" target="_blank" rel="external">Oracle OpenWorld 2015</a> this year here are a few links for presentations I’d recommend:</p>
 <ul>
@@ -349,7 +418,7 @@
 <li>If you’ve ever thought about using open source applications or want to become more involved with open source development for your Oracle and APEX applications this presentation is for you.</li>
 </ul>
 </li>
-<li><p><a href="https://events.rainfocus.com/oow15/catalog/oracle.jsp?search=UGF10050&amp;search.event=openworldEvent" target="_blank" rel="external">The Objects of My Affection: Deploying Your APEX Applications&nbsp;[UGF10050]</a></p>
+<li><p><a href="https://events.rainfocus.com/oow15/catalog/oracle.jsp?search=UGF10050&amp;search.event=openworldEvent" target="_blank" rel="external">The Objects of My Affection: Deploying Your APEX Applications [UGF10050]</a></p>
 <ul>
 <li>Sunday Oct 25 10:00am - Moscone South Room 300</li>
 <li>Francis Mignault</li>
@@ -380,12 +449,17 @@
     <link href="http://www.talkapex.com/2015/10/odtug-2015-election-please-vote/"/>
     <id>http://www.talkapex.com/2015/10/odtug-2015-election-please-vote/</id>
     <published>2015-10-06T15:03:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:22:08.000Z</updated>
     
     <content type="html"><![CDATA[<p>The ODTUG Board of Directors election is <a href="http://www.odtug.com/page/2016-nominees" target="_blank" rel="external">now officially open</a>. Paid ODTUG members can cast their ballot between Oct 6th - Oct 27th. If you are a paid member you will get an email with the link, username, and voter id.</p>
 <p>I am running for the ODTUG Board of Directors and I am looking for your support to continue to help the ODTUG community for another two years.</p>
 <p>Here is my official campaign statement:</p>
-<p><em>Over the past four years, I have had the privilege to represent the Oracle APEX Community as a Director for ODTUG. I have made the decision to run again this year for the ODTUG Board and am looking for your support in doing so.</em><br><em><br>__During my four-year tenure, I have been involved in several committees within ODTUG that have helped bring conferences around the world, improved marketing initiatives, and organized developer contests.&nbsp;</em><br><em><br>__I have been able to build strong relationships with other ODTUG Board Members, Oracle employees, and many developers in the APEX community. These relationships have allowed me to be a liaison between all three groups and help relay ideas and opportunities to the appropriate parties. I hope to continue to be able to facilitate open communication over the next two years.</em><br><em><br>__I am looking for your vote to continue as an ODTUG Board Member to represent developers within one of the world’s largest Oracle user groups. Thank you in advance for your support.</em></p>
+<blockquote>
+<p>Over the past four years, I have had the privilege to represent the Oracle APEX Community as a Director for ODTUG. I have made the decision to run again this year for the ODTUG Board and am looking for your support in doing so.</p>
+<p>During my four-year tenure, I have been involved in several committees within ODTUG that have helped bring conferences around the world, improved marketing initiatives, and organized developer contests.</p>
+<p>I have been able to build strong relationships with other ODTUG Board Members, Oracle employees, and many developers in the APEX community. These relationships have allowed me to be a liaison between all three groups and help relay ideas and opportunities to the appropriate parties. I hope to continue to be able to facilitate open communication over the next two years.</p>
+<p>I am looking for your vote to continue as an ODTUG Board Member to represent developers within one of the world’s largest Oracle user groups. Thank you in advance for your support.</p>
+</blockquote>
 <p>Thank you in advance,</p>
 <p>Martin</p>
 ]]></content>
@@ -406,9 +480,9 @@
     <link href="http://www.talkapex.com/2015/10/apex-webinar-from-community-for/"/>
     <id>http://www.talkapex.com/2015/10/apex-webinar-from-community-for/</id>
     <published>2015-10-05T17:52:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:22:21.000Z</updated>
     
-    <content type="html"><![CDATA[<p>ODTUG will be hosting an APEX webinar on Monday, Oct 19th at 12:00pm EDT. The webinar is about something that several key members of the APEX community have been working on that is “<em>from the community, for the community</em>“. <strong>I strongly recommend that everyone attend this webinar.&nbsp;</strong></p>
+    <content type="html"><![CDATA[<p>ODTUG will be hosting an APEX webinar on Monday, Oct 19th at 12:00pm EDT. The webinar is about something that several key members of the APEX community have been working on that is “<em>from the community, for the community</em>“. <strong>I strongly recommend that everyone attend this webinar.</strong></p>
 <p>I can’t say anything more than the above statement and all will be revealed in the webinar. Registration is free, and you can register using <a href="https://attendee.gotowebinar.com/register/5033519521597802241" target="_blank" rel="external">this link</a>.</p>
 ]]></content>
     
@@ -460,7 +534,7 @@
     <link href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-2/"/>
     <id>http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-2/</id>
     <published>2015-09-14T03:46:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:23:16.000Z</updated>
     
     <content type="html"><![CDATA[<p>The <a href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1.html">previous article</a> covered how to create a Tabular Form with manual code rather than automatic row processing. This article will demonstrate how to change the Tabular Form to modify data from multiple tables using the same Tabular Form.</p>
 <h3 id="Modify-Tabular-Form"><a href="#Modify-Tabular-Form" class="headerlink" title="Modify Tabular Form"></a>Modify Tabular Form</h3><p>Using the example from the <a href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1.html">previous article</a>, modify the Tabular Form and change the query to:</p>
@@ -468,7 +542,7 @@
 <h3 id="Edit-DNAME"><a href="#Edit-DNAME" class="headerlink" title="Edit DNAME"></a>Edit <code>DNAME</code></h3><p>Edit the newly added <code>DNAME</code> column with the following changes:</p>
 <div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-cTlLNsZvGeU/VfY-iM4PCAI/AAAAAAABGeU/UkfeWjEPUSQ/s1600/Snip20150819_8.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-cTlLNsZvGeU/VfY-iM4PCAI/AAAAAAABGeU/UkfeWjEPUSQ/s320/Snip20150819_8.png" alt=""></a></div><div class="separator" style="clear: both; text-align: center;"><br></div>
 
-<h3 id="Modify-Page-process"><a href="#Modify-Page-process" class="headerlink" title="Modify Page process"></a>Modify Page process</h3><p><span style="font-weight: normal;">Change the page process to use the code snippet below. <em>Note:&nbsp;</em></span><em>This isn’t the best example, as the below code will update the department name for each modified employee record. It does highlight is that you can reference and modify data from multiple tables.</em></p>
+<h3 id="Modify-Page-process"><a href="#Modify-Page-process" class="headerlink" title="Modify Page process"></a>Modify Page process</h3><p>Change the page process to use the code snippet below. <em>Note: This isn’t the best example, as the below code will update the department name for each modified employee record. It does highlight is that you can reference and modify data from multiple tables.</em></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">if :empno is null then</div><div class="line">  <span class="comment">-- code to insert emp</span></div><div class="line">  null;</div><div class="line">else</div><div class="line">  <span class="keyword">update</span> emp</div><div class="line">  <span class="keyword">set</span></div><div class="line">    ename = :ename,</div><div class="line">    sal = :sal</div><div class="line">  <span class="keyword">where</span> empno = :empno;</div><div class="line"></div><div class="line">  <span class="comment">-- Update dept name</span></div><div class="line">  <span class="keyword">update</span> dept d</div><div class="line">  <span class="keyword">set</span> dname = :dname</div><div class="line">  <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">    <span class="keyword">and</span> d.deptno = (</div><div class="line">      <span class="keyword">select</span> e.deptno</div><div class="line">      <span class="keyword">from</span> emp e</div><div class="line">      <span class="keyword">where</span> e.empno = :empno)</div><div class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</div></pre></td></tr></table></figure>
 <p>If you’ve ever developed a true manual tabular form using collections, the above approach covered in this article may be a better alternative to manage and maintain.</p>
 ]]></content>
@@ -493,20 +567,27 @@
     <link href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1/"/>
     <id>http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1/</id>
     <published>2015-09-14T03:44:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
+    <updated>2017-01-22T17:27:44.000Z</updated>
     
-    <content type="html"><![CDATA[<p><em>Over a year ago I <a href="http://www.talkapex.com/2014/03/running-custom-code-for-tabular-forms.html">wrote an article</a> covering how to create a tabular form and then use custom PL/SQL to process the data rather than the automatic Apply MRU and Apply MRD processes. The demo showed how to do this in APEX 4.2. This article will re-introduce the topic but use APEX 5.0 instead.</em><br><em>
-</em></p>
-<h4 id="Create-new-Tabular-Form"><a href="#Create-new-Tabular-Form" class="headerlink" title="Create new Tabular Form"></a><span style="font-weight: normal;">Create new Tabular Form</span></h4><div><br><br><em>   Create page &gt; Page type: Form &gt; Tabular Form
-</em>   Select the following options:&nbsp;<br><div class="separator" style="clear: both; text-align: center;"></div><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-duB7vyTGl6E/VfY-h4brEsI/AAAAAAABGeQ/0RUqdyYs4nY/s1600/Snip20150819_4.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-duB7vyTGl6E/VfY-h4brEsI/AAAAAAABGeQ/0RUqdyYs4nY/s400/Snip20150819_4.png" alt=""></a></div>
+    <content type="html"><![CDATA[<p><em>Over a year ago I <a href="http://www.talkapex.com/2014/03/running-custom-code-for-tabular-forms.html">wrote an article</a> covering how to create a tabular form and then use custom PL/SQL to process the data rather than the automatic Apply MRU and Apply MRD processes. The demo showed how to do this in APEX 4.2. This article will re-introduce the topic but use APEX 5.0 instead.</em></p>
+<h3 id="Create-new-Tabular-Form"><a href="#Create-new-Tabular-Form" class="headerlink" title="Create new Tabular Form"></a>Create new Tabular Form</h3><ul>
+<li>Create page &gt; Page type: Form &gt; Tabular Form</li>
+<li><p>Select the following options:</p>
+<div class="separator" style="clear: both; text-align: center;"></div><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-duB7vyTGl6E/VfY-h4brEsI/AAAAAAABGeQ/0RUqdyYs4nY/s1600/Snip20150819_4.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-duB7vyTGl6E/VfY-h4brEsI/AAAAAAABGeQ/0RUqdyYs4nY/s400/Snip20150819_4.png" alt=""></a></div>
+</li>
+<li><p>Note: For simplicity/demo purposes, limiting to just the <code>SAL</code> and <code>ENAME</code> columns.*   Primary Key: Select Primary Key Column(s) &gt; Primary Key Column 1 &gt; <code>EMPNO</code></p>
+</li>
+<li>Run through the rest of the wizard.</li>
+</ul>
+<h3 id="Remove-Automatic-DML"><a href="#Remove-Automatic-DML" class="headerlink" title="Remove Automatic DML"></a>Remove Automatic DML</h3><p>Since custom code will be used to process the page, delete the automatic row processing process as shown below.</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-XLOIS1KKP5U/VfY-hof08_I/AAAAAAABGeM/EmC7fnQ2NwU/s1600/Snip20150819_5.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-XLOIS1KKP5U/VfY-hof08_I/AAAAAAABGeM/EmC7fnQ2NwU/s400/Snip20150819_5.png" alt=""></a></div>
 
-<ul>
-<li>Note: For simplicity/demo purposes, limiting to just the <span style="font-family: Courier New, Courier, monospace;">SAL</span> and <span style="font-family: Courier New, Courier, monospace;">ENAME</span> columns.*   Primary Key: Select Primary Key Column(s) &gt; Primary Key Column 1 &gt; <span style="font-family: Courier New, Courier, monospace;">EMPNO</span></li>
-<li>Run through the rest of the wizard.<div><br></div></li></ul></div>
+<h3 id="Create-Process"><a href="#Create-Process" class="headerlink" title="Create Process"></a>Create Process</h3><p>Create a new process with the following settings (the <em>Source</em> is included below the image).</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-uN4L578OnPE/VfY-iIY8VTI/AAAAAAABGec/Eabvar2pKx0/s1600/Snip20150819_7.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-uN4L578OnPE/VfY-iIY8VTI/AAAAAAABGec/Eabvar2pKx0/s400/Snip20150819_7.png" alt=""></a></div>
 
-<h4 id="Remove-Automatic-DML"><a href="#Remove-Automatic-DML" class="headerlink" title="Remove Automatic DML"></a><span style="font-weight: normal;">Remove Automatic DML</span></h4><div><div>Since custom code will be used to process the page, delete the automatic row processing process as shown below.</div></div><div><br></div><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-XLOIS1KKP5U/VfY-hof08_I/AAAAAAABGeM/EmC7fnQ2NwU/s1600/Snip20150819_5.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-XLOIS1KKP5U/VfY-hof08_I/AAAAAAABGeM/EmC7fnQ2NwU/s400/Snip20150819_5.png" alt=""></a></div><div><br></div>
-
-<h4 id="Create-Process"><a href="#Create-Process" class="headerlink" title="Create Process"></a><span style="font-weight: normal;">Create Process</span></h4><div>Create a new process with the following settings (the <em>Source</em> is included below the image).</div><div><br></div><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-uN4L578OnPE/VfY-iIY8VTI/AAAAAAABGec/Eabvar2pKx0/s1600/Snip20150819_7.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-uN4L578OnPE/VfY-iIY8VTI/AAAAAAABGec/Eabvar2pKx0/s400/Snip20150819_7.png" alt=""></a></div><div><pre class="brush: sql;">if :empno is null then<br>  – code to insert emp<br>  null;<br>else<br>  update emp<br>  set<br>    ename = :ename,<br>    sal = :sal<br>  where empno = :empno;<br>end if;<br></pre><div><br><br>Using the above technique you can now use a tabular form to call custom PL/SQL code rather than the automatic row processing.</div><div><br></div><div>The <a href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-2.html">next article</a> will cover how to modify data from multiple tables in the same Tabular Form.</div></div>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">if :empno is null then</div><div class="line">  <span class="comment">-- code to insert emp</span></div><div class="line">  null;</div><div class="line">else</div><div class="line">  <span class="keyword">update</span> emp</div><div class="line">  <span class="keyword">set</span></div><div class="line">    ename = :ename,</div><div class="line">    sal = :sal</div><div class="line">  <span class="keyword">where</span> empno = :empno;</div><div class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</div></pre></td></tr></table></figure>
+<p>Using the above technique you can now use a tabular form to call custom PL/SQL code rather than the automatic row processing.</p>
+<p>The <a href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-2.html">next article</a> will cover how to modify data from multiple tables in the same Tabular Form.</p>
 ]]></content>
     
     <summary type="html">
@@ -563,39 +644,6 @@
       <category term="checkbox" scheme="http://www.talkapex.com/tags/checkbox/"/>
     
       <category term="tabular-form" scheme="http://www.talkapex.com/tags/tabular-form/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Oracle Developer Choice Awards - 1 Week Left to Nominate</title>
-    <link href="http://www.talkapex.com/2015/08/oracle-developer-choice-awards-1-week/"/>
-    <id>http://www.talkapex.com/2015/08/oracle-developer-choice-awards-1-week/</id>
-    <published>2015-08-15T12:23:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>Oracle has launched its inaugural <a href="https://community.oracle.com/community/database/awards/overview" target="_blank" rel="external">Developer Choice Awards</a>. The deadline to nominate someone has been extended to August 21st so take advantage of this extension and nominate someone you think deserves recognition for the work they do with Oracle!</p>
-<p>A description of the competition is below and you can find out more by going to the main site.</p>
-<p><em>The Oracle Database Developer Choice Awards celebrate and recognize technical expertise and contributions in the Oracle Database community. As longtime and new users of Oracle Database move to the Cloud and take advantage of this exciting new architecture, community experts will play a critical role in helping them succeed.</em></p>
-<p><em>For 2015, awards will be given out in the following technology areas:</em></p>
-<ul>
-<li><em>SQL</em></li>
-<li><em>PL/SQL</em></li>
-<li><em>Oracle REST Data Services</em></li>
-<li><em>Oracle Application Express</em></li>
-<li><em>Database Design</em><br><em>We encourage you to nominate a developer you believe is deserving of this award. We are accepting nominations through August 21. A panel of judges, composed of Oracle ACEs and Oracle employees, will then choose a set of finalists.</em></li>
-</ul>
-<p><em>But who chooses the winners? You do! The worldwide Oracle technologist community votes on the finalists from September 15 through October 15.</em></p>
-<p><em>The winners of the Oracle Database Developer Choice Awards will be announced at the YesSQL! Celebration during Oracle OpenWorld 2015.</em><br><em><br>__This is your chance to shine and earn highly deserved recognition for yourself or your respected peers.</em></p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;Oracle has launched its inaugural &lt;a href=&quot;https://community.oracle.com/community/database/awards/overview&quot; target=&quot;_blank&quot; rel=&quot;external
-    
-    </summary>
-    
-    
-      <category term="oracle" scheme="http://www.talkapex.com/tags/oracle/"/>
     
   </entry>
   

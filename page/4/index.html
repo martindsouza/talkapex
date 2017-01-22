@@ -66,6 +66,79 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-request-branchtopageaccept" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/05/apex-request-branchtopageaccept/" class="article-date">
+  <time datetime="2015-05-13T12:30:00.000Z" itemprop="datePublished">2015-05-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/05/apex-request-branchtopageaccept/">APEX Request: BRANCH_TO_PAGE_ACCEPT</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>In APEX, there’s a special request type called <a href="https://docs.oracle.com/cd/E59726_01/doc.50/e39147/concept_sub.htm#CHDICEDJ" target="_blank" rel="external">BRANCH_TO_PAGE_ACCEPT</a>. This can be used in the REQUEST portion of the <a href="http://docs.oracle.com/cd/E37097_01/doc.42/e35125/concept_url.htm#BEIFCDGF" target="_blank" rel="external">APEX URL</a>. The syntax for the <code>REQUEST</code> attribute is <code>BRANCH_TO_PAGE_ACCEPT|&lt;branch_page_request&gt;</code>.</p>
+<p>For example, suppose you are on Page 1 (P1) and want a button which will:</p>
+<ul>
+<li>Go Page 2 (P2)</li>
+<li>Set <code>P2_X</code> to <code>some_value</code></li>
+<li>Automatically submit the page, simulating the SAVE button on P2</li>
+</ul>
+<p>Create a button on P1 that redirects to the following URL: <code>f?p=&amp;APP_ID.:2:&amp;APP_SESSION.:BRANCH_TO_PAGE_ACCEPT|SAVE:&amp;DEBUG.:2:P2_X:some_value</code></p>
+<p>The <a href="https://docs.oracle.com/cd/E59726_01/doc.50/e39147/concept_sub.htm#CHDICEDJ" target="_blank" rel="external">current documentation</a> for <code>BRANCH_TO_PAGE_ACCEPT</code> states that “_Using BRANCH_TO_PAGE_ACCEPT is the same as navigating to page 1, entering a value into the item P1<em>DATA, and clicking a button that submits the page with a SAVE request.</em>“ You may interpret this as:</p>
+<ul>
+<li>Run Page 2<ul>
+<li>Therefor load/run the page rendering regions and processes</li>
+</ul>
+</li>
+<li>Simulate clicking the Save button on P2</li>
+<li>Run the Page Processing of P2</li>
+</ul>
+<p>This is not entirely true as the following occurs when a user goes to the above URL:</p>
+<ul>
+<li>Set <code>P2_X</code> to <code>some_value</code> (this is regular APEX URL behavior)</li>
+<li>Execute the Page Processing portion of P2.<ul>
+<li>This includes Validations, Processes, and Page branching on P2 as shown below.</li>
+</ul>
+</li>
+</ul>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-b8W9rpVxcIE/VVIuOrN5w4I/AAAAAAAAHEY/ddRVI-TNSs8/s1600/Snip20150512_4.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-b8W9rpVxcIE/VVIuOrN5w4I/AAAAAAAAHEY/ddRVI-TNSs8/s320/Snip20150512_4.png" alt=""></a></div>
+
+<p>What does not occur is the Page Rendering potion of P2. This is important to note because if you had some Pre-Rendering page processes (i.e. on page load) they will not be run. This is slightly contrary to what the documentation states that it is “… <em>the same as navigating to Page 2 …</em>“.</p>
+<p>If everything runs smoothly on the P2 submit page processing (i.e no errors or validations fail) then you will branch to the defined page branch on P2. If something does fail then you will be shown P2 along with the corresponding error message.</p>
+<p>It is important to note that currently the page item built-in validations are not executed when using <code>BRANCH_TO_PAGE_ACCEPT</code>. For example, suppose that you set Value Required attribute to Yes for <code>P2_X</code>.</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-eFh4HT4VARI/VVIvFz3CVCI/AAAAAAAAHEg/0J6vgLH0t0g/s1600/Snip20150512_5.png" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-eFh4HT4VARI/VVIvFz3CVCI/AAAAAAAAHEg/0J6vgLH0t0g/s1600/Snip20150512_5.png" alt=""></a></div>
+
+<p>If you run P2 normally, set <code>P2_X</code> to an empty value, then submit the page, an error will appear stating that “<em>X must have some value</em>“. This is done automatically for you due to the Value Required attribute. If you use the <code>URL</code> <code>f?p=&amp;APP_ID.:2:&amp;APP_SESSION.:BRANCH_TO_PAGE_ACCEPT|SAVE:&amp;DEBUG.:2:P2_X:</code> it will set <code>P2_X</code> to <code>null</code>, no error will occur as the page item’s build in validations aren’t executed.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/" data-id="ciy946dg400cvhcn9jsa5wasi" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apexjsonparse-issue-with-clobs-and-11g" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2015/05/apexjsonparse-issue-with-clobs-and-11g/" class="article-date">
@@ -88,7 +161,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><em>Update: this issue is documented on the <a href="http://www.oracle.com/technetwork/developer-tools/apex/application-express/apex-50-known-issues-2504535.html" target="_blank" rel="external">APEX 5 Known Issues page</a> (bug&nbsp;20974582) and has a patch for users with access to MOS (bug&nbsp;20931298).</em></p>
+        <p><em>Update: this issue is documented on the <a href="http://www.oracle.com/technetwork/developer-tools/apex/application-express/apex-50-known-issues-2504535.html" target="_blank" rel="external">APEX 5 Known Issues page</a> (bug 20974582) and has a patch for users with access to MOS (bug 20931298).</em></p>
 <p>APEX 5.0 comes with some new APIs including <a href="https://docs.oracle.com/cd/E59726_01/doc.50/e39149/apex_json.htm#AEAPI29635" target="_blank" rel="external">APEX_JSON</a> which manages JSON files.</p>
 <p>When using APEX_JSON to consume a JSON file, the process is fairly straight forward:</p>
 <ul>
@@ -96,38 +169,17 @@
 <li>Read values in the JSON object by providing the path to each name/value pair.</li>
 </ul>
 <p>The APEX_JSON documentation has some great examples which covers the above process in more details.</p>
-<p>There is one “bug” that I found with <span style="font-family: Courier New, Courier, monospace;"><a href="https://docs.oracle.com/cd/E59726_01/doc.50/e39149/apex_json.htm#AEAPI29747" target="_blank" rel="external">APEX_JSON.PARSE</a></span> when passing in a CLOB that has more than 8191 characters. &nbsp;The reason is <span style="font-family: Courier New, Courier, monospace;">APEX_JSON.PARSE</span> uses <span style="font-family: Courier New, Courier, monospace;">DBMS_LOB.SUBSTR</span> behind the scenes which has a known bug in 11g R1, 11g R2, and 11g XE. In 12c onwards, this is not an issue. An example of the error that is raised is:</p>
-<p><pre class="brush: sql;">ORA-20987: Error at line 626, col19: Expected “:”, seeing “&lt;varchar2&gt;”</pre></p>
-<p>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 292<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 560<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 756<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 774<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 624<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 719<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 615<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 758<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 774<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 811<br>ORA-06512: at “APEX_050000.WWV_FLOW_JSON”, line 887<br>ORA-06512: at line 24<br><br>The <span style="font-family: Courier New, Courier, monospace;">APEX_JSON.PARSE</span> procedure currently has two supported overloaded methods. One which takes in a varchar2, and the other which takes in a CLOB. Thankfully there’s a third (undocumented) method which takes in a table of varchar2. <em>Note: in future versions of APEX, this may be a supported procedure.</em></p>
-<p>Here’s a sample snippet on how to convert your CLOB to a varchar2 table and then call <span style="font-family: Courier New, Courier, monospace;">APEX_JSON.PARSE</span>:</p>
-<p><pre class="brush: sql;">declare<br>  l_clob clob;<br>  l_json apex_json.t_values;</pre></p>
-<p>  l_temp varchar2(1000);</p>
-<p>  l_clob_tab apex_application_global.vc_arr2;</p>
-<p>begin</p>
-<p>  l_clob := ‘load json data here’;</p>
-<p>  – Convert clobtotable<br>  declare<br>    c_max_vc2_size pls_integer := 8100; – Bug with dbms_lob.substr 8191</p>
-<pre><code>l_offset pls_integer := 1;
-l_clob_length pls_integer;
-</code></pre><p>  begin<br>    l_clob_length := dbms_lob.getlength(l_clob);</p>
-<pre><code>while l_offset &amp;lt;= l_clob_length loop
-  l_clob_tab(l_clob_tab.count + 1) :=
-    dbms_lob.substr (
-     lob_loc =&amp;gt; l_clob,
-     amount =&amp;gt; least(c_max_vc2_size, l_clob_length - l_offset +1 ),
-     offset =&amp;gt; l_offset);
-
-  l_offset := l_offset + c_max_vc2_size;
-end loop;
-</code></pre><p>  end;</p>
-<p>  – Parse clob as JSON<br>  apex_json.parse(<br>    p_values =&gt; l_json,<br>    p_source =&gt; l_clob_tab,<br>    p_strict =&gt; true);</p>
-<p>  – You can now use the JSON object for l_json<br>end;<br>Note: the code to convert the CLOB to the table will be available soon as part of the new OraOpenSource <a href="http://www.oraopensource.com/blog/2015/4/23/oos-utilities-package" target="_blank" rel="external">OOS_UTILS project</a>.</p>
-<p><em>Thanks to <a href="https://chrisonoracle.wordpress.com/" target="_blank" rel="external">Christian Neumüller</a>&nbsp;for helping resolve this issue.</em></p>
-<div><br></div>
+<p>There is one “bug” that I found with <a href="https://docs.oracle.com/cd/E59726_01/doc.50/e39149/apex_json.htm#AEAPI29747" target="_blank" rel="external"><code>APEX_JSON.PARSE</code></a> when passing in a CLOB that has more than 8191 characters.  The reason is <code>APEX_JSON.PARSE</code> uses <code>DBMS_LOB.SUBSTR</code> behind the scenes which has a known bug in 11g R1, 11g R2, and 11g XE. In 12c onwards, this is not an issue. An example of the error that is raised is:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">ORA-20987: Error at line 626, col19: Expected ":", seeing "&lt;varchar2&gt;"</div><div class="line"></div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 292</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 560</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 756</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 774</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 624</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 719</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 615</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 758</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 774</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 811</div><div class="line">ORA-06512: at "APEX_050000.WWV_FLOW_JSON", line 887</div><div class="line">ORA-06512: at line 24</div></pre></td></tr></table></figure>
+<p>The <code>APEX_JSON.PARSE</code> procedure currently has two supported overloaded methods. One which takes in a varchar2, and the other which takes in a CLOB. Thankfully there’s a third (undocumented) method which takes in a table of varchar2. <em>Note: in future versions of APEX, this may be a supported procedure.</em></p>
+<p>Here’s a sample snippet on how to convert your CLOB to a varchar2 table and then call <code>APEX_JSON.PARSE</code>:<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">declare</div><div class="line">  l_clob clob;</div><div class="line">  l_json apex_json.t_values;</div><div class="line"></div><div class="line">  l_temp varchar2(1000);</div><div class="line"></div><div class="line">  l_clob_tab apex_application_global.vc_arr2;</div><div class="line"></div><div class="line">begin</div><div class="line"></div><div class="line">  l_clob := 'load json data here';</div><div class="line"></div><div class="line">  -- Convert clobtotable</div><div class="line">  declare</div><div class="line">    c_max_vc2_size pls_integer := 8100; -- Bug with dbms_lob.substr 8191</div><div class="line"></div><div class="line">    l_offset pls_integer := 1;</div><div class="line">    l_clob_length pls_integer;</div><div class="line">  begin</div><div class="line">    l_clob_length := dbms_lob.getlength(l_clob);</div><div class="line"></div><div class="line">    while l_offset &lt;= l_clob_length loop</div><div class="line">      l_clob_tab(l_clob_tab.count + 1) :=</div><div class="line">        dbms_lob.substr (</div><div class="line">         lob_loc =&gt; l_clob,</div><div class="line">         amount =&gt; least(c_max_vc2_size, l_clob_length - l_offset +1 ),</div><div class="line">         offset =&gt; l_offset);</div><div class="line"></div><div class="line">      l_offset := l_offset + c_max_vc2_size;</div><div class="line">    end loop;</div><div class="line">  end;</div><div class="line"></div><div class="line">  -- Parse clob as JSON</div><div class="line">  apex_json.parse(</div><div class="line">    p_values =&gt; l_json,</div><div class="line">    p_source =&gt; l_clob_tab,</div><div class="line">    p_strict =&gt; true);</div><div class="line"></div><div class="line">  -- You can now use the JSON object for l_json</div><div class="line">end;</div></pre></td></tr></table></figure></p>
+<p>Note: the code to convert the CLOB to the table will be available soon as part of the new OraOpenSource <a href="http://www.oraopensource.com/blog/2015/4/23/oos-utilities-package" target="_blank" rel="external">OOS_UTILS project</a>.</p>
+<p><em>Thanks to <a href="https://chrisonoracle.wordpress.com/" target="_blank" rel="external">Christian Neumüller</a> for helping resolve this issue.</em></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/" data-id="cixw0u90b00cf64n97scyzx1j" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/" data-id="ciy946dg500cxhcn9n73tf1mc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -163,12 +215,11 @@ end loop;
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><em>This is a duplicate post originating from OraOpenSource. Normally I try not to duplicate content but in this case I really wanted to get the message out.</em><br>_<br>_Just like any other programming language they’re some common tools/features that are not offered natively within the Oracle PL/SQL APIs. As such, most developers start compiling a list of these common tools and create their own utility packages or code snippets.</p>
+        <p><em>This is a duplicate post originating from OraOpenSource. Normally I try not to duplicate content but in this case I really wanted to get the message out.</em></p>
+<p>Just like any other programming language they’re some common tools/features that are not offered natively within the Oracle PL/SQL APIs. As such, most developers start compiling a list of these common tools and create their own utility packages or code snippets.</p>
 <p>We’re looking to create a master utility package(s), currently called OOS Utils. Before we can do that <strong>we need your help</strong>! If you have a common snippet of code, procedure, or function that you think will be useful to the entire community, please go to: <a href="https://github.com/OraOpenSource/oos-utils/issues" target="_blank" rel="external">https://github.com/OraOpenSource/oos-utils/issues</a> and submit a new issue with your suggestion. If you just have an idea but don’t have the source code, please submit it anyways and we’ll try to add it in.</p>
-<p><em>Hint: If you want to format your code nicely when submitting a recommendation use the following template.&nbsp;</em></p>
-<p><span style="font-family: Courier New, Courier, monospace;"><code>sql&lt;/span&gt;
-&lt;span style=&quot;font-family: Courier New, Courier, monospace;&quot;&gt;your_code_here&lt;/span&gt;
-&lt;span style=&quot;font-family: Courier New, Courier, monospace;&quot;&gt;</code></span></p>
+<p><em>Hint: If you want to format your code nicely when submitting a recommendation use the following template.</em></p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="code">```sql</span></div><div class="line">your_code_here</div><div class="line">```</div></pre></td></tr></table></figure>
 <p><em>Note that those are not apostrophes, rather they are <a href="https://help.github.com/articles/markdown-basics/#code-formatting" target="_blank" rel="external">backticks</a> (key in the top left of your keyboard).</em></p>
 <p>Once we have enough entries, we’ll look at grouping all the suggestions into logical packages and start the development process.</p>
 <p>We look forward to your recommendations and can’t wait to launch this when it’s ready! As always if you want to stay up to date with everything that’s going on, please subscribe to our <a href="http://www.oraopensource.com/email-list" target="_blank" rel="external">email list</a>.</p>
@@ -176,7 +227,7 @@ end loop;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/oos-utilities-package/" data-id="cixw0u90c00ch64n9qomcr8mj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/oos-utilities-package/" data-id="ciy946dg600czhcn9u7m97ra6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/oos-utilities-package/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -214,13 +265,13 @@ end loop;
       
         <p>A long time ago (almost 3 years ago to be exact), I blogged about <a href="http://www.talkapex.com/2012/04/command-line-backups-for-apex.html">command line backups for APEX</a>. The script was originally for DOS and required configurations to be stored directly in the script.</p>
 <p>Since making the script available I’ve had numerous requests to update it to support Linux and Mac users. I’ve done a major overhaul of the backup script which is now available on Github <a href="https://github.com/OraOpenSource/apexbackup" target="_blank" rel="external">here</a>.</p>
-<p>The main changes are that all configurations can be stored in <span style="font-family: Courier New, Courier, monospace;">custom.properties</span> and you won’t lose your changes when you <a href="https://github.com/OraOpenSource/apexbackup#updates" target="_blank" rel="external">update the scripts</a> from the repository.</p>
+<p>The main changes are that all configurations can be stored in <code>custom.properties</code> and you won’t lose your changes when you <a href="https://github.com/OraOpenSource/apexbackup#updates" target="_blank" rel="external">update the scripts</a> from the repository.</p>
 <p>If you have any comments, issues, or feedback please submit them in the <a href="https://github.com/OraOpenSource/apexbackup/issues" target="_blank" rel="external">project’s issues page</a>.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/apex-backup-script/" data-id="cixw0u90a00cd64n9966r3jh9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/apex-backup-script/" data-id="ciy946dg300cthcn9iw2yq8b4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/apex-backup-script/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -257,13 +308,16 @@ end loop;
     <div class="article-entry" itemprop="articleBody">
       
         <p>I need to take a small break every 15 minutes when using my computer. I looked at various timers for OS X to help notify me when 15 minutes were up. I wasn’t overly impressed with any of the options that I found.</p>
-<p>Then I stumbled upon a neat feature in OS X that will announce the time every hour, half hour, or quarter hour. To enable it, go into System Preferences, then Date &amp; Time. Select the <em>Announce the time</em>&nbsp;check box and the desired interval.</p>
-<div class="separator" style="clear: both; text-align: center;"></div><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-O-c5RTC8sws/VTPGtMKbXtI/AAAAAAAAHAc/nyJKI46m3rQ/s1600/Snip20150419_10.png" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-O-c5RTC8sws/VTPGtMKbXtI/AAAAAAAAHAc/nyJKI46m3rQ/s1600/Snip20150419_10.png" alt=""></a></div><div class="separator" style="clear: both; text-align: left;"><br></div><div class="separator" style="clear: both; text-align: left;">You can also change the voice for the time announcement by clicking on the <em>Customize Voice</em>&nbsp;button.</div><div class="separator" style="clear: both; text-align: left;"><br></div><div class="separator" style="clear: both; text-align: left;">Though this solution isn’t perfect it seems to be working well for me. The only catch is that in noisy environments or when I have the audio off I can’t hear the notification.</div>
+<p>Then I stumbled upon a neat feature in OS X that will announce the time every hour, half hour, or quarter hour. To enable it, go into <code>System Preferences</code>, then <code>Date &amp; Time</code>. Select the <code>Announce the time</code> check box and the desired interval.</p>
+<div class="separator" style="clear: both; text-align: center;"></div><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-O-c5RTC8sws/VTPGtMKbXtI/AAAAAAAAHAc/nyJKI46m3rQ/s1600/Snip20150419_10.png" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-O-c5RTC8sws/VTPGtMKbXtI/AAAAAAAAHAc/nyJKI46m3rQ/s1600/Snip20150419_10.png" alt=""></a></div>
+
+<p>You can also change the voice for the time announcement by clicking on the <code>Customize Voice</code> button.</p>
+<p>Though this solution isn’t perfect it seems to be working well for me. The only catch is that in noisy environments or when I have the audio off I can’t hear the notification.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/15-minute-timer-on-mac/" data-id="cixw0u90800c964n938b7ix4v" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/15-minute-timer-on-mac/" data-id="ciy946dg100cqhcn9y8pb3het" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/15-minute-timer-on-mac/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -300,25 +354,36 @@ end loop;
     <div class="article-entry" itemprop="articleBody">
       
         <p>APEX 5 has gotten rid of the old APEX tabs concept and instead replaced it with the APEX Navigation Menu. This is a very positive change and, tied in with the new Universal Theme it, certainly makes life easier.</p>
-<p>One thing that I really like is the simplicity to create sub-menus. They’re various ways to create sub-menus. This post will cover creating sub-menus from both the page creation wizard and via the Shared Components &gt; Navigation Menu options. &nbsp;There will be three pages in this example: parent, child, and grand child.</p>
+<p>One thing that I really like is the simplicity to create sub-menus. They’re various ways to create sub-menus. This post will cover creating sub-menus from both the page creation wizard and via the <code>Shared Components</code> &gt; <code>Navigation Menu</code> options. There will be three pages in this example: parent, child, and grand child.</p>
 <p>To start, I’ll assume that you have one page and one Navigation Menu item called Parent. Next, create a second page called Child using the wizard. In the wizard, configure the Navigation Menu options as shown below:</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-8B0z_dq3pXQ/VTL-1uWIS3I/AAAAAAAAG_Q/KqGt79mUjnM/s1600/Snip20150418_2.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-8B0z_dq3pXQ/VTL-1uWIS3I/AAAAAAAAG_Q/KqGt79mUjnM/s1600/Snip20150418_2.png" alt=""></a></div><div class="separator" style="clear: both; text-align: center;"><br></div><span id="goog_1516739891"></span>Finish the page creation wizard. When you run your app you’ll now see the Parent/Child menu and sub-menu.<br><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-D8fEfMZVY9Y/VTL_RA_xu3I/AAAAAAAAG_Y/74aKgvY9790/s1600/Snip20150418_3.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-D8fEfMZVY9Y/VTL_RA_xu3I/AAAAAAAAG_Y/74aKgvY9790/s1600/Snip20150418_3.png" alt=""></a></div><div class="separator" style="clear: both; text-align: left;"><br></div><div class="separator" style="clear: both; text-align: left;">Create a third page, called Grand Child. This time when you get the the Navigation Menu wizard option you can’t select the Child page as it’s parent. It is shown in the list, but greyed out. To get around this issue, just select “No Parent Selected” and finish the wizard.&nbsp;</div><div class="separator" style="clear: both; text-align: left;"><br></div><div class="separator" style="clear: both; text-align: left;">To make the Grand Child page a sub-menu of Child:</div><div class="separator" style="clear: both; text-align: left;"></div>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-8B0z_dq3pXQ/VTL-1uWIS3I/AAAAAAAAG_Q/KqGt79mUjnM/s1600/Snip20150418_2.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-8B0z_dq3pXQ/VTL-1uWIS3I/AAAAAAAAG_Q/KqGt79mUjnM/s1600/Snip20150418_2.png" alt=""></a></div>
 
+<p>Finish the page creation wizard. When you run your app you’ll now see the Parent/Child menu and sub-menu.</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-D8fEfMZVY9Y/VTL_RA_xu3I/AAAAAAAAG_Y/74aKgvY9790/s1600/Snip20150418_3.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-D8fEfMZVY9Y/VTL_RA_xu3I/AAAAAAAAG_Y/74aKgvY9790/s1600/Snip20150418_3.png" alt=""></a></div>
+
+<p>Create a third page, called Grand Child. This time when you get the the Navigation Menu wizard option you can’t select the Child page as it’s parent. It is shown in the list, but greyed out. To get around this issue, just select <code>No Parent Selected</code> and finish the wizard.<br>To make the Grand Child page a sub-menu of Child</p>
 <ul>
-<li>Go to Shared Components &gt; Navigation Menu.&nbsp;</li>
+<li>Go to <code>Shared Components</code> &gt; <code>Navigation Menu</code>.</li>
 <li>Edit the Grant Child list entry.</li>
-<li><p>Select Child for the&nbsp;Parent List Entry and click Apply Changes.<div>If you rerun the application you should now see the updated sub-menu structure.</div><div><br></div><div><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-WaSM0ccyvUI/VTMBTjvBshI/AAAAAAAAG_s/uPx9NYZO428/s1600/Snip20150418_4.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-WaSM0ccyvUI/VTMBTjvBshI/AAAAAAAAG_s/uPx9NYZO428/s1600/Snip20150418_4.png" alt=""></a></div><span id="goog_9711346"></span><span id="goog_9711347"></span><br>The above example show the default Navigation Menu with the new Universal Theme, which is a side menu. To make it into a top navigation menu with a drop down sub-menus:</div></p>
-</li>
-<li><p>Go to Shared Components &gt; User Interface Attributes.</p>
-</li>
-<li>Edit the Desktop theme.</li>
-<li>Click on the Navigation Menu tab, and make the following changes:<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-mt3fMIKYbYc/VTMEPNBsX0I/AAAAAAAAG_4/dI1kqCb8e9Q/s1600/Snip20150418_5.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-mt3fMIKYbYc/VTMEPNBsX0I/AAAAAAAAG_4/dI1kqCb8e9Q/s1600/Snip20150418_5.png" alt=""></a></div><div><br></div><div>If you refresh the page the Navigation Menu will now be at the top of the page and has the drop down menu/sub-menu.</div><div><br></div><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-kOsgVlZW3rs/VTMEnTRhmuI/AAAAAAAAHAA/dGlApSHwaX0/s1600/Snip20150418_6.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-kOsgVlZW3rs/VTMEnTRhmuI/AAAAAAAAHAA/dGlApSHwaX0/s1600/Snip20150418_6.png" alt=""></a></div><div><br></div></li>
+<li>Select Child for the Parent List Entry and click <code>Apply Changes</code>. If you rerun the application you should now see the updated sub-menu structure.</li>
 </ul>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-WaSM0ccyvUI/VTMBTjvBshI/AAAAAAAAG_s/uPx9NYZO428/s1600/Snip20150418_4.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-WaSM0ccyvUI/VTMBTjvBshI/AAAAAAAAG_s/uPx9NYZO428/s1600/Snip20150418_4.png" alt=""></a></div>
+
+<p>The above example show the default Navigation Menu with the new Universal Theme, which is a side menu. To make it into a top navigation menu with a drop down sub-menus:</p>
+<ul>
+<li>Go to <code>Shared Components</code> &gt; <code>User Interface Attributes</code>.</li>
+<li>Edit the <code>Desktop</code> theme.</li>
+<li>Click on the <code>Navigation Menu</code> tab, and make the following changes:</li>
+</ul>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-mt3fMIKYbYc/VTMEPNBsX0I/AAAAAAAAG_4/dI1kqCb8e9Q/s1600/Snip20150418_5.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-mt3fMIKYbYc/VTMEPNBsX0I/AAAAAAAAG_4/dI1kqCb8e9Q/s1600/Snip20150418_5.png" alt=""></a></div>
+
+<p>If you refresh the page the Navigation Menu will now be at the top of the page and has the drop down menu/sub-menu.</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-kOsgVlZW3rs/VTMEnTRhmuI/AAAAAAAAHAA/dGlApSHwaX0/s1600/Snip20150418_6.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-kOsgVlZW3rs/VTMEnTRhmuI/AAAAAAAAHAA/dGlApSHwaX0/s1600/Snip20150418_6.png" alt=""></a></div>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/apex-5-creating-sub-menus/" data-id="cixw0u90900cb64n9dwoidw9b" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/apex-5-creating-sub-menus/" data-id="ciy946dfy00ckhcn9bykqpok0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/apex-5-creating-sub-menus/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -358,20 +423,22 @@ end loop;
 <p>The blogs contain an amazing amount of content from the entire Oracle community. The authors include Oracle ACE (Associates, ACEs, and Directors), Oracle employees, speakers from all the major conferences (including <a href="http://kscope15.com/" target="_blank" rel="external">Kscope</a>), book authors, etc.</p>
 <p>Up until last week the only ways to take advantage of the blog aggregator were to go to the appropriate ODTUG community site or subscribe to the respective RSS feed. Starting today you can subscribe to the following Twitter accounts to get a message in your feed each time a new article is posted for your community.</p>
 <ul>
-<li>APEX:&nbsp;<a href="https://twitter.com/orclapexblogs" target="_blank" rel="external">@orclapexblogs</a></li>
-<li>BI:&nbsp;<a href="https://twitter.com/orclbiblogs" target="_blank" rel="external">@orclbiblogs</a></li>
-<li>EPM:&nbsp;<a href="https://twitter.com/orclepmblogs" target="_blank" rel="external">@orclepmblogs</a></li>
-<li>Development:&nbsp;<a href="https://twitter.com/orcldevblogs" target="_blank" rel="external">@orcldevblogs</a></li>
-<li>DBA:&nbsp;<a href="https://twitter.com/orcldevblogs" target="_blank" rel="external">@orcldbablogs</a></li>
-<li>ADF:&nbsp;<a href="https://twitter.com/orcladfblogs" target="_blank" rel="external">@orcladfblogs</a><div>Each tweet will also contain the community’s appropriate hashtag. ODTUG has the complete hashtag listing here:&nbsp;<a href="http://www.odtug.com/hashtag" target="_blank" rel="external">http://www.odtug.com/hashtag</a> If you’re new to Twitter, following your appropriate hashtag can be a quick way to find some excellent and helpful content.</div></li>
+<li>APEX: <a href="https://twitter.com/orclapexblogs" target="_blank" rel="external">@orclapexblogs</a></li>
+<li>BI: <a href="https://twitter.com/orclbiblogs" target="_blank" rel="external">@orclbiblogs</a></li>
+<li>EPM: <a href="https://twitter.com/orclepmblogs" target="_blank" rel="external">@orclepmblogs</a></li>
+<li>Development: <a href="https://twitter.com/orcldevblogs" target="_blank" rel="external">@orcldevblogs</a></li>
+<li>DBA: <a href="https://twitter.com/orcldevblogs" target="_blank" rel="external">@orcldbablogs</a></li>
+<li>ADF: <a href="https://twitter.com/orcladfblogs" target="_blank" rel="external">@orcladfblogs</a></li>
 </ul>
-<p>Some tweets will contain the author’s Twitter handle (via a&nbsp;@mention). We’re currently in the process of updating all the twitter handles for the authors in each community. If you write an article and don’t see your Twitter handle show up, just reply to the appropriate Twitter account and we’ll fix it.</p>
-<p>As always, if you want to add your blog to the list, please email <a href="mailto:lauren@odtug.com" target="_blank" rel="external">lauren@odtug.com.</a><div><br></div><div><em>Thanks to <a href="https://twitter.com/fuzziebrain" target="_blank" rel="external">Adrian Png</a>&nbsp;and <a href="https://twitter.com/patrickwolf" target="_blank" rel="external">Patrick Wolf</a> for their ideas and patience getting this setup!</em></div><div><br></div><div><br></div></p>
+<p>Each tweet will also contain the community’s appropriate hashtag. ODTUG has the complete hashtag listing here: <a href="http://www.odtug.com/hashtag" target="_blank" rel="external">http://www.odtug.com/hashtag</a> If you’re new to Twitter, following your appropriate hashtag can be a quick way to find some excellent and helpful content.</p>
+<p>Some tweets will contain the author’s Twitter handle (via a <code>@mention</code>). We’re currently in the process of updating all the twitter handles for the authors in each community. If you write an article and don’t see your Twitter handle show up, just reply to the appropriate Twitter account and we’ll fix it.</p>
+<p>As always, if you want to add your blog to the list, please email <a href="mailto:lauren@odtug.com" target="_blank" rel="external">lauren@odtug.com.</a></p>
+<p><em>Thanks to <a href="https://twitter.com/fuzziebrain" target="_blank" rel="external">Adrian Png</a> and <a href="https://twitter.com/patrickwolf" target="_blank" rel="external">Patrick Wolf</a> for their ideas and patience getting this setup!</em></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/odtug-oracle-blogs-now-on-twitter/" data-id="cixw0u90700c664n9u86p07n2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/odtug-oracle-blogs-now-on-twitter/" data-id="ciy946dfz00cmhcn9vojpddym" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/odtug-oracle-blogs-now-on-twitter/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -407,27 +474,18 @@ end loop;
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>SQLcl is the new command line tool from Oracle, more specifically from the <a href="https://twitter.com/oraclesqldev" target="_blank" rel="external">SQL Developer team</a>. It is currently an Early Adopter (EA) release and you can download it from:&nbsp;<a href="http://www.oracle.com/technetwork/developer-tools/sql-developer/downloads/sqldev-41ea-2372780.html" target="_blank" rel="external">http://www.oracle.com/technetwork/developer-tools/sql-developer/downloads/sqldev-41ea-2372780.html</a></p>
+        <p>SQLcl is the new command line tool from Oracle, more specifically from the <a href="https://twitter.com/oraclesqldev" target="_blank" rel="external">SQL Developer team</a>. It is currently an Early Adopter (EA) release and you can download it from: <a href="http://www.oracle.com/technetwork/developer-tools/sql-developer/downloads/sqldev-41ea-2372780.html" target="_blank" rel="external">http://www.oracle.com/technetwork/developer-tools/sql-developer/downloads/sqldev-41ea-2372780.html</a></p>
 <p>After testing it for a while I was hooked and plan on using it as a full time replacement for SQL*Plus (which I think is the intent of the product).</p>
 <p>The only difficulty I had was where to store it on OS X so it was accessible everywhere. Here’s how I “installed” it and hopefully this will be useful for others:</p>
-<p><pre class="brush: bash;">cd ~/Downloads</pre></p>
-<p>#Note: version/filename of file will change for each release<br>unzip sqlcl-4.1.0.15.067.0446-no-jre.zip</p>
-<p>#Assuming you already have an /oracle directory (I had one for the instant client)<br>cp -r sqlcl /oracle</p>
-<p>#Give sqlcl execute permission<br>cd /oracle/sqlcl/bin<br>chmod 755 sql</p>
-<p>#rename to sqlcl so no confusion (optional)<br>mv sql sqlcl</p>
-<p>#Add directory to path so can run anywhere in the command line:</p>
-<p>#Temporary access:<br>PATH=$PATH:/oracle/sqlcl/bin</p>
-<p>#Permanent access:</p>
-<p>#Note: See Barry’s comment below about storing in /etc/paths.d on Mac<br>vi ~/.bash_profile</p>
-<p>#Add just above the export PATH line<br>PATH=$PATH:/oracle/sqlcl/bin</p>
-<p><br>In the above example I installed SQLcl in the <span style="font-family: Courier New, Courier, monospace;">/oracle</span> directory. You could also put it anywhere you want such as <span style="font-family: Courier New, Courier, monospace;">/usr/local/oracle</span> etc. Just make sure that you reference the location in the <span style="font-family: Courier New, Courier, monospace;">PATH</span> environment variable.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">cd</span> ~/Downloads</div><div class="line"><span class="comment">#Note: version/filename of file will change for each release</span></div><div class="line">unzip sqlcl-4.1.0.15.067.0446-no-jre.zip</div><div class="line"></div><div class="line"><span class="comment">#Assuming you already have an /oracle directory (I had one for the instant client)</span></div><div class="line">cp -r sqlcl /oracle</div><div class="line"></div><div class="line"><span class="comment">#Give sqlcl execute permission</span></div><div class="line"><span class="built_in">cd</span> /oracle/sqlcl/bin</div><div class="line">chmod 755 sql</div><div class="line"></div><div class="line"><span class="comment">#rename to sqlcl so no confusion (optional)</span></div><div class="line">mv sql sqlcl</div><div class="line"></div><div class="line"><span class="comment">#Add directory to path so can run anywhere in the command line:</span></div><div class="line"></div><div class="line"><span class="comment">#Temporary access:</span></div><div class="line">PATH=<span class="variable">$PATH</span>:/oracle/sqlcl/bin</div><div class="line"></div><div class="line"><span class="comment">#Permanent access:</span></div><div class="line"><span class="comment">#Note: See Barry's comment below about storing in /etc/paths.d on Mac</span></div><div class="line">vi ~/.bash_profile</div><div class="line"><span class="comment">#Add just above the export PATH line</span></div><div class="line">PATH=<span class="variable">$PATH</span>:/oracle/sqlcl/bin</div></pre></td></tr></table></figure>
+<p>In the above example I installed SQLcl in the <code>/oracle</code> directory. You could also put it anywhere you want such as <code>/usr/local/oracle</code> etc. Just make sure that you reference the location in the <code>PATH</code> environment variable.</p>
 <p>If you’re looking for more info on SQLcl as well as some excellent examples check out Kris Rice’s <a href="http://krisrice.blogspot.com/" target="_blank" rel="external">blog</a> and Jeff Smith’s <a href="http://www.thatjeffsmith.com/" target="_blank" rel="external">blog</a>.</p>
 <p><em>Update: The following article covers how to <a href="http://www.talkapex.com/2015/05/sqlcl-and-loginsql.html">create login scripts for SQLcl</a>.</em></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/installing-sqlcl/" data-id="cixw0u90600c464n90hy9n3am" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/installing-sqlcl/" data-id="ciy946dg000cohcn9adzp73j6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/installing-sqlcl/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -463,14 +521,14 @@ end loop;
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>I recently received an email from Google Code stating that they will be shutting down their site early next year. Seeing as an JS Console Wrapper was hosted on there I have had to move it to GitHub:&nbsp;<a href="https://github.com/martindsouza/js-console-wrapper" target="_blank" rel="external">https://github.com/martindsouza/js-console-wrapper</a></p>
+        <p>I recently received an email from Google Code stating that they will be shutting down their site early next year. Seeing as an JS Console Wrapper was hosted on there I have had to move it to GitHub: <a href="https://github.com/martindsouza/js-console-wrapper" target="_blank" rel="external">https://github.com/martindsouza/js-console-wrapper</a></p>
 <p>They’re some nice features in Console wrapper that integrate well with APEX however it was primarily created to get around the lack of support for Console in IE. Since the newer versions of IE now support Console, Console Wrapper may no longer be necessary.</p>
 <p>If you do use Console Wrapper and would like to see it be improve please create an <a href="https://github.com/martindsouza/js-console-wrapper/issues" target="_blank" rel="external">issue</a> on the project page.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/03/js-console-wrapper-moved-to-github/" data-id="cixw0u90500c264n9rg6b7g4b" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/03/js-console-wrapper-moved-to-github/" data-id="ciy946dfw00cghcn9rl0odfbw" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/03/js-console-wrapper-moved-to-github/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -506,62 +564,14 @@ end loop;
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>In case you missed yesterday’s announcement from&nbsp;<a href="http://www.oraopensource.com/" target="_blank" rel="external">OraOpenSource</a>, <a href="http://www.oraopensource.com/blog/2015/3/14/logger-300-ea1" target="_blank" rel="external">Logger 3.0.0 EA1</a>&nbsp;was released yesterday. If you’re using Logger you definitely want to read the article and learn about all the major updates to Logger. If you’re not using Logger, now may be a good time to take a look and see how it can help your organization.</p>
+        <p>In case you missed yesterday’s announcement from <a href="http://www.oraopensource.com/" target="_blank" rel="external">OraOpenSource</a>, <a href="http://www.oraopensource.com/blog/2015/3/14/logger-300-ea1" target="_blank" rel="external">Logger 3.0.0 EA1</a> was released yesterday. If you’re using Logger you definitely want to read the article and learn about all the major updates to Logger. If you’re not using Logger, now may be a good time to take a look and see how it can help your organization.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/03/logger-300-ea1/" data-id="cixw0u90400c064n9bj34s5er" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/03/logger-300-ea1/" data-id="ciy946dfu00cchcn98778wah4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/03/logger-300-ea1/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-logger-is-moving" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/03/logger-is-moving/" class="article-date">
-  <time datetime="2015-03-04T14:47:00.000Z" itemprop="datePublished">2015-03-04</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/03/logger-is-moving/">Logger is Moving</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’m pleased to announce that <a href="http://www.oraopensource.com/logger/" target="_blank" rel="external">Logger</a> has found a new home and will be maintained by <a href="http://www.oraopensource.com/" target="_blank" rel="external">OraOpenSource</a>.&nbsp;A very big thank you goes out to <a href="https://twitter.com/tmuth" target="_blank" rel="external">Tyler Muth</a> for starting this project many years ago and handing over the reins to OraOpenSource.</p>
-<p>Here’s a brief FAQ regarding the move:</p>
-<p><em>What is Logger?</em><br><em>
-</em><a href="http://www.oraopensource.com/logger/" target="_blank" rel="external">Logger</a>&nbsp;is a (free) open source logging tool for Oracle PL/SQL. It is used in many instances ranging from small applications to very large applications in major corporations.</p>
-<p><em>What will happen with links to the old project page?</em></p>
-<p>They’ll still work. The project was forked and a notice was put up on the old Github site letting people know its new home.</p>
-<div><br><em>Will Logger still remain open source / free?&nbsp;</em><br><br>Yes. We’ll update the license slightly so that it will be easier to understand and use within your code. This will not affect any existing implementations.</div><div><br></div><div><em>When is the next release?</em><br><br>I did a lot of work last year, then was sidelined with my concussion. It turns out that picking up a project after not touching it for 8 months takes some time.<br><br>Since I’m working on this project as part of my rehab I can not give a definite time frame. As soon as the beta version is ready I’ll make it available.</div><div><br></div><div><em>What is in the next release?</em></div><div><em>
-</em></div><div>Lots of great stuff! Going forward you can monitor what will be in each subsequent release by tracking the upcoming <a href="https://github.com/OraOpenSource/Logger/milestones" target="_blank" rel="external">milestones</a> on the project’s <a href="https://github.com/OraOpenSource/Logger/issues" target="_blank" rel="external">issue</a> page.<br><br><em>Will you still post info on Logger on this site?</em><br>_<br>_Over the years I have written a lot about Logger and posted it on this blog. To maintain a consistent branding and marketing effort all future posts regarding Logger will be on <a href="http://www.oraopensource.com/blog/" target="_blank" rel="external">OraOpenSource’s blog</a>.</div><div><br></div><div><em>What can I do to help?</em><br><br>Right now the best thing you can do is sign up for the email list (link on&nbsp;<a href="http://www.oraopensource.com/logger/" target="_blank" rel="external">oraopensource.com/logger</a>). We’ll be announcing the beta version and next major release when it’s available. You can also follow OraOpenSource on twitter:&nbsp;<a href="https://twitter.com/oraopensource" target="_blank" rel="external">@oraopensource</a>.<br>_<br>_Once the next release is available we’ll be looking for help from the community to continue to develop and maintain Logger.</div>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/03/logger-is-moving/" data-id="cixw0u90300by64n9m10jwpzb" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2015/03/logger-is-moving/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
@@ -611,7 +621,7 @@ end loop;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -648,7 +658,7 @@ end loop;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

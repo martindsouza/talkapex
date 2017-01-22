@@ -66,6 +66,191 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-column-groups-in-apex-interactive" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/03/column-groups-in-apex-interactive/" class="article-date">
+  <time datetime="2009-03-26T03:19:00.000Z" itemprop="datePublished">2009-03-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/03/column-groups-in-apex-interactive/">Column Groups in APEX Interactive Reports</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><span style="font-style:italic;color:red;">Note: If you are using APEX 4.0 I’ve developed a plugin for this: <a href="http://www.talkapex.com/2010/12/column-groups-in-apex-40-interactive.html">http://www.talkapex.com/2010/12/column-groups-in-apex-40-interactive.html</a></span></p>
+<p>A while ago <a href="http://dgielis.blogspot.com/" target="_blank" rel="external">Dimitri Gielis</a> helped us to display column groups in Interactive Reports (IR) in APEX. Please see his <a href="http://dgielis.blogspot.com/2008/11/group-headings-in-interactive-report.html" target="_blank" rel="external">blog posting</a> to get a background of how to enable column groups in Interactive Reports.  </p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/Scr2OYNUyNI/AAAAAAAADn4/GAaBwZhU9tM/s1600-h/01_ir_col_grp.bmp" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/Scr2OYNUyNI/AAAAAAAADn4/GAaBwZhU9tM/s400/01_ir_col_grp.bmp" alt=""></a></p>
+<p>After some testing we’ve made several changes to the code. The updated code fixes a bug that would display multiple group headers. It does not load the group headers via AJAX so it speeds up response time. I’ve included the updated code below. The example of this is <a href="http://apex.oracle.com/pls/otn/f?p=20195:1000" target="_blank" rel="external">here.</a></p>
+<p><span style="font-style: italic;">Please note you will need <a href="http://www.jquery.com" target="_blank" rel="external">jQuery</a> for this example</span></p>
+<p><span style="font-weight:bold;">Step 1: Application Process</span><br>Create an Application Process to load the IR colum group header information<br>Name: AP_GET_IR_COL_GROUPS<br>Point: On Load: After Header (page template header)</p>
+<pre class="brush: sql;">
+DECLARE
+  v_sql                         VARCHAR2 (500);
+  v_count                       PLS_INTEGER;
+BEGIN
+  -- Need to ensure at least 1 col group exists
+  SELECT COUNT (column_group_id)
+  INTO   v_count
+  FROM   apex_application_page_ir ir, apex_application_page_ir_col c
+  WHERE  ir.application_id = :app_id
+  AND    ir.page_id = :app_page_id   
+  AND    ir.interactive_report_id = c.interactive_report_id;
+
+-- Need to do join columns to IR rather than the page_id since columns that are added after IR was created need have a null page_id
+  v_sql                      := '
+SELECT c.column_alias,
+       c.report_label,
+       c.column_group
+FROM   apex_application_page_ir_col c,
+       apex_application_page_ir i
+WHERE  i.application_id = :app_id
+AND    i.page_id = :app_page_id
+AND    i.interactive_report_id = c.interactive_report_id
+AND    c.column_group IS NOT NULL';
+  HTP.p ('<script type="text/javascript">');
+
+  -- Only insert data if IR exists for this page
+  IF v_count > 0 THEN
+    -- Create JSON object. Note need to use htp.prn so line feed isn't sent
+    HTP.prn ('var gPageIRColGrps = $u_eval(''(');
+    apex_util.json_from_sql (v_sql);
+    HTP.prn (')'');');
+  ELSE
+    HTP.p ('var gPageIRColGrp = '''';');
+  END IF;
+
+  HTP.p ('</script>');
+END;
+</pre>
+<span style="font-weight:bold;">Step 2: Javascript Code</span>
+You can put this on Page 0 or just directly on the page with the Interactive Report
+<pre class="brush: js;">
+dispIRColGrpHeader=function(){
+  if(typeof(gPageIRColGrps) != "undefined"){
+    // retrieve the Interactive report table
+    var vTbl = $('.apexir_WORKSHEET_DATA');
+
+    // change the look and feel of the IR table
+    $(vTbl).attr("border","1");
+
+    // Prevent Duplicate rows
+    $('#irColGrpRow').remove();
+
+    // Add the Column Group row
+    $(vTbl[0].rows[0]).before('&lt;tr id="irColGrpRow"&gt;&lt;/tr&gt;');
+
+    var vPrevColGrp = '';
+    var vColGrpExists = false;
+    var vColSpan = 1;
+    // Loop over the row headers and see if we need to add a column group.
+    for (var i = 0; i < $(vTbl[0].rows[1].cells).length; i++){
+      // For IR, the column headers have divs with id of apexir
+      vColId = '';
+      // Only set the col ID if it exists (needed for IR row_id icon)
+      if (typeof($('.apexir_WORKSHEET_DATA tr:eq(1) th:eq(' + i + ') div').attr('id')) != "undefined")
+        vColId = $('.apexir_WORKSHEET_DATA tr:eq(1) th:eq(' + i + ') div').attr('id').replace(/apexir_/, '').toUpperCase();
+      var vFoundColGrp = false; // This column has an associated column grp
+      var vColGrp = ''; // Current Column group
+
+      // Find the ID in the IR Groups global variable (genereated in AP)
+      for (var j = 0; j < gPageIRColGrps.row.length; j ++ ){
+        if (gPageIRColGrps.row[j].COLUMN_ALIAS.toUpperCase() == vColId) {
+          vFoundColGrp = true;
+          vColGrpExists = true;
+          vColGrp = gPageIRColGrps.row[j].COLUMN_GROUP;
+          break;
+        }//if
+      }// For IR Col Groups
+
+      // Only print the col group header for the previous entry. This allows us to set the col span for similar groups
+      // Have to do it this way to support IE  (otherwise we could look at the previous entry and update it's col span
+
+      // If the current
+      if (vColGrp.length > 0 && vColGrp == vPrevColGrp){
+        // Don't display the
+        vColSpan = vColSpan + 1;
+      }
+      else if(i > 0) {
+        // Display the previous item
+        $('#irColGrpRow').append('&lt;th colspan="' + vColSpan + '"&gt;' + vPrevColGrp + '&lt;/th&gt;');
+        vColSpan = 1;
+      }
+
+      // If this is the last item then display it
+      if (i == $(vTbl[0].rows[1].cells).length-1) {
+        $('#irColGrpRow').append('&lt;th colspan="' + vColSpan + '"&gt;' + vColGrp + '&lt;/th&gt;');
+      }
+
+      vPrevColGrp = vColGrp;
+    }// For each column being displayed
+
+    // Remove the col group heading if no column groups:
+    if (!vColGrpExists)
+        $('#irColGrpRow').remove();
+  } // Column groups exist
+
+} // dispIRColGrpHeader
+
+// Once the page is finsihed loading run the following (which will activate the column grouping display).
+$(document).ready(function(){
+
+// If page has an IR then set up for column grouping
+  if ($('.apexir_WORKSHEET_DATA').length > 0) {
+
+    function dispIRColGroups(){
+      // Set the class for div hover since can't do in IE
+      $('table.apexir_WORKSHEET_DATA th div').mouseover(function(){
+        $(this).addClass('apexir_WORKSHEET_DATA_th_div_hover');
+      });
+      $('table.apexir_WORKSHEET_DATA th div').mouseout(function(){
+        $(this).removeClass('apexir_WORKSHEET_DATA_th_div_hover');
+      });  
+
+     dispIRColGrpHeader();
+     // This time out is required since after the report is refreshed via AJAX, need to reattach the l_LastFunction command
+     setTimeout(
+       function(){
+        gReport.l_LastFunction = function(){dispIRColGroups();};
+       },
+       1000
+      );
+    }
+
+    gReport = new apex.worksheet.ws('');
+    gReport.l_LastFunction = function(){dispIRColGroups();}
+    dispIRColGroups();
+  }//if
+});    
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/" data-id="ciy946ddo008ehcn9c7cau9yt" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-interactive-report-download-with-one" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/03/interactive-report-download-with-one/" class="article-date">
@@ -110,7 +295,7 @@ $(document).ready(function() {
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/interactive-report-download-with-one/" data-id="cixw0u8we005i64n962yawi6l" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/interactive-report-download-with-one/" data-id="ciy946ddm008ahcn9vbzdzvwo" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/interactive-report-download-with-one/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -204,7 +389,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="cixw0u8wg005m64n9mcis0cc8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="ciy946ddl0088hcn9875e7895" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/custom-authentication-status/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -258,7 +443,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/" data-id="cixw0u8wh005o64n95g4l3eap" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/" data-id="ciy946ddl0086hcn9figm9pfq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -309,7 +494,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="cixw0u8wu006064n9ofdtlvwh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="ciy946ddj0084hcn9jvd1xirn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -359,7 +544,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="cixw0u8wd005d64n999ejeqkt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="ciy946ddi0082hcn9ianaueoh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/test-data-in-production-applications/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -406,7 +591,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/02/application-id-reserved-fix/" data-id="cixw0u8wf005k64n9019k5cye" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/02/application-id-reserved-fix/" data-id="ciy946ddf007xhcn9kwtrcyyg" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/02/application-id-reserved-fix/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -472,7 +657,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/" data-id="cixw0u8wc005b64n93og9o71e" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/" data-id="ciy946dde007vhcn91jingu4h" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -519,7 +704,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/" data-id="cixw0u8sx000664n9pib9mmcj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/" data-id="ciy946d810008hcn9ex8e3zy4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -571,56 +756,12 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/" data-id="cixw0u8sp000464n9lheu7qbe" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/" data-id="ciy946d800007hcn98zn3sfgz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jquery/">jquery</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-list-apex-dictionary-views-using" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2008/11/how-to-list-apex-dictionary-views-using/" class="article-date">
-  <time datetime="2008-11-28T12:35:00.000Z" itemprop="datePublished">2008-11-28</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2008/11/how-to-list-apex-dictionary-views-using/">How to list APEX Dictionary views using SQL</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Hi,</p>
-<p>I hope this isn’t old news but it seems that whenever someone talks about the APEX dictionary they talk about going into the development application and viewing them there. You can also access the dictionary using SQL. Here’s how:</p>
-<p><pre class="brush: sql;"><br>select *<br>from apex_dictionary<br>where column_id = 0<br></pre><br>or</p>
-<p><pre class="brush: sql;"><br>select distinct apex_view_name<br>from apex_dictionary<br></pre><br>Of course you can remove the “where column_id=0” portion and get a list of the all the columns for the views etc.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/11/how-to-list-apex-dictionary-views-using/" data-id="cixw0u8tj000r64n94mo2c7m9" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2008/11/how-to-list-apex-dictionary-views-using/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
 
     </footer>
   </div>
@@ -667,7 +808,7 @@ custom_status_text
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -704,7 +845,7 @@ custom_status_text
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
