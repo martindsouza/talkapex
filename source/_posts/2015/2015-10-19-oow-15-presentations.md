@@ -13,7 +13,7 @@ If you're attending [Oracle OpenWorld 2015](https://www.oracle.com/openworld/ind
   * Martin Giffy D'Souza
   * If you've ever thought about using open source applications or want to become more involved with open source development for your Oracle and APEX applications this presentation is for you.
 
-* [The Objects of My Affection: Deploying Your APEX Applications&nbsp;[UGF10050]](https://events.rainfocus.com/oow15/catalog/oracle.jsp?search=UGF10050&amp;search.event=openworldEvent)
+* [The Objects of My Affection: Deploying Your APEX Applications [UGF10050]](https://events.rainfocus.com/oow15/catalog/oracle.jsp?search=UGF10050&amp;search.event=openworldEvent)
   * Sunday Oct 25 10:00am - Moscone South Room 300
   * Francis Mignault
   * Learn how to deploy your applications for testing, QA, and production. Also learn how supporting objects work, and see the new Oracle Application Express 5 features that will help you package and deploy your applications.

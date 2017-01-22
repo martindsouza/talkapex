@@ -33,7 +33,7 @@ Edit the newly added `DNAME` column with the following changes:
 </div>
 
 ### Modify Page process
-<span style="font-weight: normal;">Change the page process to use the code snippet below. _Note:&nbsp;_</span>_This isn't the best example, as the below code will update the department name for each modified employee record. It does highlight is that you can reference and modify data from multiple tables._
+Change the page process to use the code snippet below. _Note: This isn't the best example, as the below code will update the department name for each modified employee record. It does highlight is that you can reference and modify data from multiple tables._
 
 ```sql
 if :empno is null then

@@ -18,4 +18,4 @@ The presentation will be in English however I can take questions in both French 
 
 I look forward to meeting the Montreal APEX community!
 
-- Martin
+-- Martin

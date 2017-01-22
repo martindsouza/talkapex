@@ -12,13 +12,13 @@ I am running for the ODTUG Board of Directors and I am looking for your support 
 
 Here is my official campaign statement:
 
-_Over the past four years, I have had the privilege to represent the Oracle APEX Community as a Director for ODTUG. I have made the decision to run again this year for the ODTUG Board and am looking for your support in doing so._
-_
-__During my four-year tenure, I have been involved in several committees within ODTUG that have helped bring conferences around the world, improved marketing initiatives, and organized developer contests.&nbsp;_
-_
-__I have been able to build strong relationships with other ODTUG Board Members, Oracle employees, and many developers in the APEX community. These relationships have allowed me to be a liaison between all three groups and help relay ideas and opportunities to the appropriate parties. I hope to continue to be able to facilitate open communication over the next two years._
-_
-__I am looking for your vote to continue as an ODTUG Board Member to represent developers within one of the world’s largest Oracle user groups. Thank you in advance for your support._
+> Over the past four years, I have had the privilege to represent the Oracle APEX Community as a Director for ODTUG. I have made the decision to run again this year for the ODTUG Board and am looking for your support in doing so.
+
+> During my four-year tenure, I have been involved in several committees within ODTUG that have helped bring conferences around the world, improved marketing initiatives, and organized developer contests.
+
+> I have been able to build strong relationships with other ODTUG Board Members, Oracle employees, and many developers in the APEX community. These relationships have allowed me to be a liaison between all three groups and help relay ideas and opportunities to the appropriate parties. I hope to continue to be able to facilitate open communication over the next two years.
+
+> I am looking for your vote to continue as an ODTUG Board Member to represent developers within one of the world’s largest Oracle user groups. Thank you in advance for your support.
 
 Thank you in advance,
 

@@ -15,6 +15,4 @@ To download the ebook format go to [docs.oracleapex.com](http://docs.oracleapex.
 Here's a screen shot of the APEX API docs in iBooks. I still prefer the online / HTML format but having the docs in iBooks helps when you may not have a internet connection.
 
 <div class="separator" style="clear: both; text-align: center;">[![](http://1.bp.blogspot.com/-cPUuObr5AAI/VVInQ5DmGiI/AAAAAAAAHEI/EUcuYrpoNqA/s320/Snip20150512_2.png)](http://1.bp.blogspot.com/-cPUuObr5AAI/VVInQ5DmGiI/AAAAAAAAHEI/EUcuYrpoNqA/s1600/Snip20150512_2.png)</div>
-
-<div>
-</div>
+>
