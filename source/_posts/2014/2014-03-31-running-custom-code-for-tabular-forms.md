@@ -6,7 +6,7 @@ date: 2014-03-31 08:34:00
 alias:
 ---
 
-_**Note: **An updated version of this article is now&nbsp;available&nbsp;which covers how to [run custom code for a manual Tabular Form in APEX 5](http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1.html). There is also a new article which covers [how to modify data from multiple tables in the same Tabular Form](http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-2.html)._
+_**Note: **An updated version of this article is now available which covers how to [run custom code for a manual Tabular Form in APEX 5](http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1.html). There is also a new article which covers [how to modify data from multiple tables in the same Tabular Form](http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-2.html)._
 
 One of my biggest pet peeves with Tabular Forms in APEX is that it would only run basic (Insert, Update, Delete) DML functions against a table. This works really well for basic situations but more often than not data must be processed by a procedure to handle all the business logic. For this reason, I've avoided Tabular Forms for a very long time.
 
@@ -18,6 +18,6 @@ First, create a Tabular Form using the standard wizard. This will create the sta
 
 Next, create a new process. The important part comes when creating the process; be sure to select the Tabular Form option (as shown below).
 
-<div class="separator" style="clear: both; text-align: center;">[![](http://2.bp.blogspot.com/-CGeyt9fORHw/Uzl61_AZ9gI/AAAAAAAAEps/1rJqaEGjEHM/s1600/Snip20140331_2.png)](http://2.bp.blogspot.com/-CGeyt9fORHw/Uzl61_AZ9gI/AAAAAAAAEps/1rJqaEGjEHM/s1600/Snip20140331_2.png)</div>In your PL/SQL block, you can now reference each of the columns using their column names (example <span style="font-family: Courier New, Courier, monospace;">:SAL</span> and <span style="font-family: Courier New, Courier, monospace;">:ENAME</span>). What's even better is that APEX will only run the code against rows that have changed which can save a lot of processing time. For example, if only two rows in a 15 row table were changed the code will be executed twice.
+<div class="separator" style="clear: both; text-align: center;">[![](http://2.bp.blogspot.com/-CGeyt9fORHw/Uzl61_AZ9gI/AAAAAAAAEps/1rJqaEGjEHM/s1600/Snip20140331_2.png)](http://2.bp.blogspot.com/-CGeyt9fORHw/Uzl61_AZ9gI/AAAAAAAAEps/1rJqaEGjEHM/s1600/Snip20140331_2.png)</div>In your PL/SQL block, you can now reference each of the columns using their column names (example `:SAL` and `:ENAME`). What's even better is that APEX will only run the code against rows that have changed which can save a lot of processing time. For example, if only two rows in a 15 row table were changed the code will be executed twice.
 
 In the next article I'll show how to expand this functionality beyond a base table and use this new technique to modify any data set.
