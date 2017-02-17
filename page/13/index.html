@@ -66,6 +66,229 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-apex-processes-various-conditions" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/how-apex-processes-various-conditions/" class="article-date">
+  <time datetime="2012-03-20T17:05:00.000Z" itemprop="datePublished">2012-03-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/how-apex-processes-various-conditions/">How APEX Processes Various Conditions and Validations</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I was recently teaching an Intro to APEX course and the students had some questions about what to put in the <em>Expression 1</em> text area for different conditions and validations based on the <em>Type</em> selected. If you’re new to APEX the various options can be confusing.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s1600/condition_types.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s640/condition_types.png" alt=""></a></div><br>To help clear things up I’ve included a list of the various APEX conditions and validations along with code that demonstrates how APEX processes the value in <em>Expression 1</em> based on the given <em>Type</em>. I didn’t include the definition for each type as they are already well documented in the APEX documentation and popup help.</p>
+<p>_Note: the calls to DBMS<em>OUTPUT are there to show you if the validation/condition is true or false.</em></p>
+<p><strong>Exists</strong></p>
+<pre class="brush: sql; highlight: [8,9,10]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM (
+    -- Start Expression 1
+    SELECT 1
+    FROM emp
+    WHERE sal &gt; :p1_sal
+    -- End Expression 1
+  );
+
+  IF l_rows &gt; 0 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**Not Exists**
+<pre class="brush: sql; highlight: [8, 9, 10]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM (
+    -- Start Expression 1
+    SELECT 1
+    FROM emp
+    WHERE sal &gt; :p1_sal
+    -- End Expression 1
+  );
+
+  IF l_rows = 0 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**SQL Expression**
+_Note: SQL Expression and PL/SQL Expression are very similar but some SQL expressions can't be used in PL/SQL. Example: Decode_
+<pre class="brush: sql; highlight: [9]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM dual
+  WHERE
+    -- Start Expression 1
+    :p1_sal &gt; 500
+    -- End Expression 1
+  ;
+
+  IF l_rows = 1 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**PL/SQL Expression**
+<pre class="brush: sql; highlight: [5]">DECLARE
+BEGIN
+  IF (
+    -- Start Expression 1
+    :p1_sal &gt; 500
+    -- End Expression 1
+  ) THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+
+END;
+/
+</pre>**PL/SQL Function Returning Boolean**
+<pre class="brush: sql; highlight: [6,7,8,9,10,11,12,13,14,15,16,17,18,19]">DECLARE
+  FUNCTION f_apex_condtion RETURN boolean
+  AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN -- only want at most 1 president
+        RETURN FALSE;
+      ELSE
+        RETURN TRUE;
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+
+  IF f_apex_condtion THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+
+END;
+/
+</pre>**_Conditions Only_**
+
+**Function Returning Error Text**
+<pre class="brush: sql; highlight: [8,9,10,11,12,13,14,15,16,17,18,19,20,21]">DECLARE
+  l_err_msg varchar2(4000);
+
+  FUNCTION f_apex_condtion RETURN varchar2
+  AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN
+        RETURN 'Only 1 president can exist for the company';
+      ELSE
+        RETURN NULL; -- no error
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+  l_err_msg := f_apex_condtion;
+
+  IF l_err_msg IS NULL THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE - Error message: ' || l_err_msg);
+  END IF;
+
+END;
+/
+</pre>**PL/SQL Error**
+<pre class="brush: sql; highlight: [6,7,8,9,10,11,12,13,14,15,16,17]">DECLARE
+
+  PROCEDURE sp_apex_condtion AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN
+        raise_application_error(-20001, 'Only 1 president can exist for the company');
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+  sp_apex_condtion;
+
+  dbms_output.put_line('TRUE');
+
+exception WHEN others THEN
+  dbms_output.put_line('FALSE'); -- Error message is defined in the validation's error message
+END;
+/
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/" data-id="ciz9gkngq005uxun9ub8zwvt2" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apex-process-condition-with-multiple" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2011/12/apex-process-condition-with-multiple/" class="article-date">
@@ -101,7 +324,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/" data-id="ciy946dca005vhcn9vg7mnssp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/" data-id="ciz9gkniu008pxun9iv3h37hz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -145,7 +368,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/" data-id="ciy946dc8005rhcn9u0v4d87g" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/" data-id="ciz9gknip008jxun97ecyizbm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -194,7 +417,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/" data-id="ciy946dc7005phcn9zz3q58aa" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/" data-id="ciz9gknio008hxun9oo322fsh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -248,7 +471,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/" data-id="ciy946dc5005lhcn9mydivh9e" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/" data-id="ciz9gknis008nxun9rjuy2e4l" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -297,7 +520,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/" data-id="ciy946dc6005nhcn9c4umtaal" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/" data-id="ciz9gknir008lxun9lgwiufsn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -347,7 +570,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/clarifit-dialog-plugin/" data-id="ciy946dc3005jhcn98ulwwyrp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/clarifit-dialog-plugin/" data-id="ciz9gknil008dxun961punm65" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/clarifit-dialog-plugin/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -396,7 +619,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/remainder-of-2011/" data-id="ciy946dc2005hhcn97s1xhz38" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/remainder-of-2011/" data-id="ciz9gknin008fxun9c5zsts72" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/remainder-of-2011/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -438,7 +661,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/ask-clarifit-experts-webinar/" data-id="ciy946dc0005dhcn991r5oryf" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/ask-clarifit-experts-webinar/" data-id="ciz9gknij008bxun9phjj8kmx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/ask-clarifit-experts-webinar/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -484,57 +707,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/10/running-for-odtug-board-of-directors/" data-id="ciy946dc1005fhcn90it76epk" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/10/running-for-odtug-board-of-directors/" data-id="ciz9gknii0089xun9xmelkdpe" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/10/running-for-odtug-board-of-directors/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-my-family-solves-computer-problems" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2011/07/how-my-family-solves-computer-problems/" class="article-date">
-  <time datetime="2011-07-13T13:00:00.000Z" itemprop="datePublished">2011-07-13</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2011/07/how-my-family-solves-computer-problems/">How My Family Solves Computer Problems</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>In my talk, <a href="http://www.talkapex.com/2011/07/how-to-be-creative-ii-presentation.html">How to be Create II</a>, at ODTUG Kscope 11 I discussed what sometimes happens when users try to fix problems themselves. This is a video clip from my presentation on how my family tries to resolve computer problems.</p>
-<iframe width="560" height="349" src="http://www.youtube.com/embed/H5mozAx-r6E" frameborder="0" allowfullscreen></iframe>
-
-<p><span style="font-style:italic;">And yes it is a true story. I got those emails from my family…</span></p>
-<p>Thanks to <a href="https://twitter.com/#!/Chris_Hritzuk" target="_blank" rel="external">Chris Hritzuk</a> for recording this.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/07/how-my-family-solves-computer-problems/" data-id="ciy946dbz005bhcn9pd7bb9ys" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2011/07/how-my-family-solves-computer-problems/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
 
     </footer>
   </div>
@@ -581,7 +759,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -618,7 +796,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

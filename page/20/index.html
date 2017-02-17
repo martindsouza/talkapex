@@ -66,6 +66,83 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-standardizing-help-text-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/10/standardizing-help-text-in-apex/" class="article-date">
+  <time datetime="2009-10-27T15:00:00.000Z" itemprop="datePublished">2009-10-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/10/standardizing-help-text-in-apex/">Standardizing Help Text in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SuaEhEG5sJI/AAAAAAAADtY/62XBUIfwlE0/s1600-h/help_key.jpg" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SuaEhEG5sJI/AAAAAAAADtY/62XBUIfwlE0/s200/help_key.jpg" alt=""></a><br>I had a requirement where the same item name was used in various areas of the application. To maintain consistancy, and to minimize development time, I decided to create a “help framework” to standardize on the help text for these items.</p>
+<p><span style="font-style:italic">Note: I know APEX comes with a great tool to maintain consistancy for your page items called User Interface Defaults, however it would not work in this case.</span></p>
+<p>The goal was for developers not to have to enter any help text for commonly named page items. Instead, when applicable, the help text would automatically be retreived from a common area so we’d only need to maintain it in one place. The design also had to handle custom help text (i.e. if we needed to override the default help text).</p>
+<p>To do this I used Tool Tip Help (<span style="font-style:italic;">see: <a href="http://apex-smb.blogspot.com/2009/09/tooltip-help-in-apex-alternative-to.html" target="_blank" rel="external">http://apex-smb.blogspot.com/2009/09/tooltip-help-in-apex-alternative-to.html</a></span>) and made the following modifications:</p>
+<p><span style="font-weight:bold;">- Create a Default Help Page</span><br>Page Name: Default Help Page</p>
+<p>Create a region called “Default Help Items” and add all the items you want default help text for. For example, I created P10 and added the following items: P10_EMPNO, P10_ENAME. In each of these items I added the default help text for similarly named items.</p>
+<p><span style="font-weight:bold;">- Modify the Application Process AP_GET_HELP_TEXT </span></p>
+<pre class="brush: sql">
+BEGIN
+  FOR x IN (SELECT    '<span class="itemToolTip" foritem="'
+                   || item_name
+                   || '">'
+                   || item_help_text
+                   || '</span>' help_html
+              FROM (SELECT a.item_name,
+                           NVL (a.item_help_text, dflt_help_text.item_help_text)
+                                                                           item_help_text
+                      FROM apex_application_page_items a,
+                           (SELECT 'P' || :app_page_id || '_' || LTRIM (item_name, 'P10_')
+                                                                                item_name,
+                                   item_help_text
+                              FROM apex_application_page_items
+                             WHERE application_id = :app_id
+                               AND page_id = 10 -- Enter Default Help Page number here (and modify select statement above)
+                               AND item_help_text IS NOT NULL) dflt_help_text
+                     WHERE a.application_id = :app_id
+                       AND a.page_id = :app_page_id
+                       AND a.item_name = dflt_help_text.item_name(+)
+                       AND NVL (a.item_help_text, 'null') != '@NO_HELP@')
+             WHERE item_help_text IS NOT NULL)
+  LOOP
+    HTP.p (x.help_html);
+  END LOOP;
+END;
+</pre>
+
+<p>Now when I run the application, any item that is called PXX_EMPNO or PXX_ENAME will try to use the help text from P10 for the corresponding items. Developers can easily override the default help text by filling in specific help text for an item or by entering in “@NO_HELP@”</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="ciz9gknen003fxun9ngeyqz3f" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-saving-saved-interactive-reports-when" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/10/saving-saved-interactive-reports-when/" class="article-date">
@@ -118,7 +195,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="ciy946dez00amhcn9ca49o3gv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="ciz9gknel003dxun9tia876zp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -168,7 +245,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="ciy946dew00aihcn94jchknrm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="ciz9gknek003bxun9x6kdpk3r" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -217,7 +294,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="ciy946der00aghcn9hnrfrqc1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="ciz9gknee0033xun9dndjx6wm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -263,7 +340,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/apexstackexchangecom/" data-id="ciy946deo00achcn952y82szu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/apexstackexchangecom/" data-id="ciz9gknef0035xun9fru0rh3s" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/apexstackexchangecom/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -307,7 +384,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/" data-id="ciy946deo00aahcn94uc7ra9w" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/" data-id="ciz9gkneh0039xun947tml94r" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -611,7 +688,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/" data-id="ciy946deq00aehcn9j1ulugic" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/" data-id="ciz9gkneg0037xun9w7fezsj8" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -696,7 +773,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/" data-id="ciy946den00a8hcn97u5j7eod" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/" data-id="ciz9gknea002yxun91v1e441g" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -802,7 +879,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/tooltip-help-in-apex-alternative-to/" data-id="ciy946dem00a6hcn90qx39sdl" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/tooltip-help-in-apex-alternative-to/" data-id="ciz9gkned0031xun96bq05xgr" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/tooltip-help-in-apex-alternative-to/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -1030,64 +1107,12 @@ WHERE collection_name = :p2300_collection_name
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/updateable-interactive-report-for-apex/" data-id="ciy946del00a4hcn9kkm5k95n" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/updateable-interactive-report-for-apex/" data-id="ciz9gkne7002txun9n3ijkbvm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/updateable-interactive-report-for-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-rules-guidelines" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/09/apex-rules-guidelines/" class="article-date">
-  <time datetime="2009-09-02T15:00:00.000Z" itemprop="datePublished">2009-09-02</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/09/apex-rules-guidelines/">APEX Rules &amp; Guidelines</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>After several late nights of nerding I’ve finally submitted/completed my APEX application for the <a href="http://www.oracle.com/technology/products/database/application_express/html/competition.html" target="_blank" rel="external">APEX Developer Competition 2009</a>.</p>
-<p><strike>You can demo and download the application here: <a href="http://apex.oracle.com/pls/otn/f?p=46865" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=46865</a></strike><br><em>Note: Demo is no longer up and will not be supported.</em></p>
-<p>This purpose of this application is to allow development teams to create an online Rules &amp; Guidelines development document. The template for this application is based on Patrick Cimolini’s (Cayman Islands Government) presentation at <a href="http://www.odtugkaleidoscope.com/" target="_blank" rel="external">ODTUG</a>.</p>
-<p>The concept of the R&amp;G template is:</p>
-<p><span style="font-weight: bold;">Rule:</span> Follow 100% of the time<br><span style="font-weight: bold;">Guideline:</span> Follow 90% of the time</p>
-<p><span style="font-style: italic; font-weight: bold;">Mandatory Headings:</span></p>
-<p><span style="font-weight: bold;">Rule/Guideline:</span> Active voice sentence.<br><span style="font-weight: bold;">Why:</span>Important for Team Buy-In</p>
-<p><span style="font-style: italic; font-weight: bold;">Optional Headings:</span></p>
-<p><span style="font-weight: bold;">Result:</span> Illustration of desired outcome<br><span style="font-weight: bold;">How:</span> How the result is achieved.<br><span style="font-weight: bold;">Notes:</span> State the non-obvious<br><span style="font-weight: bold;">See Also:</span> Point to related Rules and Guidelines</p>
-<p>You can use this template for both APEX development and your PL/SQL standards. I’ve included the installation files in the demo application so feel <span style="font-weight: bold;">free</span> to install at your organization. If you are using it please post any comments/suggestions on this post and I’ll try to write some updates.</p>
-<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Sp4BV-rhSZI/AAAAAAAADqE/DLGLV8dMcs4/s1600-h/rng_screen_shot_01.gif" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Sp4BV-rhSZI/AAAAAAAADqE/DLGLV8dMcs4/s400/rng_screen_shot_01.gif" alt=""></a></p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Sp4BWTCNUYI/AAAAAAAADqM/kgNcLDgq4Q4/s1600-h/rng_screen_shot_02.gif" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Sp4BWTCNUYI/AAAAAAAADqM/kgNcLDgq4Q4/s400/rng_screen_shot_02.gif" alt=""></a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/apex-rules-guidelines/" data-id="ciy946dej00a0hcn9moh5lclk" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/09/apex-rules-guidelines/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/best-practice/">best-practice</a></li></ul>
 
     </footer>
   </div>
@@ -1134,7 +1159,7 @@ WHERE collection_name = :p2300_collection_name
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -1171,7 +1196,7 @@ WHERE collection_name = :p2300_collection_name
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
