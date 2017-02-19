@@ -66,6 +66,57 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-plsql-exceptions-propagation-during" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/09/plsql-exceptions-propagation-during/" class="article-date">
+  <time datetime="2012-09-04T13:00:00.000Z" itemprop="datePublished">2012-09-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/09/plsql-exceptions-propagation-during/">PL/SQL Exceptions Propagation during Variable Declaration</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>It’s always good to know how any language handles and propagates exceptions, Oracle PL/SQL being no different. They’re plenty of examples online about raising and handling exceptions on the web, but one thing you may not have realized is how PL/SQL propagates exceptions that occur in the variable declaration section of a procedure.</p>
+<p>In the first example I created a procedure that has a variable, <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">l_var</span>, which can handle one character. As expected, when I assign more then one character an exception is raised and is propagated to the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">EXCEPTION</span> block of the procedure.</p>
+<p><pre class="brush: sql; highlight: [6,16,17,18]"><br>SQL&gt; CREATE OR REPLACE PROCEDURE sp_test(p_var in varchar2)<br>  2  AS<br>  3    l_var VARCHAR2(1);<br>  4  BEGIN<br>  5    dbms_output.put_line(‘<strong><em>START</em></strong>‘);<br>  6    l_var := ‘abc’;<br>  7  exception<br>  8    WHEN others THEN<br>  9      dbms_output.put_line(‘<strong><em>Exception</em></strong>‘);<br> 10      raise;<br> 11  END sp_test;<br> 12  /</pre></p>
+<p>Procedure created.</p>
+<p>SQL&gt; exec sp_test(p_var =&gt; ‘abc’);<br><strong><em>START</em></strong><br><strong><em>Exception</em></strong><br>BEGIN sp_test(p_var =&gt; ‘abc’); END;</p>
+<p>*<br>ERROR at line 1:<br>ORA-06502: PL/SQL: numeric or value error: character string buffer too small<br>ORA-06512: at “ODTUG.SP_TEST”, line 10<br>ORA-06512: at line 1<br>In the next example, instead of assigning the value in the main block of code I assigned the value in the declaration section. You’ll notice that the procedure doesn’t even get to the “START” line nor is the exception handled in the procedure’s exception block. Instead the exception is propagated to the calling process right away.</p>
+<p><pre class="brush: sql; highlight: [3,15]"><br>SQL&gt; CREATE OR REPLACE PROCEDURE sp_test(p_var in varchar2)<br>  2  AS<br>  3    l_var VARCHAR2(1) := p_var;<br>  4  BEGIN<br>  5    dbms_output.put_line(‘<strong><em>START</em></strong>‘);<br>  6  exception<br>  7    WHEN others THEN<br>  8      dbms_output.put_line(‘<strong><em>Exception</em></strong>‘);<br>  9      raise;<br> 10  END sp_test;<br> 11  /</pre></p>
+<p>Procedure created.</p>
+<p>SQL&gt; exec sp_test(p_var =&gt; ‘abc’);<br>BEGIN sp_test(p_var =&gt; ‘abc’); END;</p>
+<p>*<br>ERROR at line 1:<br>ORA-06502: PL/SQL: numeric or value error: character string buffer too small<br>ORA-06512: at “ODTUG.SP_TEST”, line 3<br>ORA-06512: at line 1<br>Before you go and change any of your existing code based on this article, I’m not saying that you should avoid defining variables in the declaration section of a procedure. Instead, just be aware of how the exception is propagated. This can be useful to know if your local variable is assigned to an input parameter. In that case you may want to assign the local variable in the main block of code rather then in the variable declaration section.</p>
+<p>For documentation of how PL/SQL propagates exceptions raised in declarations go <a href="http://docs.oracle.com/cd/E11882_01/appdev.112/e25519/errors.htm#LNPLS00701" target="_blank" rel="external">here</a>. If you haven’t already done so, I’d recommend reading the entire <a href="http://docs.oracle.com/cd/E11882_01/appdev.112/e25519/errors.htm" target="_blank" rel="external">PL/SQL Error Handling</a> documentation.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/09/plsql-exceptions-propagation-during/" data-id="cizc1wf2s006pc3n9w6zispnn" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/09/plsql-exceptions-propagation-during/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apexadministratorrole" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/08/apexadministratorrole/" class="article-date">
@@ -98,7 +149,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/apexadministratorrole/" data-id="ciz9gknhe006zxun9lu2nrijs" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/apexadministratorrole/" data-id="cizc1wf2s006rc3n9bjamotvu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/apexadministratorrole/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -167,7 +218,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/how-to-sendupload-clob-from-browser-to/" data-id="ciz9gknhc006xxun9963vid7q" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/how-to-sendupload-clob-from-browser-to/" data-id="cizc1wf2p006ic3n98mvc7dar" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/how-to-sendupload-clob-from-browser-to/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -228,7 +279,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/" data-id="ciz9gknhb006vxun9lqnis502" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/" data-id="cizc1wf2t006tc3n95plzu0i0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -315,7 +366,7 @@ END IF;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/" data-id="ciz9gknh9006qxun9s2e0vxsz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/" data-id="cizc1wf2o006gc3n91j69zic8" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -402,7 +453,7 @@ END IF;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="ciz9gknha006sxun9ih2qit7j" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="cizc1wf2r006nc3n9s9obvfkn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -522,7 +573,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="ciz9gknh7006oxun9h0e4iy7u" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cizc1wf2m006cc3n9ano0i7rw" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -586,7 +637,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="ciz9gknh6006mxun9ake1iv6w" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="cizc1wf2q006lc3n99lwiu0bm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -631,7 +682,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="ciz9gknh4006ixun9f5gykvot" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="cizc1wf2n006ec3n9ws2syyt5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/odtug-apexposed-2012/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -673,54 +724,12 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="ciz9gknh1006exun9rs91uw87" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="cizc1wf2l006ac3n9fk7lv1w4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">kscope</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-building-better-team-slides" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/07/building-better-team-slides/" class="article-date">
-  <time datetime="2012-07-04T03:54:00.000Z" itemprop="datePublished">2012-07-03</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/07/building-better-team-slides/">Building a Better Team - Slides</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>A lot of people have emailed me about the slides from my talk on Building a Better Team that I gave at ODTUG Kscope 12 last week. I updated the slides to include a lot of comments about the main points from the talk.</p>
-<p>You can <a href="http://goo.gl/hVnyD" target="_blank" rel="external">download</a> the slides or go to the <a href="http://www.talkapex.com/p/presentations.html">Presentations</a> page to see full abstract and download link. If you have any questions, comments, or want to let me know how implementing some of the ideas go please feel free to send me an email (email address in slides).</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="ciz9gknh3006gxun9wc8r0mnb" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/07/building-better-team-slides/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/best-practice/">best-practice</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">kscope</a></li></ul>
 
     </footer>
   </div>
@@ -767,7 +776,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -804,7 +813,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

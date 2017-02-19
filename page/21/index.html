@@ -66,6 +66,234 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-updateable-interactive-report-for-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/09/updateable-interactive-report-for-apex/" class="article-date">
+  <time datetime="2009-09-14T15:00:00.000Z" itemprop="datePublished">2009-09-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/09/updateable-interactive-report-for-apex/">Updateable Interactive Report for APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A colleague had a requirement where he had over 10,000 rows of data which had to be updateable. Using Interactive Reports (IR) was the preferred approach as it would allow users to filter the data to modify the rows they wanted to before submitting the page. Tabular forms wouldn’t work since the page would be to large. This is the solution that I proposed to make “Updateable IRs”.</p>
+<p>The following solution will work with IRs and standard reports with pagination. If the users applies filters or paginates to another set of data, the changes they make will remain in the collection. This is using a similar technique that I wrote about for <a href="http://apex-smb.blogspot.com/2009/01/apex-report-with-checkboxes-advanced.html" target="_blank" rel="external">APEX Report with checkboxes (advanced)</a>. To summarize this process:</p>
+<ul>
+<li>Store the current query data into a collection as well as the md5 checksum.</li>
+<li>Build an IR against the collection and use APEX_ITEMs to display input fields.*   When a user changes a field, we submit that change to the collection.</li>
+<li>Once the user is done with their changes you’ll need to process the collection as required. In the last step in this example I have a query that will help identify changed rows.<br>You can do a lot with this approach but if you don’t have an urgent need I’d suggest holding off until APEX 4.0. They’re some security issues that would need to be addressed before launching this code in a public application. I didn’t include the security updates in this example since I did not want to lose scope of the base functionality. Updating the code to make it secure shouldn’t be too difficult.</li>
+</ul>
+<p>Here’s the link to the demo: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2300" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=20195:2300</a></p>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/SqxaSe21azI/AAAAAAAADqU/xsH4IhHxhwg/s1600-h/updateable_ir.jpg" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/SqxaSe21azI/AAAAAAAADqU/xsH4IhHxhwg/s400/updateable_ir.jpg" alt=""></a></p>
+<p><span style="font-weight: bold;">- Create IR Report Region</span><br><span style="font-style: italic;">Note: You can use this for regular reports with pagination as well</span></p>
+<pre class="brush: sql">
+SELECT e.empno,
+    apex_item.text (2,
+                    ac.c002,
+                    NULL,
+                    NULL,
+                       'class="updateableIR" seqid="'
+                    || ac.seq_id
+                    || '" attrNum="2"'
+                   ) ename,
+    apex_item.text (3,
+                    ac.c003,
+                    NULL,
+                    NULL,
+                       'class="updateableIR" seqid="'
+                    || ac.seq_id
+                    || '" attrNum="3"'
+                   ) job,
+    apex_item.select_list_from_query
+       (4,
+        ac.c004,
+           'select E.ENAME d, E.EMPNO r from emp e where E.EMPNO != '
+        || e.empno,
+        'class="updateableIR" seqid="' || ac.seq_id || '" attrNum="4"',
+        'YES',
+        NULL,
+        '- Manager -'
+       ) mgr,
+    apex_item.text (5,
+                    ac.c005,
+                    NULL,
+                    NULL,
+                       'class="updateableIR" seqid="'
+                    || ac.seq_id
+                    || '" attrNum="5"'
+                   ) hiredate,
+    apex_item.text (6,
+                    ac.c006,
+                    NULL,
+                    NULL,
+                       'class="updateableIR" seqid="'
+                    || ac.seq_id
+                    || '" attrNum="6"'
+                   ) comm,
+    apex_item.select_list_from_query
+                       (7,
+                        ac.c007,
+                        'SELECT d.dname d, d.deptno r FROM dept d',
+                           'class="updateableIR" seqid="'
+                        || ac.seq_id
+                        || '" attrNum="7"',
+                        'YES',
+                        NULL,
+                        '- Department -'
+                       ) deptno
+FROM apex_collections ac, emp e
+WHERE ac.collection_name = :p2300_collection_name AND ac.c001 = e.empno
+</pre>
+
+<p><span style="font-weight: bold;">- Create Region Items</span></p>
+<ul>
+<li>Hidden &amp; Protected: P2300_COLLECTION_NAME</li>
+</ul>
+<p><span style="font-weight: bold;">- Create Page Computation</span><br><span style="font-style: italic;">Note: This is just to set the collection name. You can call it whatever you want</span></p>
+<p>Item: P2300_COLLECTION_NAME<br>Computation Point: Before Header<br>Computation Type: Static Assignment<br>Computation: P2300_IR_COLLECTION</p>
+<p><span style="font-weight: bold;">- Create a Page Process  (PL/SQL)</span></p>
+<p>Name: Load Collection<br>Process Point: On Lead - Before Header</p>
+<pre class="brush: sql">
+-- This creates the collection if it isn't created yet.
+DECLARE
+v_collection_name             apex_collections.collection_name%TYPE
+                                                 := :p2300_collection_name;
+v_reset_flag                  VARCHAR2 (1) := 'N';
+BEGIN
+-- Create collection if it does not exist or reset collection required
+IF    apex_collection.collection_exists
+                                   (p_collection_name            => v_collection_name) =
+                                                                     FALSE
+  OR v_reset_flag = 'Y'
+THEN
+ apex_collection.create_collection_from_query
+   (p_collection_name            => :p2300_collection_name,
+    p_query                      => q'! SELECT empno,
+    ename,
+    job,
+    mgr,
+    TO_DATE (hiredate, 'DD-MON-YYYY'),
+    comm,
+    deptno
+FROM emp !',
+    p_generate_md5               => 'YES'
+   );        -- Generated md5 is important to help identify changed columns
+END IF;
+END;
+</pre>
+
+<p><span style="font-weight: bold;">- Create HTML Region to store JS code:</span><br>Note: This uses <a href="http://jquery.com/" target="_blank" rel="external">jQuery</a> and <a href="http://tylermuth.wordpress.com" target="_blank" rel="external">Tyler Muth’s</a> <a href="http://tylermuth.wordpress.com/2009/08/19/japex-a-jquery-plugin-for-apex/" target="_blank" rel="external">jApex plugin</a>. You’ll have to upload the .js files as static files in Shared Components.</p>
+<pre class="brush: html">
+<script src="#APP_IMAGES#jquery-1.3.2.min.js" type="text/javascript"></script>
+<script src="#APP_IMAGES#jquery.jApex.0.9.2.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+/**
+ * Updates a cell in a collection
+ * @author Martin Giffy D'Souza. http://apex-smb.blogspot.com
+ * @param pThis input item that was changed
+ *  Must contain the following attributes:
+ *  - seqid Seq ID from collection
+ *  - attrnum Attribute number (column number)
+ * @param pOptions Options
+ *  - appProcess: Application process to call
+ *  - collectionName: Collection to update
+ *  - successFn: Function to execute once completed
+ */
+function updateCollectionCell(pThis, pOptions){
+  var vDefaults = {
+    appProcess: 'AP_UPDATE_COLLECTION_CELL',
+    collectionName: '',
+    successFn: function(){}
+  };
+  pOptions = jQuery.extend({}, vDefaults, pOptions);  
+
+  // Check that collection name is present
+  if (pOptions.collectionName == ''){
+    alert('Missing Collection Name');
+    return;
+  }
+
+  jQuery.jApex.ajax({
+    appProcess: pOptions.appProcess,
+    success: pOptions.successFn,
+    x01: pOptions.collectionName,
+    x02: $(pThis).attr('seqid'), //Seq ID
+    x03: $(pThis).attr('attrnum'), //Attribute Number (i.e. column number)
+    x04: $(pThis).val() // New Value
+  });
+
+  return;
+}// updateCollectionCell
+
+//Set all updateableIR columns onChange events
+$('.updateableIR').live('change',function(){
+  updateCollectionCell(this, {
+    collectionName: $v('P2300_COLLECTION_NAME'),
+    successFn: function(){}
+    });
+});
+</script>
+</pre>
+
+<p><span style="font-weight: bold;">- Create Application Process:</span><br>Name: AP_UPDATE_COLLECTION_CELL<br>Process Point: On Demand</p>
+<pre class="brush: sql">
+-- AP_UPDATE_COLLECTION_CELL
+BEGIN
+apex_collection.update_member_attribute
+                             (p_collection_name            => apex_application.g_x01,
+                              p_seq                        => apex_application.g_x02,
+                              p_attr_number                => apex_application.g_x03,
+                              p_attr_value                 => apex_application.g_x04
+                             );
+END;
+</pre>
+
+<p><span style="font-weight: bold;">- Query to see which rows were changed</span></p>
+<pre class="brush: sql">
+SELECT ac.collection_name, ac.seq_id, ac.c001, ac.c002, ac.c003, ac.c004,
+    ac.c005, ac.c006, ac.c007, ac.md5_original,
+    CASE
+      WHEN apex_collection.get_member_md5
+                                       (:p2300_collection_name,
+                                        ac.seq_id) =
+                                                ac.md5_original
+        THEN 'NO'
+      ELSE 'YES'
+    END row_change
+FROM apex_collections ac
+WHERE collection_name = :p2300_collection_name
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/09/updateable-interactive-report-for-apex/" data-id="cizc1wf5400b9c3n9frzkjesh" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/09/updateable-interactive-report-for-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apex-rules-guidelines" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/09/apex-rules-guidelines/" class="article-date">
@@ -104,7 +332,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/apex-rules-guidelines/" data-id="ciz9gkne9002wxun9kc68qk6o" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/apex-rules-guidelines/" data-id="cizc1wf5200b5c3n9iakqsglo" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/apex-rules-guidelines/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -148,7 +376,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/apex-xdisableitem/" data-id="ciz9gkne6002rxun9eutwsw3v" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/apex-xdisableitem/" data-id="cizc1wf5100b3c3n9x6whvyrk" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/apex-xdisableitem/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -235,7 +463,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/apex-how-to-pass-multiselect-list/" data-id="ciz9gkne4002pxun9n0rqgj9q" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/apex-how-to-pass-multiselect-list/" data-id="cizc1wf5000b1c3n9cneb7naq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/apex-how-to-pass-multiselect-list/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -310,7 +538,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/oracle-how-to-update-all-sequences/" data-id="ciz9gkne2002mxun99pi23zaw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/oracle-how-to-update-all-sequences/" data-id="cizc1wf4z00azc3n9me4unqec" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/oracle-how-to-update-all-sequences/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -399,7 +627,7 @@ EXEC pkg_err_test.sp_err_test(p_empno => 123);
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/oracle-advanced-error-messages/" data-id="ciz9gkndx002gxun965v1ii47" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/oracle-advanced-error-messages/" data-id="cizc1wf4y00axc3n9yxgwk8mu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/oracle-advanced-error-messages/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -467,7 +695,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/how-to-resolve-null-issue-in-apex-lovs/" data-id="ciz9gkndy002ixun9d8vru2as" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/how-to-resolve-null-issue-in-apex-lovs/" data-id="cizc1wf4t00avc3n9ijqkhwxv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/how-to-resolve-null-issue-in-apex-lovs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -512,7 +740,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/javascript-if-else/" data-id="ciz9gkne1002kxun9ymb1uerv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/javascript-if-else/" data-id="cizc1wf5300b7c3n9jbyelr85" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/javascript-if-else/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -577,7 +805,7 @@ SELECT line_content content_without_subs
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/apexapplicationdosubstitutions/" data-id="ciz9gkndw002exun92bae6cw6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/apexapplicationdosubstitutions/" data-id="cizc1wf4r00arc3n9vsz609t3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/apexapplicationdosubstitutions/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -629,102 +857,9 @@ SELECT line_content content_without_subs
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/apex-how-to-develop-in-2-browser-tabs/" data-id="ciz9gkndt0027xun98mbpmcet" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/apex-how-to-develop-in-2-browser-tabs/" data-id="cizc1wf4s00atc3n98jkekjm7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/apex-how-to-develop-in-2-browser-tabs/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-how-to-dynamically-render-regions" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/07/apex-how-to-dynamically-render-regions/" class="article-date">
-  <time datetime="2009-07-14T13:30:00.000Z" itemprop="datePublished">2009-07-14</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/07/apex-how-to-dynamically-render-regions/">APEX: How to Dynamically Render Regions</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Suppose you needed to enable and disable report regions on each page based on a parameter. You could add a condition to each region. If the conditions were all the same, the smart thing to do would be to create a function and have your condition reference the function.</p>
-<p>What if your application had 100 pages? Would you remember to apply the condition to each report region in the 100 pages?</p>
-<p>This is not a problem that most developers run into, however when you are building large applications something similar may come up. If you can find a way to dynamically control items, regions, processes, etc this can save on development time.</p>
-<p>At the <a href="http://www.odtugkaleidoscope.com" target="_blank" rel="external">ODTUG Kaleidoscope</a> conference Dennis Vanill gave a presentation on how to use Page 0 items to enable and disable APEX objects dynamically. Using this logic, here’s an example on how to dynamically disable a region.</p>
-<p><span style="font-style:italic;color:red">Note: Use this when appropriate. For basic conditions stick with using “regular” conditions</span></p>
-<p>A demo is available here: <a href="http://apex.oracle.com/pls/otn/f?p=20195:1900" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=20195:1900</a></p>
-<p>1- Create a page with some report regions</p>
-<pre class="brush: sql">
--- Interactive Report:
-SELECT *
-FROM emp
-
--- Regular Report
-SELECT ename, sal
-FROM emp
-</pre>
-
-<p>2- Create Page Process: On Load - Before Header</p>
-<pre class="brush: sql">
-DECLARE
-BEGIN
-  IF NVL (:p1900_hide_reports_flag, 'N') = 'Y' THEN
-    FOR x IN (SELECT region_id
-                FROM apex_application_page_regions
-               WHERE application_id = :app_id
-                 AND page_id = :app_page_id
-                 AND source_type IN ('Report', 'Interactive Report')) LOOP
-      FOR i IN 1 .. apex_application.g_plug_id.COUNT LOOP
-        IF apex_application.g_plug_id (i) = x.region_id THEN
-          apex_application.g_plug_display_condition_type (i) := 'NEVER';
-        END IF;
-      END LOOP;
-    END LOOP;
-  END IF;
-END;
-</pre>
-
-<p>2- (For Demo purposes only)<br>I added the following on Page 0 to display in the example application. This shows that no conditions were applied to a region</p>
-<pre class="brush: sql">
-SELECT region_id,
-       region_name,
-       source_type,
-       condition_type,
-       condition_expression1,
-       condition_expression2,
-       build_option,
-       authorization_scheme
-  FROM apex_application_page_regions
- WHERE application_id = :app_id
-   AND page_id = :app_page_id
-</pre>   
-
-<p>You can use the same logic to control computations, items, etc. Take a look at apex_application (<span style="font-style:italic;">desc apex_application</span>) for more options.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/apex-how-to-dynamically-render-regions/" data-id="ciz9gkndu0029xun9fiarwlon" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/07/apex-how-to-dynamically-render-regions/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
@@ -774,7 +909,7 @@ SELECT region_id,
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">130</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -811,7 +946,7 @@ SELECT region_id,
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
