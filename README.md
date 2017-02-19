@@ -27,6 +27,8 @@ npm install
 ## Hexo Specific
 
 ```bash
+# Clean the database
+hexo clean
 
 # Generate content
 hexo generate
