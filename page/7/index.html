@@ -66,6 +66,53 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-parsing-imperfect-json" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/01/parsing-imperfect-json/" class="article-date">
+  <time datetime="2014-01-08T14:00:00.000Z" itemprop="datePublished">2014-01-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/01/parsing-imperfect-json/">Parsing Imperfect JSON</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>In JavaScript, each JSON attribute name should be wrapped in quotes for it to be parsed correctly. Sometimes you may receive a JSON string that isn’t properly formed because of the missing quotes. You can still parse it using the technique described below.</p>
+<p>To start, here’s an example of malformed JSON using <a href="http://json.parse/" target="_blank" rel="external"><code>JSON.parse</code></a> and jQuery’s <a href="http://api.jquery.com/jQuery.parseJSON/" target="_blank" rel="external"><code>$.parseJSON</code></a>. You’ll notice that it doesn’t parse the JSON string since it doesn’t have its names wrapped with quotes.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//Using native JS: JSON.parse</span></div><div class="line"><span class="comment">//Similar result for jQuery $.parseJSON</span></div><div class="line"><span class="keyword">var</span> jsonStr = <span class="string">'&#123;ename : "martin", sal: 100&#125;'</span>;</div><div class="line"><span class="keyword">var</span> jsonObj = <span class="built_in">JSON</span>.parse(jsonStr);</div><div class="line"></div><div class="line"><span class="comment">//Raises error:</span></div><div class="line"><span class="built_in">SyntaxError</span>: <span class="built_in">JSON</span>.parse: expected property name or <span class="string">'&#125;'</span></div><div class="line"></div><div class="line"><span class="comment">//Correct JSON object (notice attribute names are quoted)</span></div><div class="line"><span class="keyword">var</span> jsonStr = <span class="string">'&#123;"ename" : "martin", "sal": 100&#125;'</span>;</div><div class="line"><span class="keyword">var</span> jsonObj = <span class="built_in">JSON</span>.parse(jsonStr);</div><div class="line"><span class="built_in">console</span>.log (jsonObj);</div><div class="line"></div><div class="line"><span class="comment">//Returns JSON object</span></div><div class="line"><span class="built_in">Object</span> &#123; ename=<span class="string">"martin"</span>, sal=<span class="number">100</span>&#125;</div></pre></td></tr></table></figure>
+<p>To get around this issue you can use JavaSript’s <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval" target="_blank" rel="external"><code>eval</code></a> method. It’s not pretty but it does the job and will probably save you a lot of time trying to correct your JSON object.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> jsonStr = <span class="string">'&#123;ename : "martin", sal: 100&#125;'</span>;</div><div class="line"><span class="built_in">eval</span>(<span class="string">'jsonObj = '</span> + jsonStr + <span class="string">';'</span>);</div><div class="line"><span class="built_in">console</span>.log(jsonObj);</div><div class="line"></div><div class="line"><span class="comment">//Returns JSON object</span></div><div class="line"><span class="built_in">Object</span> &#123; ename=<span class="string">"martin"</span>, sal=<span class="number">100</span>&#125;</div></pre></td></tr></table></figure>
+<p>I’ve found this technique really helpful when passing back JSON strings from APEX AJAX calls (via a Dynamic Action, Plugin, or custom AJAX).</p>
+<p><strong>Update</strong>: Please read John’s comment below as he makes a good point that the data should be data that you control otherwise perfect area for a JS injection attack.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2014/01/parsing-imperfect-json/" data-id="cize7k72800bxq0n9zjwmmqdc" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2014/01/parsing-imperfect-json/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-derived-columns-in-apex-standard-reports" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2014/01/derived-columns-in-apex-standard-reports/" class="article-date">
@@ -102,7 +149,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/derived-columns-in-apex-standard-reports/" data-id="cizc1wf1m004lc3n9zam9d5vt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/01/derived-columns-in-apex-standard-reports/" data-id="cize7k72700bvq0n9akn9u7qz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/01/derived-columns-in-apex-standard-reports/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -161,7 +208,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/2014-speaking-engagements/" data-id="cizc1wf1n004nc3n9ob55hh4s" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/01/2014-speaking-engagements/" data-id="cize7k72900bzq0n97tv6hfus" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/01/2014-speaking-engagements/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -204,7 +251,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/12/seattle-come-meet-some-oracle-ace/" data-id="cizc1wf3y0092c3n95b8ywwli" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/12/seattle-come-meet-some-oracle-ace/" data-id="cize7k71y00bhq0n9fyv5k3tm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/12/seattle-come-meet-some-oracle-ace/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -271,7 +318,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/12/oracleapexcom/" data-id="cizc1wf3w008yc3n9onbupew2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/12/oracleapexcom/" data-id="cize7k70e00a8q0n9swhvzh04" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/12/oracleapexcom/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -316,7 +363,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/11/logger-survey/" data-id="cizc1wf3v008wc3n9bdw0grkn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/11/logger-survey/" data-id="cize7k71v00bbq0n9yzekcmbd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/11/logger-survey/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -366,7 +413,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/10/odtug-elections-please-vote/" data-id="cizc1wf3u008uc3n9plr6la74" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/10/odtug-elections-please-vote/" data-id="cize7k70g00aaq0n9rs3aitt9" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/10/odtug-elections-please-vote/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -412,7 +459,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/10/leaving-it-to-experts/" data-id="cizc1wf3s008qc3n9s241k4t9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/10/leaving-it-to-experts/" data-id="cize7k70b00a3q0n9w81f466h" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/10/leaving-it-to-experts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -456,7 +503,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/09/presenting-at-oracle-open-world-oow/" data-id="cizc1wf3t008sc3n90z322xko" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/09/presenting-at-oracle-open-world-oow/" data-id="cize7k70d00a6q0n9x2s86ca2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/09/presenting-at-oracle-open-world-oow/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -500,61 +547,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/09/logger-with-batch-processes/" data-id="cizc1wf3q008oc3n937bg25qh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/09/logger-with-batch-processes/" data-id="cize7k708009xq0n96uyew6tv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/09/logger-with-batch-processes/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-oow-2013-meetup" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/08/apex-oow-2013-meetup/" class="article-date">
-  <time datetime="2013-08-30T16:32:00.000Z" itemprop="datePublished">2013-08-30</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/08/apex-oow-2013-meetup/">APEX OOW 2013 Meetup</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Each year the Oracle APEX community gets together at Oracle Open World (OOW) to have a few beers and catch up. This is a great informal event and its your chance to network with a lot of people in the APEX community and meet some of the gurus and members of the core APEX development team.</p>
-<p>Normally <a href="http://dgielis.blogspot.ca/" target="_blank" rel="external">Dimitri Gielis</a> organizes the meetup, however he is expecting his third child and understandably he will not be coming to OOW. As such I’ve been handed the torch to help organize the event this year. To be honest by “I” I really mean <a href="https://twitter.com/lprezby" target="_blank" rel="external">Lauren Prezby</a> at <a href="http://odtug.com/" target="_blank" rel="external">ODTUG</a> has done the planning and found our venue for this year :-)</p>
-<p>We’ll be having the annual APEX OOW Meetup at <a href="http://www.johnnyfoleys.com/" target="_blank" rel="external">Johnny Foleys</a> on Tuesday at 7:30 onwards.</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-UHWSfgZa2yI/UiDIg1Wv3VI/AAAAAAAAEcw/knXK1Qn6AvY/s1600/johnnyfoleys.jpg" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-UHWSfgZa2yI/UiDIg1Wv3VI/AAAAAAAAEcw/knXK1Qn6AvY/s400/johnnyfoleys.jpg" alt=""></a></div>
-
-<p><a href="http://goo.gl/zgbr9m" target="_blank" rel="external">243 O’Farrell Street</a><br>San Francisco, CA 94102</p>
-<p><a href="http://www.odtug.com/" target="_blank" rel="external">ODTUG</a> will also be giving away some cool APEX swag!</p>
-<p>Looking forward to seeing everyone there!</p>
-<p>– Martin</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/apex-oow-2013-meetup/" data-id="cizc1wf3o008jc3n93qw4c2n2" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/08/apex-oow-2013-meetup/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oow/">oow</a></li></ul>
 
     </footer>
   </div>
@@ -638,7 +636,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

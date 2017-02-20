@@ -66,6 +66,84 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-orphaned-application-files" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/12/apex-orphaned-application-files/" class="article-date">
+  <time datetime="2009-12-01T16:00:00.000Z" itemprop="datePublished">2009-12-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/12/apex-orphaned-application-files/">APEX Orphaned Application Files</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>If you allow end users to upload files to your APEX application you may have a lot of “orphaned” files in apex_application_files and not even realize it.</p>
+<p>Orphaned files are files that exist in <span style="font-style:italic;">APEX_APPLICATION_FILES</span> that are not associated with an application. This can happen for several reasons, the most common are:</p>
+<ul>
+<li>Files uploaded in Shared Components that aren’t associated to an application</li>
+<li>End users uploading files then purposely keep them in <span style="font-style:italic;">APEX_APPLICATION_FILES</span></li>
+<li>End users uploading files and an error occurs</li>
+</ul>
+<p>You can easily identify orphaned files using the <span style="font-style:italic;">APEX_APPLICATION_FILES</span> view:</p>
+<pre class="brush: sql">
+SELECT *
+  FROM apex_application_files
+ WHERE flow_id = 0 -- flow_id is the same as application_id
+</pre>
+All 3 situations listed above will result in the file uploaded with <span style="font-style:italic;">flow_id = 0</span>. The last 2 points, files uploaded from end users, can result in files that you may no longer need. I don't recommend that you keep uploaded files in the <span style="font-style:italic;">APEX_APPLICATION_FILES</span> view. Instead you should move them immediately to a custom table.
+
+The main problem comes from the third point. When a user uploads a file and a validation fails. In this situation the file is uploaded to <span style="font-style:italic;">APEX_APPLICATION_FILES</span> and then the validation fails. Even though the validation failed, the file still resides in <span style="font-style:italic;">APEX_APPLICATION_FILES</span>. The following screen shot demonstrates this issue.
+
+[![](http://2.bp.blogspot.com/_33EF80fk9sM/SwNsxYj7t_I/AAAAAAAADto/ALhY8Bl_mrU/s400/validation_fail.bmp)](http://2.bp.blogspot.com/_33EF80fk9sM/SwNsxYj7t_I/AAAAAAAADto/ALhY8Bl_mrU/s1600/validation_fail.bmp)
+To resolve this issue, I run the following application process which automatically "tags" uploaded files with a flow_id of -1\. By doing so you can run a nightly process to delete any files that have a flow_id of -1.
+
+Application Process: AP_TAG_APEX_FILES
+Sequence: -100
+Point: On Submit: After Page Submission - Before Computations and Validations
+<pre class="brush: sql">
+-- AP_TAG_APEX_FILES
+BEGIN
+   FOR x IN (SELECT v (item_name) item_name_value
+               FROM apex_application_page_items
+              WHERE application_id = :app_id
+                AND page_id = :app_page_id
+                AND display_as = 'File Browse...')
+   LOOP
+      UPDATE apex_application_files aaf
+         SET aaf.flow_id = -1
+       WHERE aaf.NAME = x.item_name_value;
+   END LOOP;
+END;
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cize7k6yt008aq0n91xmlniy4" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/12/apex-orphaned-application-files/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-using-decimals-in-apex-page-numbers" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/11/using-decimals-in-apex-page-numbers/" class="article-date">
@@ -96,7 +174,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cizc1wf5d00btc3n9fwy0rsmd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cize7k6yq0086q0n9ohsc83vz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -173,7 +251,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cizc1wf5b00bpc3n9snl7x8ed" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cize7k6ys0088q0n9qdwjec1f" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -239,7 +317,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cizc1wf5a00bnc3n900dcz6be" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cize7k6ym0080q0n9wgxndyce" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -289,7 +367,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cizc1wf5c00brc3n90p0y1a9s" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cize7k6yp0084q0n909ddfov8" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -338,7 +416,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="cizc1wf5800bhc3n9senh7z91" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="cize7k6yo0082q0n9423r3g5d" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -384,7 +462,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/apexstackexchangecom/" data-id="cizc1wf5900bjc3n9mk8346x2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/apexstackexchangecom/" data-id="cize7k6yi007wq0n9wqekznjz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/apexstackexchangecom/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -428,7 +506,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/" data-id="cizc1wf5700bfc3n956ytglbh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/" data-id="cize7k6yg007uq0n9dj26dctp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -732,7 +810,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/" data-id="cizc1wf5a00blc3n9u0se06g4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/" data-id="cize7k6yk007yq0n9gdi0ie81" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -817,115 +895,9 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/" data-id="cizc1wf5500bbc3n9kz4sxkk4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/" data-id="cize7k6yf007sq0n9ysn2ncxj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-tooltip-help-in-apex-alternative-to" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/09/tooltip-help-in-apex-alternative-to/" class="article-date">
-  <time datetime="2009-09-15T15:00:00.000Z" itemprop="datePublished">2009-09-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/09/tooltip-help-in-apex-alternative-to/">Tooltip Help in APEX: An alternative to popup help</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>The default help functionality for APEX is ok but can cause some problems with users browsers since it uses popup windows to display the help. If you do some digging around regarding web development best practices you’ll find a lot of articles discussing why you should avoid popup windows. Instead of using the default help popup windows I prefer to use tooltips to display the help. Besides avoiding the popup window, tooltips generate a good user experience by displaying item help very quickly.</p>
-<p>This demo uses a jQuery tooltip plugin: <a href="http://bassistance.de/jquery-plugins/jquery-plugin-tooltip/" target="_blank" rel="external">http://bassistance.de/jquery-plugins/jquery-plugin-tooltip/</a>. Please visit the Bassistance website to find out how to configure the look and feel of the tool tips.</p>
-<p>Here’s a link to the demo: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2400" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=20195:2400</a></p>
-<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Sq0Cb8Ae2WI/AAAAAAAADqc/flO0nQATWCA/s1600-h/tooltiphelp.jpg" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Sq0Cb8Ae2WI/AAAAAAAADqc/flO0nQATWCA/s400/tooltiphelp.jpg" alt=""></a></p>
-<p><span style="font-weight:bold;">- Create or Update Label Template</span><br><span style="font-style: italic;">Note: You don’t need to create a new template. If you want to, just update the existing templates</span></p>
-<ul>
-<li><p>Copy the “Optional Label with Help” and rename to “Optional Label with ToolTip”.<br><span style="font-style: italic;">Note: You can do this for required labels as well</span></p>
-</li>
-<li><p>Change the “Before Label” From:<br>&lt;label for=”#CURRENT_ITEM_NAME#” tabindex=”999”&gt;&lt;a class=”t20OptionalLabelwithHelp” href=”javascript:popupFieldHelp(‘#CURRENT_ITEM_ID#’,’&amp;SESSION.’)” tabindex=”999”&gt;</p>
-</li>
-</ul>
-<p>To:<br><span style="font-style: italic;">I removed the href reference and replaced with #</span><br>&lt;label for=”#CURRENT_ITEM_NAME#” tabindex=”999”&gt;&lt;a class=”t20OptionalLabelwithHelp” href=”#” tabindex=”999”&gt;</p>
-<p><span style="font-weight:bold;">- Create a HTML region</span><br><span style="font-style: italic;">This can be done on P0 to load for each page</span><br><span style="font-style: italic;">Don’t forget to upload the <a href="http://jquery.com/" target="_blank" rel="external">jQuery</a> and <a href="http://bassistance.de/jquery-plugins/jquery-plugin-tooltip/" target="_blank" rel="external">tooltip</a> JS files into Shared Components / Static Files</span></p>
-<pre class="brush: html">
-<script src="#APP_IMAGES#jquery-1.3.2.min.js" type="text/javascript"></script>
-<script src="#APP_IMAGES#jquery.tooltip.pack-1.3.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-
-$(document).ready(function(){
-  $('span.itemToolTip').each(function(i){
-    $('label[for="' +  $(this).attr('foritem') + '"]').attr('title',$(this).html()).tooltip({
-        track: true,
-        delay: 0,
-        showURL: false,
-        showBody: " - ",
-        fade: 250
-      });
-  });
-  // Remove Original ToolTip Help Text
-  $('span.itemToolTip').remove();
-});
-</script>
-
-<style>
-#tooltip {
- position: absolute;
- z-index: 3000;
- border: 1px solid #111;
- background-color: #eee;
- padding: 5px;
- opacity: 0.85;
-}
-#tooltip h3, #tooltip div { margin: 0; }
-</style>
-</pre>
-
-<p><span style="font-weight:bold;">- Create an Application Process</span><br>Name: AP_GET_HELP_TEXT<br>Process Point: On Load: After Header</p>
-<pre class="brush: sql">
-BEGIN
-  FOR x IN (SELECT    '<span class="itemToolTip" foritem="'
-                   || item_name
-                   || '">'
-                   || item_help_text
-                   || '</span>' help_html
-              FROM apex_application_page_items
-             WHERE application_id = :app_id
-               AND page_id = :app_page_id
-               AND item_help_text IS NOT NULL)
-  LOOP
-    HTP.p (x.help_html);
-  END LOOP;
-END;
-</pre>
-
-<p><span style="font-weight:bold;">- Change Item Labels</span><br>Change Item labels to “Optional Label with ToolTip”. Only do this if you created a new template</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/tooltip-help-in-apex-alternative-to/" data-id="cizc1wf5600bdc3n9ky0psd3v" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/09/tooltip-help-in-apex-alternative-to/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
@@ -1012,7 +984,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
