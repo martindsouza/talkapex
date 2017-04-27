@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.talkapex.com/"/>
-  <updated>2017-02-20T14:39:12.000Z</updated>
+  <updated>2017-04-27T15:11:00.000Z</updated>
   <id>http://www.talkapex.com/</id>
   
   <author>
@@ -14,6 +14,39 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Partial Rollbacks</title>
+    <link href="http://www.talkapex.com/2017/04/partial-rollbacks/"/>
+    <id>http://www.talkapex.com/2017/04/partial-rollbacks/</id>
+    <published>2017-04-27T10:28:41.000Z</published>
+    <updated>2017-04-27T15:11:00.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>The ability to rollback transactionsin PL/SQL is very helpful when something goes wrong and you want to <em>undo</em> what was just done. At a very high level, most code that use <code>rollback</code> look like the following:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">begin</span></div><div class="line">  ...</div><div class="line"><span class="keyword">exception</span></div><div class="line">  <span class="keyword">when</span> others <span class="keyword">then</span></div><div class="line">    <span class="keyword">rollback</span>;</div><div class="line">    raise;</div><div class="line"><span class="keyword">end</span>;</div></pre></td></tr></table></figure>
+<p>The above code makes sense as the <code>rollback</code> occurs when an error happens. (<em>Note for APEX users, an implicit <code>rollback</code> occurs in processes if an exception occurs</em>) The caveat is that it rollsback the entire transaction (i.e. from the start). What if the code is part of a larger block of code and you only want to <code>rollback</code> to the previous step? The following pseudo code is an example:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">begin</span></div><div class="line">  do_step_1;</div><div class="line">  do_step_2;</div><div class="line">  <span class="comment">-- Step 3 may error out and if it does, still want to preserve the work of steps 1 and 2.</span></div><div class="line">  do_step_3;</div><div class="line">  do_step_4;</div><div class="line"><span class="keyword">end</span>;</div></pre></td></tr></table></figure>
+<p>In <code>do_step_3</code> if a generic <code>rollback</code> was used in the exception block it would undo any chnages that were done in step’s 1 and 2 which is not the desired outcome. Thankfully PL/SQL rollback functionality supports this by using <code>savepoint</code>. If we want <code>do_step_3</code> to work as intented this is what it should look like:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">procedure</span> do_step_3 <span class="keyword">as</span></div><div class="line"><span class="keyword">begin</span></div><div class="line">  <span class="keyword">savepoint</span> start_step_3;</div><div class="line"></div><div class="line">  ...</div><div class="line"></div><div class="line">exception</div><div class="line">  when some_expected_error then</div><div class="line">    <span class="comment">-- This will rollback all changes to the start of do_step_3</span></div><div class="line">    <span class="keyword">rollback</span> <span class="keyword">to</span> <span class="keyword">savepoint</span> start_step_3;</div><div class="line">    <span class="comment">-- no raise as this was an expected error</span></div><div class="line">  when others then</div><div class="line">    raise;</div><div class="line"><span class="keyword">end</span> do_step_3;</div></pre></td></tr></table></figure>
+<p>A few things to note about <code>savepoint</code>s:</p>
+<ul>
+<li>The <code>rollback to savepoint x</code> doesn’t need to be called in the <code>exception</code> block. I’ve used it in other places as well. Ex: <code>if &lt;&gt; then rollback to savepoint...</code></li>
+<li>Try not to litter your code with <code>savepoint</code>s. It can get very confusing and tough to debug if you have a lot of them. The business logic will really determine when you need to use them.</li>
+<li>In the past ten years I’ve only needed to use them a handful of times. It’s not a common feature that you’ll need to use but good to know when you need it.</li>
+</ul>
+<p>Oracle documentation for <code>savepoint</code> can be found <a href="http://docs.oracle.com/database/122/SQLRF/SAVEPOINT.htm#SQLRF01701" target="_blank" rel="external">here</a>.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;The ability to rollback transactionsin PL/SQL is very helpful when something goes wrong and you want to &lt;em&gt;undo&lt;/em&gt; what was just done.
+    
+    </summary>
+    
+    
+      <category term="plsql" scheme="http://www.talkapex.com/tags/plsql/"/>
+    
+  </entry>
   
   <entry>
     <title>HEUG Alliance 2017</title>
@@ -57,9 +90,9 @@
     </summary>
     
     
-      <category term="css" scheme="http://www.talkapex.com/tags/css/"/>
-    
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
+    
+      <category term="css" scheme="http://www.talkapex.com/tags/css/"/>
     
   </entry>
   
@@ -166,9 +199,9 @@
     </summary>
     
     
-      <category term="css" scheme="http://www.talkapex.com/tags/css/"/>
-    
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
+    
+      <category term="css" scheme="http://www.talkapex.com/tags/css/"/>
     
       <category term="javascript" scheme="http://www.talkapex.com/tags/javascript/"/>
     
@@ -353,6 +386,31 @@
   </entry>
   
   <entry>
+    <title>ODTUG Technical Journal - Authors Wanted</title>
+    <link href="http://www.talkapex.com/2015/11/odtug-technical-journal-authors-wanted/"/>
+    <id>http://www.talkapex.com/2015/11/odtug-technical-journal-authors-wanted/</id>
+    <published>2015-11-09T14:00:00.000Z</published>
+    <updated>2017-01-07T15:38:37.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>If you’ve ever thought of starting your own blog or wanted to write a detailed article on some cool APEX or Oracle feature but didn’t know where to start, now’s your big chance! The <a href="http://www.odtug.com/technical-journal-corner" target="_blank" rel="external">ODTUG Technical Journal</a> is looking for some new articles and we’d like to see articles from first time contributors.</p>
+<p>Signing up is easy. Simply email Karen Cannell (kcannell@odtug.com) and let her know that you’re interested in writing an article for the journal. Then you can work out a schedule with her. After that, all you need to do is write the article, Karen will take care of the rest.</p>
+<p>This is a great opportunity to get your name out there and also promote what you and your organization have been been working on. I’m looking forward to seeing some great content from the APEX community.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;If you’ve ever thought of starting your own blog or wanted to write a detailed article on some cool APEX or Oracle feature but didn’t kno
+    
+    </summary>
+    
+    
+      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
+    
+      <category term="odtug" scheme="http://www.talkapex.com/tags/odtug/"/>
+    
+  </entry>
+  
+  <entry>
     <title>ODTUG Election</title>
     <link href="http://www.talkapex.com/2015/11/odtug-election/"/>
     <id>http://www.talkapex.com/2015/11/odtug-election/</id>
@@ -392,31 +450,6 @@
     
     </summary>
     
-    
-      <category term="odtug" scheme="http://www.talkapex.com/tags/odtug/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>ODTUG Technical Journal - Authors Wanted</title>
-    <link href="http://www.talkapex.com/2015/11/odtug-technical-journal-authors-wanted/"/>
-    <id>http://www.talkapex.com/2015/11/odtug-technical-journal-authors-wanted/</id>
-    <published>2015-11-09T14:00:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>If you’ve ever thought of starting your own blog or wanted to write a detailed article on some cool APEX or Oracle feature but didn’t know where to start, now’s your big chance! The <a href="http://www.odtug.com/technical-journal-corner" target="_blank" rel="external">ODTUG Technical Journal</a> is looking for some new articles and we’d like to see articles from first time contributors.</p>
-<p>Signing up is easy. Simply email Karen Cannell (kcannell@odtug.com) and let her know that you’re interested in writing an article for the journal. Then you can work out a schedule with her. After that, all you need to do is write the article, Karen will take care of the rest.</p>
-<p>This is a great opportunity to get your name out there and also promote what you and your organization have been been working on. I’m looking forward to seeing some great content from the APEX community.</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;If you’ve ever thought of starting your own blog or wanted to write a detailed article on some cool APEX or Oracle feature but didn’t kno
-    
-    </summary>
-    
-    
-      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
     
       <category term="odtug" scheme="http://www.talkapex.com/tags/odtug/"/>
     
@@ -571,38 +604,6 @@
     
     
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>APEX OOW 2015 Meetup</title>
-    <link href="http://www.talkapex.com/2015/09/apex-oow-2015-meetup/"/>
-    <id>http://www.talkapex.com/2015/09/apex-oow-2015-meetup/</id>
-    <published>2015-09-28T13:00:00.000Z</published>
-    <updated>2017-01-07T15:38:37.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>Each year the Oracle APEX community gets together at Oracle Open World (OOW) to have a few beers and catch up. This is a great informal event and its your chance to network with a lot of people in the APEX community and meet some of the gurus and members of the core APEX development team.</p>
-<p>We’ll be having the annual APEX OOW Meetup at <a href="http://www.johnnyfoleys.com/" target="_blank" rel="external">Johnny Foleys</a> on Tuesday, October 27th at 7:30 onwards. We’ve been their a few times now and it is a really fun night since they have duelling pianos later on in the evening. Don’t show up too late or it may be tough to get in.</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-UHWSfgZa2yI/UiDIg1Wv3VI/AAAAAAAAEcw/knXK1Qn6AvY/s1600/johnnyfoleys.jpg" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-UHWSfgZa2yI/UiDIg1Wv3VI/AAAAAAAAEcw/knXK1Qn6AvY/s320/johnnyfoleys.jpg" alt=""></a></div>
-
-<p><a href="http://goo.gl/zgbr9m" target="_blank" rel="external">243 O’Farrell Street</a><br><a href="http://goo.gl/zgbr9m" target="_blank" rel="external">San Francisco, CA 94102</a></p>
-<p><a href="http://odtug.com/" target="_blank" rel="external">ODTUG</a> will also be giving away some cool APEX swag!</p>
-<p>Looking forward to seeing everyone there!</p>
-<p>Martin</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;Each year the Oracle APEX community gets together at Oracle Open World (OOW) to have a few beers and catch up. This is a great informal e
-    
-    </summary>
-    
-    
-      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
-    
-      <category term="odtug" scheme="http://www.talkapex.com/tags/odtug/"/>
-    
-      <category term="oow" scheme="http://www.talkapex.com/tags/oow/"/>
     
   </entry>
   

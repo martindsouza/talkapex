@@ -66,6 +66,152 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-automatically-remove-items-and" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/01/how-to-automatically-remove-items-and/" class="article-date">
+  <time datetime="2010-01-04T06:25:00.000Z" itemprop="datePublished">2010-01-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/01/how-to-automatically-remove-items-and/">How to Automatically Remove Items and Values in APEX URLs</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago I wrote about how to pass multi-select lists through the URL: <a href="http://apex-smb.blogspot.com/2009/07/apex-how-to-pass-multiselect-list.html" target="_blank" rel="external">http://apex-smb.blogspot.com/2009/07/apex-how-to-pass-multiselect-list.html</a>. This method works, however it will only support up to 4000 characters as a result of the functions it uses.</p>
+<p>What happens when a user selects more than 4000 characters? You could update the processes to handle clobs etc. I took a different approach when faced with this problem. Instead of trying to update the process to handle clobs I asked: <span style="font-style: italic">Why am I passing the values through the URL?</span> Wouldn’t it be easier if I didn’t pass values through the URL?</p>
+<p>When I first thought about this, I thought I could run a process on each page that would set the appropriate variables to the calling page. But then developers would have to look in the page branch and page processes to see what items were being passed to which pages. This sounded confusing and goes against the APEX framework. I really don’t like having developers do extra work when they don’t need to or go against standards already put in place.</p>
+<p>I took a different approach to this problem. Instead of having a special page process to pass values from one page to another I was able to “intercept” the page branch and modify it before it was executed. I did this by taking the page branch and manually setting the item/value pairs, then removing them from the page branch. Here’s an example of the final solution: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2800" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=20195:2800</a>.</p>
+<p>Here are some screen shots from the demo application:</p>
+<p><span style="font-style:italic">Page Branch configuration:</span></p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/S0F9YM_k10I/AAAAAAAADv8/rNCZa9Wi7AM/s1600-h/url_pass_param_03.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/S0F9YM_k10I/AAAAAAAADv8/rNCZa9Wi7AM/s400/url_pass_param_03.png" alt=""></a><br><span style="font-style:italic">Passing in values via the URL (note that I’d like “X” to be “abc:def”, however it’s just abc)</span></p>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/S0F9X4aiEII/AAAAAAAADv0/2_FTajRMH-4/s1600-h/url_pass_param_02.png" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/S0F9X4aiEII/AAAAAAAADv0/2_FTajRMH-4/s400/url_pass_param_02.png" alt=""></a><br><span style="font-style:italic;">Running the page process to manually remove the item/value pairs from the URL:</span></p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/S0F9XXhr8JI/AAAAAAAADvs/Wq2Vmvuc1wA/s1600-h/url_pass_param_01.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/S0F9XXhr8JI/AAAAAAAADvs/Wq2Vmvuc1wA/s400/url_pass_param_01.png" alt=""></a><br>Before reviewing the code, it’s important to note the following assumptions. I made these assumptions to make the code demo easier to read.<br><span style="font-style: italic"></span></p>
+<ul>
+<li>Only 1 branch is defined on the page with no conditions etc.</li>
+<li>The branch only contains at most 1 clear cache</li>
+<li>The branch passes as most 1 item/value pair to the other page<br><br><span style="font-weight: bold">- Create page process: Remove URL Params</span></li>
+<li>Branch Point: On Submit After Processing</li>
+</ul>
+<p><span style="font-style: italic">Note: You could easily turn this into an application process to be run throughout your application</span></p>
+<pre class="brush: sql">
+-- NOTE: For the purpose of this example I'm assuming the following:
+--   Only 1 branch is defined with no conditions etc.
+--   The branch only contains at most 1 clear cache
+--   The branch passes as most 1 item/value pair to the other page
+
+DECLARE
+   v_branch_action   apex_application_page_branches.branch_action%TYPE;
+   p_app_id          apex_application_page_branches.application_id%TYPE := :app_id;
+   p_page_id         apex_application_page_branches.page_id%TYPE := :app_page_id;
+   v_clear_cache     NUMBER;
+   v_item_names      VARCHAR2 (4000);
+   v_item_values     VARCHAR2 (4000);
+BEGIN
+   -- Get branch action
+   -- The branch action is the URL before it is parsed by APEX
+   SELECT branch_action
+     INTO v_branch_action
+     FROM apex_application_page_branches
+    WHERE application_id = p_app_id AND page_id = p_page_id;
+
+   -- Get the clear cache options
+   v_clear_cache :=
+      SUBSTR (v_branch_action,
+              INSTR (v_branch_action, ':', 1, 5) + 1,
+                INSTR (v_branch_action, ':', 1, 6)
+              - INSTR (v_branch_action, ':', 1, 5)
+              - 1
+             );
+
+   -- Manually clear the cache if required
+   IF v_clear_cache IS NOT NULL
+   THEN
+      apex_util.clear_page_cache (p_page_id => v_clear_cache);
+   END IF;
+
+   -- Get Page Param values
+   v_item_names :=
+      SUBSTR (v_branch_action,
+              INSTR (v_branch_action, ':', 1, 6) + 1,
+                INSTR (v_branch_action, ':', 1, 7)
+              - INSTR (v_branch_action, ':', 1, 6)
+              - 1
+             );
+   v_item_values :=
+      SUBSTR (v_branch_action,
+              INSTR (v_branch_action, ':', 1, 7) + 1,
+                INSTR (v_branch_action, '&success_msg=', 1, 1)
+              - INSTR (v_branch_action, ':', 1, 7)
+              - 1
+             );
+
+   -- If item/value pairs exist, manually set the values
+   IF v_item_names IS NOT NULL
+   THEN
+      -- See: http://apex-smb.blogspot.com/2009/07/apexapplicationdosubstitutions.html for more info on apex_application.do_substitutions
+      apex_util.set_session_state
+           (p_name       => v_item_names,
+            p_value      => apex_application.do_substitutions (TRIM (v_item_values))
+           );
+   END IF;
+
+   -- Modify the branch action
+   -- Remove the clear cache option if applicable
+   IF v_clear_cache IS NOT NULL
+   THEN
+      v_branch_action :=
+            SUBSTR (v_branch_action, 1, INSTR (v_branch_action, ':', 1, 5))
+         || SUBSTR (v_branch_action, INSTR (v_branch_action, ':', 1, 6));
+   END IF;
+
+   -- Remove the item name/value pairs if applicable
+   IF v_item_names IS NOT NULL
+   THEN
+      -- Remove item Names
+      v_branch_action :=
+            SUBSTR (v_branch_action, 1, INSTR (v_branch_action, ':', 1, 6))
+         || SUBSTR (v_branch_action, INSTR (v_branch_action, ':', 1, 7));
+      -- Remove item values
+      v_branch_action :=
+            SUBSTR (v_branch_action, 1, INSTR (v_branch_action, ':', 1, 7))
+         || SUBSTR (v_branch_action,
+                    INSTR (v_branch_action, '&success_msg=', 1, 1)
+                   );
+   END IF;
+
+   -- Set the new branch action
+   apex_application.g_branch_action (1) := v_branch_action;
+END;
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="cj20jrtb5003l0fn9bt9ts1tr" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apex-orphaned-application-files" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/12/apex-orphaned-application-files/" class="article-date">
@@ -130,7 +276,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cize7k6yt008aq0n91xmlniy4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cj20jrtb3003h0fn9ht6c0uqr" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/12/apex-orphaned-application-files/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -174,7 +320,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cize7k6yq0086q0n9ohsc83vz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cj20jrtb2003f0fn9ff4wnfpu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -251,7 +397,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cize7k6ys0088q0n9qdwjec1f" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cj20jrtb1003d0fn9m57rxrnt" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -317,7 +463,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cize7k6ym0080q0n9wgxndyce" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cj20jrtb0003b0fn9v7at8qnk" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -367,7 +513,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cize7k6yp0084q0n909ddfov8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cj20jrtaz00390fn9lfu06boa" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -416,7 +562,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="cize7k6yo0082q0n9423r3g5d" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="cj20jrtay00370fn9792wt7xg" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -462,7 +608,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/apexstackexchangecom/" data-id="cize7k6yi007wq0n9wqekznjz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/apexstackexchangecom/" data-id="cj20jrtax00350fn9e23qs6d2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/apexstackexchangecom/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -506,7 +652,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/" data-id="cize7k6yg007uq0n9dj26dctp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/" data-id="cj20jrtav00330fn9tcq8mfn2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -810,97 +956,12 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/" data-id="cize7k6yk007yq0n9gdi0ie81" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/" data-id="cj20jrtau00310fn9j0p5q5vq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/security/">security</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-redirects-for-apex-tabs-instead-of-page" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/09/redirects-for-apex-tabs-instead-of-page/" class="article-date">
-  <time datetime="2009-09-17T15:00:00.000Z" itemprop="datePublished">2009-09-17</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/09/redirects-for-apex-tabs-instead-of-page/">Redirects for APEX Tabs instead of page submits</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>With APEX Tabs you may not want the page to be submitted each time the user clicks on a tab. If you look at the link for the tabs they look like: <span style="font-style:italic">javascript:doSubmit(‘xxxx’);</span> Where “xxx” is the name of the tab. “doSubmit” will submit the page and could trigger page computations, validations, and processes. If all you want to do is use the tabs as a form of navigation (i.e. when you click on a tab it redirects to another page) then this could cause some problems.</p>
-<p>To avoid triggering Page Processing on tabs you can modify all the conditions on your Page Process (this could be very long) or change the link. They’re multiple ways to change the links, here’s a simple one using <a href="http://jquery.com" target="_blank" rel="external">jQuery</a>.</p>
-<p>Here’s a link to the demo: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2500" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=20195:2500</a>. Note, in the demo I don’t trigger the javascript to change the link automatically so you can see what they look like before and after changing the links.</p>
-<p><span style="font-weight:bold;">- Create an Application Process</span><br><span style="font-style:italic">Note: You may want to only apply this to certain pages depending on the use case</span></p>
-<p>Name: AP_UNSUBMIT_TABS<br>Process Point: On Load: After Header</p>
-<pre class="brush: sql">
-BEGIN
-  FOR x IN (SELECT tab_name,
-                   tab_page,
-                      '<span class="apexTabURLs" tabname="'
-                   || tab_name
-                   || '" tabnewurl="'
-                   || apex_util.prepare_url (   'f?p='
-                                             || :app_id
-                                             || ':'
-                                             || tab_page
-                                             || ':'
-                                             || :app_session
-                                             || ':'
-                                             || tab_name
-                                             || '::'
-                                             || tab_page
-                                             || '::')
-                   || '"></span>' tabinfo
-              FROM apex_application_tabs t
-             WHERE application_id = :app_id)
-  LOOP
-    HTP.p (x.tabinfo);
-  END LOOP;
-END;
-</pre>
-
-<p><span style="font-weight:bold;">- Create a HTML region</span><br><span style="font-style:italic">Note: You’ll need to install the jQuery JS file in Shared Components / Static Files</span></p>
-<pre class="brush: html">
-<script src="#APP_IMAGES#jquery-1.3.2.min.js" type="text/javascript"></script>
-<script type="text/javascript">
-  $('span.apexTabURLs').each(function(i){
-    var vTabName = $(this).attr('tabname');
-    var vNewUrl = $(this).attr('tabnewurl');
-    $('#t20Tabs a[href="javascript:doSubmit(\'' + vTabName + '\');"]').attr('href',vNewUrl);
-  });
-  // Remove the extra span tags
-  $('span.apexTabURLs').remove();
-</script>  
-</pre>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/" data-id="cize7k6yf007sq0n9ysn2ncxj" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
 
     </footer>
   </div>
@@ -947,7 +1008,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">131</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -984,7 +1045,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
