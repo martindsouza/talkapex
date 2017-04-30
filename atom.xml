@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.talkapex.com/"/>
-  <updated>2017-04-30T12:17:01.000Z</updated>
+  <updated>2017-04-30T13:27:33.000Z</updated>
   <id>http://www.talkapex.com/</id>
   
   <author>
@@ -14,6 +14,46 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Automatically Update an Application&#39;s Version Number in APEX</title>
+    <link href="http://www.talkapex.com/2017/04/automatically-update-application-version-number-in-apex/"/>
+    <id>http://www.talkapex.com/2017/04/automatically-update-application-version-number-in-apex/</id>
+    <published>2017-04-30T12:37:14.000Z</published>
+    <updated>2017-04-30T13:27:33.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>Last week <a href="https://twitter.com/connor_mc_d" target="_blank" rel="external">Connor McDonald</a> tweeted that he received the following question on <a href="https://asktom.oracle.com" target="_blank" rel="external">AskTom</a>: “<em>I hacked the Apex install scripts to get access to the APEX… schema..and now Apex doesnt work</em>“ The community had a few <a href="https://twitter.com/connor_mc_d/status/857771927842078721" target="_blank" rel="external">reactions on twitter</a> including my comment which stated that “<em>They’re some cases where it’s good. I use it to “inject” the version as part of the build process.</em>“</p>
+<p>I had mis-read Connor’s statement and interpreted “<em>hacked the APEX install scripts</em>“ as “<em>hacked an application install script</em>“. To correct my statement, you should NEVER modify the main APEX installation script. That said, I usually modify an application’s install script despite the fact that I shouldn’t. I have a good reason though which is described below.</p>
+<p>Each APEX application has a meta data property called <code>Version</code> and is usually displayed in the bottom of most applications by referencing the substitution string <code>APP_VERSION</code> in the page’s template as shown below.</p>
+<p><img src="/2017/04/automatically-update-application-version-number-in-apex/apex-version-number.png"></p>
+<p>The application’s version is statically defined in the application’s properties which can be set in Shared Components &gt; Application Definition: </p>
+<p><img src="/2017/04/automatically-update-application-version-number-in-apex/apex-version-property.png"></p>
+<p>Since the properly must be statically defined it requires a manual step to update the version number each time the application is released. This usually requires someone to update this value before exporting the application for each release. Personally I’m not a fan of this as I try to automate as much as possible for each build and it can easily lead to mistakes.</p>
+<p>To get around this I use a mnemonic string as the release version and replace it using a script as part of my build process. Here’s an example.</p>
+<p>Change the version number to <code>%RELEASE_VERSION%</code>:</p>
+<p><img src="/2017/04/automatically-update-application-version-number-in-apex/release-version.png"></p>
+<p>As part of your build script you should be exporting the APEX application from command line. <a href="http://www.oracle.com/technetwork/developer-tools/sqlcl/overview/index.html" target="_blank" rel="external">SQLcl</a> has a built in command to easily do this that <a href="https://twitter.com/krisrice" target="_blank" rel="external">Kris Rice</a> blogged about <a href="http://krisrice.blogspot.ca/2016/10/export-apex-application-with-sqlcl.html" target="_blank" rel="external">here</a>.</p>
+<p>The export file will now look like:</p>
+<p><img src="/2017/04/automatically-update-application-version-number-in-apex/apex-export.png"></p>
+<p>You can now use a command like <a href="https://www.digitalocean.com/community/tutorials/the-basics-of-using-the-sed-stream-editor-to-manipulate-text-in-linux" target="_blank" rel="external"><code>sed</code></a> in Linux or Node.js to find and replace <code>%RELEASE_VERSION%</code> with your build release version. An example of a build script that both exports the application and sets the version number:</p>
+<p><code>build.sh</code>:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">VERSION=<span class="variable">$1</span></div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="built_in">exit</span> | sqlcl giffy/giffy@localhost:1521/xe @apex_export.sql 123</div><div class="line"></div><div class="line">sed -i <span class="string">""</span> <span class="string">"s/%RELEASE_VERSION%/<span class="variable">$VERSION</span>/"</span> f123.sql</div></pre></td></tr></table></figure>
+<p><code>apex_export.sql</code>:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">set</span> termout <span class="keyword">off</span></div><div class="line"></div><div class="line"><span class="keyword">define</span> APP_ID = &amp;<span class="number">1</span></div><div class="line"></div><div class="line">spool f&amp;APP_ID..sql</div><div class="line">apex <span class="keyword">export</span> &amp;APP_ID.</div><div class="line">spool <span class="keyword">off</span></div></pre></td></tr></table></figure>
+<p>Running:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./build.sh 1.0.0</div></pre></td></tr></table></figure>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;Last week &lt;a href=&quot;https://twitter.com/connor_mc_d&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Connor McDonald&lt;/a&gt; tweeted that he received the follo
+    
+    </summary>
+    
+    
+      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
+    
+  </entry>
   
   <entry>
     <title>Query CSV data using APEX 5.1 APIs</title>
@@ -584,48 +624,6 @@
     
     
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>OOW 15 Presentations</title>
-    <link href="http://www.talkapex.com/2015/10/oow-15-presentations/"/>
-    <id>http://www.talkapex.com/2015/10/oow-15-presentations/</id>
-    <published>2015-10-19T13:00:00.000Z</published>
-    <updated>2017-01-22T17:20:03.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>If you’re attending <a href="https://www.oracle.com/openworld/index.html" target="_blank" rel="external">Oracle OpenWorld 2015</a> this year here are a few links for presentations I’d recommend:</p>
-<ul>
-<li><p><a href="https://events.rainfocus.com/oow15/catalog/oracle.jsp?search=UGF4096&amp;search.event=openworldEvent" target="_blank" rel="external">Open Source and Oracle Application Express [UGF4096]</a></p>
-<ul>
-<li>Sunday Oct 25 8:00am - Moscone South Room 300</li>
-<li>Martin Giffy D’Souza</li>
-<li>If you’ve ever thought about using open source applications or want to become more involved with open source development for your Oracle and APEX applications this presentation is for you.</li>
-</ul>
-</li>
-<li><p><a href="https://events.rainfocus.com/oow15/catalog/oracle.jsp?search=UGF10050&amp;search.event=openworldEvent" target="_blank" rel="external">The Objects of My Affection: Deploying Your APEX Applications [UGF10050]</a></p>
-<ul>
-<li>Sunday Oct 25 10:00am - Moscone South Room 300</li>
-<li>Francis Mignault</li>
-<li>Learn how to deploy your applications for testing, QA, and production. Also learn how supporting objects work, and see the new Oracle Application Express 5 features that will help you package and deploy your applications.</li>
-</ul>
-</li>
-<li><p><a href="http://www.odtug.com/p/cm/ld/fid=175" target="_blank" rel="external">ODTUG Sunday Sessions</a></p>
-</li>
-</ul>
-<p>On Tuesday night there will be the <a href="http://www.talkapex.com/2015/09/apex-oow-2015-meetup.html">APEX meetup</a>. Don’t get their too late since it fills up pretty quickly. We’ll be in the basement.  </p>
-<p>I’ll also be filming some Periscope interviews for ODTUG. If you can’t attend OOW then you’ll want to follow the <a href="https://twitter.com/odtug" target="_blank" rel="external">ODTUG twitter account</a>. This will be the first time ODTUG has ever done this and we’d appreciate your feedback. If there’s someone you’d like to see interviewed during the conference please let me know below by leaving a comment on this post.</p>
-<p>I look forward to seeing everyone there!</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;If you’re attending &lt;a href=&quot;https://www.oracle.com/openworld/index.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Oracle OpenWorld 2015&lt;/a&gt; this y
-    
-    </summary>
-    
-    
-      <category term="oow" scheme="http://www.talkapex.com/tags/oow/"/>
     
   </entry>
   
