@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>APEX 5.1 Validations and Session State | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Starting in APEX 5.1, pages are submitted via AJAX by default instead of the traditional post and refresh. I recorded a short video for Insum a while back on this and suggest that you watch it before">
+<meta property="og:type" content="article">
+<meta property="og:title" content="APEX 5.1 Validations and Session State">
+<meta property="og:url" content="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="Starting in APEX 5.1, pages are submitted via AJAX by default instead of the traditional post and refresh. I recorded a short video for Insum a while back on this and suggest that you watch it before">
+<meta property="og:image" content="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/page-processing.png">
+<meta property="og:image" content="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/ajax-page-submission.gif">
+<meta property="og:updated_time" content="2017-04-30T11:40:03.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="APEX 5.1 Validations and Session State">
+<meta name="twitter:description" content="Starting in APEX 5.1, pages are submitted via AJAX by default instead of the traditional post and refresh. I recorded a short video for Insum a while back on this and suggest that you watch it before">
+<meta name="twitter:image" content="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/page-processing.png">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Martin Giffy D&#39;Souza on Oracle APEX</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-apex-5-1-validations-and-session-state" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/04/apex-5-1-validations-and-session-state/" class="article-date">
+  <time datetime="2017-04-30T10:24:06.000Z" itemprop="datePublished">2017-04-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      APEX 5.1 Validations and Session State
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Starting in APEX 5.1, pages are submitted via AJAX by default instead of the traditional post and refresh. I recorded a short video for <a href="www.insum.ca">Insum</a> a while back on this and suggest that you <a href="https://www.youtube.com/watch?v=yF58mPBLxX0" target="_blank" rel="external">watch it</a> before continuning.</p>
+<p>Last week <a href="https://twitter.com/vincentmorneau" target="_blank" rel="external">Vincent Morneau</a> and I had a discussion that lead to the following question: What happens when an <code>After Submit</code> computation or process changes a page item’s value in session state and a validation fails? The short answer is that the value in session state is modified but not reflected on the page afterwards. I created the following test case to demonstrate this behavior:</p>
+<p>On Page 2 (P2) I have an text item called <code>P2_NAME</code>. I then have an <code>After Submit</code> computation that always sets the value to <code>Set from Computation</code> and a validation that always fails as shown below.</p>
+<p><img src="/2017/04/apex-5-1-validations-and-session-state/page-processing.png"></p>
+<p>If I enter <code>martin</code> as a value in <code>P2_NAME</code> and submit the page I’ll get an error message, yet the session state value is now <code>Set from Computation</code>. The following animation shows this.</p>
+<p><img src="/2017/04/apex-5-1-validations-and-session-state/ajax-page-submission.gif"></p>
+<h2 id="What-does-this-mean"><a href="#What-does-this-mean" class="headerlink" title="What does this mean?"></a>What does this mean?</h2><p>Before analyzing this behavior it’s important to understand when commits occur in APEX. After each computation or process an implicit <code>commit</code> may occur. <a href="https://twitter.com/dmcghan" target="_blank" rel="external">Dan McGhan</a> wrote an excellent <a href="http://www.danielmcghan.us/2012/08/implicit-commits-in-apex.html" target="_blank" rel="external">blog post</a> about this several years ago that I highly suggest reading it.</p>
+<p>I can’t speak for the APEX development team but it appears they had a few options when introducing the new AJAX submission functionality: </p>
+<ol>
+<li>Change the behavior of when commits occur to not commit until afer all validations pass</li>
+<li>Upon a failed validation modify the page with the updated session state values</li>
+<li>Do neither</li>
+</ol>
+<p>The first two options may actually introduce more problems and complexity and also ruin backwards compatibility with older applications. I think the third option is the best one as most applications don’t do computations or process after submitting but before validations. If developers pass in current page item values into AJAX Dyanmic Actions or cascading LOVs it will make the new AJAX page submission a non issue.</p>
+<h3 id="Why-might-this-be-a-problem"><a href="#Why-might-this-be-a-problem" class="headerlink" title="Why might this be a problem?"></a>Why might this be a problem?</h3><p>Modifying the session state and not reflecting the change on the page may cause some undesired UI bugs when dealing with AJAX functions (Dynamic Actions, cascading LOVs, etc) that reference page items. I dont’ think there are many situations where this will actually cause issues and most of this can be mitigated by passing in the reference page items when calling an AJAX function.</p>
+<h3 id="What-to-do-about-it"><a href="#What-to-do-about-it" class="headerlink" title="What to do about it?"></a>What to do about it?</h3><p>This is one thing that I think develoeprs will just need to be aware of and analyze their code to see if there may be any impacts. The following query will identify pages where computations or processes exist before validations.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">distinct</span></div><div class="line">  pv.application_id,</div><div class="line">  pv.page_id,</div><div class="line">  pv.page_name</div><div class="line"><span class="keyword">from</span> apex_application_page_val pv</div><div class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">  <span class="keyword">and</span> pv.application_id = :app_id</div><div class="line">  <span class="keyword">and</span> <span class="keyword">exists</span> (</div><div class="line">    <span class="keyword">select</span> <span class="number">1</span></div><div class="line">    <span class="keyword">from</span> apex_application_page_proc pp</div><div class="line">    <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">      <span class="keyword">and</span> pp.application_id = pv.application_id</div><div class="line">      <span class="keyword">and</span> pp.page_id = pv.page_id</div><div class="line">      <span class="keyword">and</span> pp.process_point_code = <span class="string">'ON_SUBMIT_BEFORE_COMPUTATION'</span></div><div class="line">    <span class="keyword">union</span></div><div class="line">    <span class="keyword">select</span> <span class="number">1</span></div><div class="line">    <span class="keyword">from</span> apex_application_page_comp pc</div><div class="line">    <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">      <span class="keyword">and</span> pc.application_id = pv.application_id</div><div class="line">      <span class="keyword">and</span> pc.page_id = pv.page_id</div><div class="line">      <span class="keyword">and</span> pc.computation_point = <span class="string">'After Submit'</span>   </div><div class="line">  )</div></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/" data-id="cj24mjoup00ecqmn969jrwye8" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-5-1/">apex-5.1</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2017/04/partial-rollbacks/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Partial Rollbacks</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">132</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-8016477-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+  </div>
+</body>
+</html>
