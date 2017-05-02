@@ -42,10 +42,10 @@ Where `:data` is the CSV data above. _Note I'm using a Mac and the EOL character
 Now that each line of data is on it's own row we need to create columns. This can be done using regular expressions:
 
 ```sql
-select 
-  regexp_substr(column_value, '[^,]+', 1, 1) fname,
-  regexp_substr(column_value, '[^,]+', 1, 2) lname,
-  regexp_substr(column_value, '[^,]+', 1, 3) dept
+select
+  rtrim(regexp_substr(column_value, '([^,])*(,)?', 1, 1), ',') fname,
+  rtrim(regexp_substr(column_value, '([^,])*(,)?', 1, 2), ',') lname,
+  rtrim(regexp_substr(column_value, '([^,])*(,)?', 1, 3), ',') dept
 from table(apex_string.split(:data,chr(10)))
 ;
 
