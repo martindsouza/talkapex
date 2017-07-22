@@ -66,6 +66,89 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-page-access-protection-and-session" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/apex-page-access-protection-and-session/" class="article-date">
+  <time datetime="2009-05-18T15:10:00.000Z" itemprop="datePublished">2009-05-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/05/apex-page-access-protection-and-session/">APEX: Page Access Protection and Session State Protection</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>APEX’s Page Access Protection (PAP - For Pages) and Session State Protection (SSP - For Items) are excellent security tools to help prevent users from altering session values. What some people may not be aware of is that if you enable PAP for page it does not prevent users from altering the session state of items on that page. All it does is require that any items passed through that page via the URL require a checksum. Malicious users can still alter the item’s session state using AJAX or from other pages. Long story short, if you want to lock your application down you need to enable SSP for all required items.</p>
+<p>APEX has a great tool to do this quickly for you rather than having to go into each page item. Shared Components / Session State Protection / Page / (click page number). You can now set the PAP and the SSP for all the page items.</p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/ShF6mp-aqQI/AAAAAAAADo4/HkfdHpHv5AY/s1600-h/_17_PAP_SSP.bmp" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/ShF6mp-aqQI/AAAAAAAADo4/HkfdHpHv5AY/s400/_17_PAP_SSP.bmp" alt=""></a></p>
+<p>If you do use PAP and SSP the following queries will help you do some quick validations to ensure all your security checks are in place</p>
+<p><span style="font-weight:bold;">Pages without Page Access Protection</span></p>
+<pre class="brush: sql">
+SELECT aap.application_id,
+       aap.application_name,
+       aap.page_id,
+       aap.page_name
+  FROM apex_application_pages aap
+ WHERE LOWER (aap.page_access_protection) = 'unrestricted'
+   AND aap.application_id = :app_id
+</pre>
+
+<p><span style="font-weight:bold;">Page items without Session State Protection</span></p>
+<pre class="brush: sql">
+SELECT aapi.application_id,
+       aapi.application_name,
+       aapi.page_id,
+       aapi.page_name,
+       aapi.item_name
+  FROM apex_application_page_items aapi
+ WHERE aapi.application_id = :app_id
+   AND LOWER (aapi.item_protection_level) = 'unrestricted'
+</pre>
+
+<p><span style="font-weight:bold;">Pages which have Page Access Protection, but have page items with no Session State Protection</span></p>
+<p><span style="font-style:italic;color:red">This query helps identify pages which you think are locked down, but end users could set the session state of item values</span></p>
+<pre class="brush: sql">
+SELECT aapi.application_id,
+       aapi.application_name,
+       aapi.page_id,
+       aapi.page_name,
+       aapi.item_name
+  FROM apex_application_pages aap,
+       apex_application_page_items aapi
+ WHERE LOWER (aap.page_access_protection) != 'unrestricted'
+   AND aap.application_id = :app_id
+   AND aapi.application_id = aap.application_id
+   AND aap.page_id = aapi.page_id
+   AND LOWER (aapi.item_protection_level) = 'unrestricted'
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/05/apex-page-access-protection-and-session/" data-id="cj5euf6rf001hc2n9p17h1qov" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/05/apex-page-access-protection-and-session/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/security/">security</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-enhancing-apex-security-explanation" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/05/enhancing-apex-security-explanation/" class="article-date">
@@ -110,7 +193,7 @@ WHERE job = 'CLERK'
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/05/enhancing-apex-security-explanation/" data-id="cj3ygch8300198qn9lhwj2vx0" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/05/enhancing-apex-security-explanation/" data-id="cj5euf6r80017c2n9awnm0lam" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/05/enhancing-apex-security-explanation/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -427,7 +510,7 @@ function onLovChange(pThisId){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/05/enhancing-apex-security/" data-id="cj3ygch8d001l8qn9hq87918r" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/05/enhancing-apex-security/" data-id="cj5euf6ra001ac2n9mbsge713" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/05/enhancing-apex-security/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -548,7 +631,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait_28/" data-id="cj3ygch7z000z8qn9y1uzpla5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait_28/" data-id="cj5euf6r00010c2n9gyf9stn1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait_28/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -591,7 +674,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/presenting-at-coug-calgary-oracle-user/" data-id="cj3ygch8000128qn9pfagfe9b" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/presenting-at-coug-calgary-oracle-user/" data-id="cj5euf6r50015c2n9vszlyoh7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/presenting-at-coug-calgary-oracle-user/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -712,7 +795,7 @@ $(document).ready(function() {
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/custom-download-for-apex-interactive/" data-id="cj3ygch8200178qn9b6h8z25j" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/custom-download-for-apex-interactive/" data-id="cj5euf6qz000yc2n932n6gtsz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/custom-download-for-apex-interactive/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -781,7 +864,7 @@ connect by level <= 3="" <="" pre="">
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait/" data-id="cj3ygch7y000x8qn9y7ac6vn4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait/" data-id="cj5euf6qy000vc2n9nehmieg3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -825,7 +908,7 @@ connect by level <= 3="" <="" pre="">
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/presenting-at-odtug-kaleidoscope-2009/" data-id="cj3ygch7x000v8qn9s0lnbfs7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/presenting-at-odtug-kaleidoscope-2009/" data-id="cj5euf6r30013c2n9cs15t6r6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/presenting-at-odtug-kaleidoscope-2009/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -924,7 +1007,7 @@ Create a HTML region and add the following javascript code:
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/" data-id="cj3ygch8100148qn9v1rq52jx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/" data-id="cj5euf6qt000qc2n91590fkc4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -1109,67 +1192,9 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/" data-id="cj3ygch7v000s8qn9pfrhg4ii" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/" data-id="cj5euf6qw000tc2n9j81vp7s6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-interactive-report-download-with-one" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/03/interactive-report-download-with-one/" class="article-date">
-  <time datetime="2009-03-24T13:21:00.000Z" itemprop="datePublished">2009-03-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/03/interactive-report-download-with-one/">APEX Interactive Report - Download with One Click</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>We’ve been working with Interactive Reports (IR) over the past few months and have had to do a lot of customization to meet some of our customers requirements. Over the next few weeks my posts will be focused on these customizations.</p>
-<p>To start, here’s an example of how to modify the download button in IRs. Just some background on this, we’re only supporting CSV downloads now. When the clients would download IRs they would have to click the “Download” link then click on the “CSV” button. <a href="http://1.bp.blogspot.com/_33EF80fk9sM/ScjenbChSKI/AAAAAAAADno/nM3A0JR76l4/s1600-h/01_csv_image.bmp" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/ScjenbChSKI/AAAAAAAADno/nM3A0JR76l4/s400/01_csv_image.bmp" alt=""></a></p>
-<p>We found this extra step unnecessary so here’s a way on how to do it in one step so that it will download as soon as they click “Download”. We used <a href="http://www.jquery.com" target="_blank" rel="external">jQuery</a> to help out a bit. Here’s a working <a href="http://apex.oracle.com/pls/otn/f?p=20195:900" target="_blank" rel="external">example</a>.</p>
-<pre class="brush: js;">
-$(document).ready(function() {
-  $('.dhtmlSubMenuN[title="Download"]').attr('href','f?p=' + $v('pFlowId') + ':' + $v('pFlowStepId') + ':' + $v('pInstance') + ':CSV:');  
-});
-</pre>
-
-<p>Here’s a detailed summary of how it works: If you scroll over the “CSV” download button you’ll noticed that it looks something like : “f?p=102:3:207941080701500:CSV:”. If we break that down it’s really: “f?p=<app_id>:<app_page_id>:<session_id>:CSV:”. In Javascript you can reference each as follows:</session_id></app_page_id></app_id></p>
-<p>APP_ID = $v(‘pFlowId’);<br>APP_PAGE_ID = $v(‘pFlowStepId’);<br>SESSION_ID = $v(‘pInstance’);</p>
-<p>Now to alter the “Download” link from the interactive report menu we use jQuery to identify the link: “$(‘.dhtmlSubMenuN[title=”Download”]’)” and then use the <a href="http://docs.jquery.com/Attributes/attr#keyvalue" target="_blank" rel="external">attr function</a> to set with the new URL.</p>
-<script src="#APP_IMAGES#jquery-1.3.1.min.js" type="text/javascript"></script>
-<script>  
-$(document).ready(function() {
-  $('.dhtmlSubMenuN[title="Download"]').attr('href','f?p=' + $v('pFlowId') + ':' + $v('pFlowStepId') + ':' + $v('pInstance') + ':CSV:');  
-});
-</script>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/interactive-report-download-with-one/" data-id="cj3ygch7u000q8qn9r0us243f" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/03/interactive-report-download-with-one/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
@@ -1219,7 +1244,7 @@ $(document).ready(function() {
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -1256,7 +1281,7 @@ $(document).ready(function() {
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

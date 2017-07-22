@@ -66,6 +66,59 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-logger-200-logging-parameters" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/05/logger-200-logging-parameters/" class="article-date">
+  <time datetime="2013-05-06T14:00:00.000Z" itemprop="datePublished">2013-05-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/05/logger-200-logging-parameters/">Logger 2.0.0 - Logging Parameters</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger 2.0.0</a> I’ve decided to write a few posts highlighting some of the new features.</em></p>
+<p>After using Logger for several years one thing I found that I was doing over and over again is logging the parameters to functions and parameters. The beginning of a procedure usually looked like this:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">procedure my_proc(</div><div class="line">  p_empno in number,</div><div class="line">  p_hiredate in date,</div><div class="line">  p_boolean in boolean) <span class="comment">-- not really relevant for proc, but good for demo</span></div><div class="line">as</div><div class="line">  l_scope logger_logs.scope%type := 'my_proc';</div><div class="line"><span class="keyword">begin</span></div><div class="line">  logger.log(<span class="string">'START'</span>, l_scope);</div><div class="line">  logger.log('p_empno: ' || to_char(p_empno), l_scope);</div><div class="line">  logger.log('p_hiredate: ' || to_char(p_hiredate, 'DD-MON-YYYY HH24:MI:SS'), l_scope);</div><div class="line">  logger.log('p_boolean: ' || case when p_boolean then 'TRUE' else 'FALSE' <span class="keyword">end</span>, l_scope);</div><div class="line">  ...</div><div class="line"><span class="keyword">end</span> my_proc;</div></pre></td></tr></table></figure></p>
+<p>When you have data types that aren’t strings the conversion process can become a bit tedious especially if you have to log a lot of parameters. Of course snippets can help reduce some of the time but it was still annoying.</p>
+<p>Another issue that I found was that developers would use their own formatting for logging parameters. Some would include a dash instead of a colon, some would include spaces and others wouldn’t, etc. Eventually it became difficult to read the logs with all the different formatting.</p>
+<p>To get around these issues Logger now takes in a parameter, <code>p_params</code>, which is an array of name/value pairs. Besides visual consistency, it will also handle all the formatting of the different data types so you don’t need to spend time on it. The following code snippet is the same as above, but using the new parameters feature:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">procedure my_proc(</div><div class="line">  p_empno in number,</div><div class="line">  p_hiredate in date,</div><div class="line">  p_boolean in boolean) <span class="comment">-- not really relevant for proc, but good for demo</span></div><div class="line">as</div><div class="line">  l_scope logger_logs.scope%type := 'my_proc';</div><div class="line">  l_params logger.tab_param;</div><div class="line"><span class="keyword">begin</span></div><div class="line">  logger.append_param(l_params, <span class="string">'p_empno'</span>, p_empno);</div><div class="line">  logger.append_param(l_params, 'p_hiredate', p_hiredate);</div><div class="line">  logger.append_param(l_params, 'p_boolean', p_boolean);</div><div class="line">  logger.log('<span class="keyword">START</span><span class="string">', l_scope, null, l_params);</span></div><div class="line">  ...</div><div class="line">end my_proc;</div></pre></td></tr></table></figure>
+<p>If you now query <code>logger_logs</code> you’ll now see the parameters appended to the <code>extra</code> column (note if you defined something in the <code>p_extra</code> parameter it would still appear):</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="built_in">text</span>, <span class="keyword">scope</span>, extra</div><div class="line"><span class="keyword">from</span> logger_logs_5_min;</div><div class="line"></div><div class="line">TEXT  SCOPE     EXTRA</div><div class="line"><span class="comment">----- --------- ----------------------------------</span></div><div class="line"><span class="keyword">START</span> my_proc   *** <span class="keyword">Parameters</span> ***</div><div class="line">                p_empno: <span class="number">123</span></div><div class="line">                p_hiredate: <span class="number">26</span>-APR<span class="number">-2013</span> <span class="number">03</span>:<span class="number">14</span>:<span class="number">58</span></div><div class="line">                p_boolean: <span class="literal">TRUE</span></div></pre></td></tr></table></figure>
+<p>You’ll notice that all the formatting and implicit conversions have been taken care of.</p>
+<p><strong>Performance</strong></p>
+<p>Unless you are running Logger in <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#no-op-option-for-production-environments" target="_blank" rel="external">no-op mode</a> then there will be a slight performance hit each time you append a parameter (for the cost of appending to an array and implicit conversion). You’ll need to factor this in when leveraging this feature. Odds are you’ll be able to use the <code>p_params</code> parameter on most of your procedures and functions, but not on frequently used methods.</p>
+<p><strong>Other Considerations</strong></p>
+<p>Not all people will use the parameters option, and that’s fine. We made it an optional parameter specifically for that reason. We added this feature to support one of the primary goals of Logger which is “to be as simple as possible to use”.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-logging-parameters/" data-id="cj5euf6yc009rc2n9fqk5pixi" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2013/05/logger-200-logging-parameters/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-logger-200-beta" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2013/05/logger-200-beta/" class="article-date">
@@ -98,7 +151,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-beta/" data-id="cj3ygchd4009e8qn9ejdmpgj3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-beta/" data-id="cj5euf6y8009jc2n9pgol7xxf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-beta/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -151,7 +204,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/04/logger-200-alpha/" data-id="cj3ygchd6009i8qn9znj2u6mx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/04/logger-200-alpha/" data-id="cj5euf6xz009ec2n9ezz5ggx1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/04/logger-200-alpha/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -194,7 +247,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/04/console-wrapper-104/" data-id="cj3ygchd3009b8qn9wyx5lupz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/04/console-wrapper-104/" data-id="cj5euf6xw009ac2n9ztc4rrul" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/04/console-wrapper-104/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -250,7 +303,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/" data-id="cj3ygchd200998qn9pev5iiyg" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/" data-id="cj5euf6xx009cc2n9g73wj8on" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -295,7 +348,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/console-wrapper-104-beta/" data-id="cj3ygchd100978qn9hkk86tsz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/console-wrapper-104-beta/" data-id="cj5euf6xu0098c2n9dhu79beg" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/console-wrapper-104-beta/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -349,7 +402,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/and-winner-is/" data-id="cj3ygchd100958qn962xf65lm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/and-winner-is/" data-id="cj5euf6xr0096c2n9j0m1xpst" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/and-winner-is/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -393,7 +446,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="cj3ygchcy008z8qn95rs4ucd7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="cj5euf6xl008yc2n908lbbfqk" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/kscope-13/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -445,7 +498,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/" data-id="cj3ygchcs008x8qn9i7xq75us" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/" data-id="cj5euf6xj008wc2n9kcvioktv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -494,64 +547,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex-where/" data-id="cj3ygchcz00918qn9vh3ia1o4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex-where/" data-id="cj5euf6xp0094c2n9937vxeec" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/01/embedding-files-within-apex-where/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-embedding-files-within-apex-supporting" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/01/embedding-files-within-apex-supporting/" class="article-date">
-  <time datetime="2013-01-31T01:46:00.000Z" itemprop="datePublished">2013-01-30</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/01/embedding-files-within-apex-supporting/">Embedding Files within APEX: Supporting Objects</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><em>This is part two of a three part series on embedding files in your APEX application. You should read all the articles (<a href="http://www.talkapex.com/2013/01/embedding-files-within-apex.html">Part 1</a>) before deciding whether or not to leverage this feature in APEX as it has its pros and cons.</em></p>
-<p>A major misconception when uploading a file into APEX is that it will be included when you export the application. Though I agree that makes the most sense, unfortunately it doesn’t work this way. You need to explicitly include an installation script that will copy the file into the workspace where the application is being imported to. Sound confusing? Unfortunately it is.</p>
-<p>In the previous post I uploaded a file into an application. If I were to export then import this application into another workspace that file wouldn’t be included. To explicitly <em>include</em> the file you need to create a Supporting Object installation script:</p>
-<ul>
-<li>Go to Application &gt; Supporting Objects &gt; Installation Scripts and click the Create button.</li>
-<li>At the bottom, under the Tasks heading select “Create Scripts to Install Files”.</li>
-</ul>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-GZ1zNitve_c/UQnGhRWKpVI/AAAAAAAAETU/53qhONy7SVM/s1600/embed_apex_file_install_script_01.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-GZ1zNitve_c/UQnGhRWKpVI/AAAAAAAAETU/53qhONy7SVM/s640/embed_apex_file_install_script_01.png" alt=""></a></div>
-
-<ul>
-<li>Select the file that is required for the application and click the <code>Create Script</code> button.</li>
-</ul>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/--4987MLwu98/UQnJgPVEB6I/AAAAAAAAETc/Obl0w5HWcZs/s1600/embed_apex_file_install_script_02.jpg" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/--4987MLwu98/UQnJgPVEB6I/AAAAAAAAETc/Obl0w5HWcZs/s640/embed_apex_file_install_script_02.jpg" alt=""></a></div><br>At this point in time, APEX will encode (base64) the file (in <strong>it’s current state</strong>) and create a PL/SQL installation script that can be run when you import the application. <strong>If you change the file (in Shared Components &gt; Static Files) it has no impact on the installation script</strong> (i.e. it’s a snapshot of the file at this point in time).</p>
-<p>Not updating the installation script with the latest version of the file is where a lot of issues occur<strong> </strong>when migrating the application from different environments. After someone initially creates the installation script, there’s a high probability that you may change the base file, forgetting to update the installation script. This is one of the main reasons why I don’t usually recommend embedding files into my application.</p>
-<p><a href="http://www.talkapex.com/2013/01/embedding-files-within-apex-where.html">Part 3</a> of the series will cover some issues with embedding files in an application.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex-supporting/" data-id="cj3ygchcp008p8qn9e1vqhgx2" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/01/embedding-files-within-apex-supporting/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
@@ -601,7 +599,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -638,7 +636,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

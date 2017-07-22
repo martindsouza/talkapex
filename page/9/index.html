@@ -66,6 +66,61 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-logger-210-oktolog" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/08/logger-210-oktolog/" class="article-date">
+  <time datetime="2013-08-07T13:00:00.000Z" itemprop="datePublished">2013-08-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/08/logger-210-oktolog/">Logger 2.1.0 - ok_to_log</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>In preparation for the release of Logger 2.1.0 I’ve decided to write a few posts highlighting some of the new features.</em></p>
+<p>A while ago, someone asked me to add a feature into logger to determine if a log statement would actually be logged. I fought this off like the plague as I wanted to <u>avoid</u> the following situation:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">...</div><div class="line">if can_log then</div><div class="line">  logger.log('some message');</div><div class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</div><div class="line">...</div><div class="line"></div><div class="line">if can_log then</div><div class="line">  logger.log('another message');</div><div class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</div><div class="line">...</div></pre></td></tr></table></figure>
+<p>Unfortunately I’ve seen this type of coding style many times and it makes code difficult to read and maintain. This also ruins one of the key goals behind Logger which is to make it easy and quick for developers to use.</p>
+<p>Reluctantly, I finally caved in. As a result there’s a new function called <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API#wiki-procedure-ok_to_log" target="_blank" rel="external"><code>ok_to_log</code></a>. <code>ok_to_log</code> tells you if what you’re about to log will actually get logged. <strong>It is <u>not</u> meant to be used like the example above</strong>. I can’t emphasize this enough.</p>
+<p>The main use case for <code>ok_to_log</code> is for situations where you <u>only</u> want to do something for logging purposes that will slow down the system. A good example is when you want to log the values of an array. Since it will take time to loop through the array there’s no point in doing it if Logger won’t actually log anything. The following example highlights this:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> *</div><div class="line"><span class="keyword">declare</span></div><div class="line">  <span class="keyword">type</span> typ_array <span class="keyword">is</span> <span class="keyword">table</span> <span class="keyword">of</span> <span class="built_in">number</span> <span class="keyword">index</span> <span class="keyword">by</span> pls_integer;</div><div class="line">  l_array typ_array;</div><div class="line"><span class="keyword">begin</span></div><div class="line">  <span class="comment">-- Load test data</span></div><div class="line">  <span class="keyword">for</span> x <span class="keyword">in</span> <span class="number">1.</span><span class="number">.100</span> <span class="keyword">loop</span></div><div class="line">    l_array(x) := x;</div><div class="line">  <span class="keyword">end</span> <span class="keyword">loop</span>;</div><div class="line"></div><div class="line">  <span class="comment">-- Only log if logging is enabled</span></div><div class="line">  if logger.ok_to_log('DEBUG') then</div><div class="line">    for x in 1..l_array.count loop</div><div class="line">      logger.log(l_array(x));</div><div class="line">    <span class="keyword">end</span> <span class="keyword">loop</span>;</div><div class="line">  <span class="keyword">end</span> <span class="keyword">if</span>;</div><div class="line"><span class="keyword">end</span>;</div><div class="line">/</div></pre></td></tr></table></figure>
+<p>If the logging level is set to DEBUG or higher (as it would be in development environments) then logger will loop through the array and log the values. If the logging level is set to <code>ERROR</code> (as it normally would be in production instances) it won’t loop over the array since it now knows ahead of time that Logger won’t log the values.</p>
+<p>Note that the level passed into <code>ok_to_log</code> should correspond to the logging statements used inside the block of code that you want to log. If they don’t, it really won’t make sense and could result in unnecessary performance hits.</p>
+<p>To summarize the <code>ok_to_log</code> function:</p>
+<ul>
+<li>I was reluctant to add it in for obvious reasons, please don’t make me regret it.</li>
+<li>Only use in situations where you need to perform an expense block of code only for logging purposes.</li>
+<li>Make sure the level passed in <code>ok_to_log</code> matches the log statements using inside the associated block of code.</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-oktolog/" data-id="cj5euf6yg00a2c2n9splnzxq2" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2013/08/logger-210-oktolog/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-logger-210-demo-scripts" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2013/08/logger-210-demo-scripts/" class="article-date">
@@ -95,7 +150,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-demo-scripts/" data-id="cj3ygchdg00a58qn9lguwxpe6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-demo-scripts/" data-id="cj5euf6yf009zc2n9r9w6spwr" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-demo-scripts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -141,7 +196,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-documentation-overhaul/" data-id="cj3ygchdb009u8qn98bcyvr9b" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-documentation-overhaul/" data-id="cj5euf6yg00a4c2n98abo2csk" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-documentation-overhaul/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -186,7 +241,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-text-length-4000-characters/" data-id="cj3ygchdd009z8qn99ci6emkz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-text-length-4000-characters/" data-id="cj5euf6yd009vc2n9o2finojo" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-text-length-4000-characters/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -242,7 +297,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/07/5-years-later/" data-id="cj3ygchdc009x8qn95fxqccqk" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/07/5-years-later/" data-id="cj5euf6yc009tc2n97tjkjdje" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/07/5-years-later/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -293,7 +348,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/07/apexposed-en-montreal-sept-1011/" data-id="cj3ygchd9009q8qn9jhpsy1f1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/07/apexposed-en-montreal-sept-1011/" data-id="cj5euf6ya009nc2n9b4yl9rws" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/07/apexposed-en-montreal-sept-1011/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -337,7 +392,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/07/its-up-to-you-oracle-and-apex-open/" data-id="cj3ygchda009s8qn90iewv3d1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/07/its-up-to-you-oracle-and-apex-open/" data-id="cj5euf6ye009xc2n91nuum1k5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/07/its-up-to-you-oracle-and-apex-open/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -387,7 +442,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/06/logger-200-released/" data-id="cj3ygchd8009o8qn9eoo8er8x" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/06/logger-200-released/" data-id="cj5euf6y9009lc2n944ac4v3y" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/06/logger-200-released/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -438,7 +493,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/" data-id="cj3ygchd8009m8qn94gdwhbaq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/" data-id="cj5euf6yb009pc2n9oai751ir" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -491,62 +546,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/" data-id="cj3ygchd5009g8qn9io6aopjs" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/" data-id="cj5euf6y8009hc2n9qo19gpp9" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-logger-200-logging-parameters" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/05/logger-200-logging-parameters/" class="article-date">
-  <time datetime="2013-05-06T14:00:00.000Z" itemprop="datePublished">2013-05-06</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/05/logger-200-logging-parameters/">Logger 2.0.0 - Logging Parameters</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger 2.0.0</a> I’ve decided to write a few posts highlighting some of the new features.</em></p>
-<p>After using Logger for several years one thing I found that I was doing over and over again is logging the parameters to functions and parameters. The beginning of a procedure usually looked like this:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">procedure my_proc(</div><div class="line">  p_empno in number,</div><div class="line">  p_hiredate in date,</div><div class="line">  p_boolean in boolean) <span class="comment">-- not really relevant for proc, but good for demo</span></div><div class="line">as</div><div class="line">  l_scope logger_logs.scope%type := 'my_proc';</div><div class="line"><span class="keyword">begin</span></div><div class="line">  logger.log(<span class="string">'START'</span>, l_scope);</div><div class="line">  logger.log('p_empno: ' || to_char(p_empno), l_scope);</div><div class="line">  logger.log('p_hiredate: ' || to_char(p_hiredate, 'DD-MON-YYYY HH24:MI:SS'), l_scope);</div><div class="line">  logger.log('p_boolean: ' || case when p_boolean then 'TRUE' else 'FALSE' <span class="keyword">end</span>, l_scope);</div><div class="line">  ...</div><div class="line"><span class="keyword">end</span> my_proc;</div></pre></td></tr></table></figure></p>
-<p>When you have data types that aren’t strings the conversion process can become a bit tedious especially if you have to log a lot of parameters. Of course snippets can help reduce some of the time but it was still annoying.</p>
-<p>Another issue that I found was that developers would use their own formatting for logging parameters. Some would include a dash instead of a colon, some would include spaces and others wouldn’t, etc. Eventually it became difficult to read the logs with all the different formatting.</p>
-<p>To get around these issues Logger now takes in a parameter, <code>p_params</code>, which is an array of name/value pairs. Besides visual consistency, it will also handle all the formatting of the different data types so you don’t need to spend time on it. The following code snippet is the same as above, but using the new parameters feature:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">procedure my_proc(</div><div class="line">  p_empno in number,</div><div class="line">  p_hiredate in date,</div><div class="line">  p_boolean in boolean) <span class="comment">-- not really relevant for proc, but good for demo</span></div><div class="line">as</div><div class="line">  l_scope logger_logs.scope%type := 'my_proc';</div><div class="line">  l_params logger.tab_param;</div><div class="line"><span class="keyword">begin</span></div><div class="line">  logger.append_param(l_params, <span class="string">'p_empno'</span>, p_empno);</div><div class="line">  logger.append_param(l_params, 'p_hiredate', p_hiredate);</div><div class="line">  logger.append_param(l_params, 'p_boolean', p_boolean);</div><div class="line">  logger.log('<span class="keyword">START</span><span class="string">', l_scope, null, l_params);</span></div><div class="line">  ...</div><div class="line">end my_proc;</div></pre></td></tr></table></figure>
-<p>If you now query <code>logger_logs</code> you’ll now see the parameters appended to the <code>extra</code> column (note if you defined something in the <code>p_extra</code> parameter it would still appear):</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="built_in">text</span>, <span class="keyword">scope</span>, extra</div><div class="line"><span class="keyword">from</span> logger_logs_5_min;</div><div class="line"></div><div class="line">TEXT  SCOPE     EXTRA</div><div class="line"><span class="comment">----- --------- ----------------------------------</span></div><div class="line"><span class="keyword">START</span> my_proc   *** <span class="keyword">Parameters</span> ***</div><div class="line">                p_empno: <span class="number">123</span></div><div class="line">                p_hiredate: <span class="number">26</span>-APR<span class="number">-2013</span> <span class="number">03</span>:<span class="number">14</span>:<span class="number">58</span></div><div class="line">                p_boolean: <span class="literal">TRUE</span></div></pre></td></tr></table></figure>
-<p>You’ll notice that all the formatting and implicit conversions have been taken care of.</p>
-<p><strong>Performance</strong></p>
-<p>Unless you are running Logger in <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#no-op-option-for-production-environments" target="_blank" rel="external">no-op mode</a> then there will be a slight performance hit each time you append a parameter (for the cost of appending to an array and implicit conversion). You’ll need to factor this in when leveraging this feature. Odds are you’ll be able to use the <code>p_params</code> parameter on most of your procedures and functions, but not on frequently used methods.</p>
-<p><strong>Other Considerations</strong></p>
-<p>Not all people will use the parameters option, and that’s fine. We made it an optional parameter specifically for that reason. We added this feature to support one of the primary goals of Logger which is “to be as simple as possible to use”.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-logging-parameters/" data-id="cj3ygchd7009k8qn93heb5o2i" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/05/logger-200-logging-parameters/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
@@ -596,7 +598,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -633,7 +635,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
