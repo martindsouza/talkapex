@@ -12,9 +12,9 @@ To view the everyone who is running for the board and the link to vote please go
 
 I have included my campaign statement and profile below. Thank you for your support.
 
-- Martin
+-- Martin
 
-**Campaign Statement**
+### Campaign Statement
 
 Over the past two years, I have had the privilege to represent the Oracle APEX community as a director for ODTUG. I have made the decision to run again this year for the ODTUG board and am looking for your support in doing so.
 
@@ -27,4 +27,3 @@ I am looking for your vote to continue as an ODTUG board member to represent dev
 **Bio Statement**
 
 Martin D'Souza is the CTO and cofounder at [ClariFit](http://www.clarifit.com/), a consulting firm that specializes in APEX and PL/SQL development and training. He is also a volunteer director for ODTUG. Martin’s career has seen him hold a range of positions within award-winning companies. His experience in the technology industry has been focused on developing database-centric web applications using the Oracle technology stack. Martin is the author of the popular blog [www.TalkApex.com](http://www.talkapex.com/), a designated Oracle ACE Director, coauthored and authored various [APEX books](http://www.talkapex.com/p/books.html), and is an active participant in various open source projects, such as [Logger](http://oraclelogger.com/). He has also presented at numerous international conferences, such as APEXposed!, COUG, Oracle OpenWorld, and ODTUG Kscope, for which he won the Presenter of the Year award in 2011\. Martin holds a computer engineering degree from Queen’s University in Ontario, Canada. You can contact Martin via email at martin@clarifit.com or by Twitter [@martindsouza](https://twitter.com/martindsouza).
-**&nbsp;**

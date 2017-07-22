@@ -12,16 +12,17 @@ The previous posts in this series covered how to upload, reference, and create i
 
 I already hinted in the first post of this series that they're several reasons why you may not want to embed files within APEX. Besides performance issues they're situations which you'll get some unexpected behavior. I've included examples of some of these issues below. Each example assumes that you have a static file (test.js) included in the base application and it's also in the installation scripts.
 
-#### **Copying an Application**&nbsp;
+### Copying an Application
+
 A lot of times people tend to copy an application within a workspace to back it up before doing a big change or to run some one-off tests on their own. If you copy an application, despite selecting Yes for "Copy Supporting Objects Definitions" the application specific files are not copied.
 
 <div class="separator" style="clear: both; text-align: center;">[![](http://1.bp.blogspot.com/-50h21B0FQ7A/UQnKA5tLbGI/AAAAAAAAETk/RkK0e80NlRA/s640/embed_apex_file_copy_app.jpg)](http://1.bp.blogspot.com/-50h21B0FQ7A/UQnKA5tLbGI/AAAAAAAAETk/RkK0e80NlRA/s1600/embed_apex_file_copy_app.jpg)</div>
-In this case you'll need to manually run the Supporting Objects &gt; Install Supporting Objects to install the file (assuming that the installation script has the latest version of the file). But wait. When you do that it'll actually remove the file from the original application and install it in the new one (i.e. it no longer exists in the application that you copied from).
+In this case you'll need to manually run the Supporting Objects > Install Supporting Objects to install the file (assuming that the installation script has the latest version of the file). But wait. When you do that it'll actually remove the file from the original application and install it in the new one (i.e. it no longer exists in the application that you copied from).
 
-#### Deleting a Copied Application
+### Deleting a Copied Application
 If you copied an application and selected "Yes" for "Copy Supporting Object Definitions" we know from the previous example that it doesn't install any embedded files. If you now delete the newly copied application and check off "Deinstall Supporting Objects" it will also remove any files from the base application that you copied from.
 
-<div class="separator" style="clear: both; text-align: center;">[![](http://2.bp.blogspot.com/-NiIJ19RZAr8/UQnK8aJ14tI/AAAAAAAAETs/1DLfMOLBjSI/s400/embed_apex_file_deinstall_app.png)&nbsp;](http://2.bp.blogspot.com/-NiIJ19RZAr8/UQnK8aJ14tI/AAAAAAAAETs/1DLfMOLBjSI/s1600/embed_apex_file_deinstall_app.png)</div><div class="separator" style="clear: both; text-align: center;">
+<div class="separator" style="clear: both; text-align: center;">[![](http://2.bp.blogspot.com/-NiIJ19RZAr8/UQnK8aJ14tI/AAAAAAAAETs/1DLfMOLBjSI/s400/embed_apex_file_deinstall_app.png)](http://2.bp.blogspot.com/-NiIJ19RZAr8/UQnK8aJ14tI/AAAAAAAAETs/1DLfMOLBjSI/s1600/embed_apex_file_deinstall_app.png)</div><div class="separator" style="clear: both; text-align: center;">
 </div>
 
 ### Summary

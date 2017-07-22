@@ -7,7 +7,7 @@ date: 2013-07-05 08:17:00
 alias:
 ---
 
-At ODTUG Kscope 13 last week I got to moderate the APEX Lunch  &amp; Learn experts panel. One of the questions that came up was  when a certain feature was going to be added to [Peter Raganitsch](http://www.oracle-and-apex.com/)'s&nbsp; [APEX Developer Addon](http://apex.oracle.com/pls/apex/f?p=APEX_DEVELOPER_ADDON:ABOUT:0:::::).
+At ODTUG Kscope 13 last week I got to moderate the APEX Lunch & Learn experts panel. One of the questions that came up was  when a certain feature was going to be added to [Peter Raganitsch](http://www.oracle-and-apex.com/)'s [APEX Developer Addon](http://apex.oracle.com/pls/apex/f?p=APEX_DEVELOPER_ADDON:ABOUT:0:::::).
 
 This  sparked a bit of conversation around open source projects in the Oracle  and APEX communities. They're a few people who create and maintain  these open source projects. Unfortunately they're not a lot of other  people who contribute to these projects. Because of this, projects don't  get upgraded and enhanced as quickly as they could.
 
