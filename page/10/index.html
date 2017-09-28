@@ -66,6 +66,59 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-logger-200-enable-session-specific" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/05/logger-200-enable-session-specific/" class="article-date">
+  <time datetime="2013-05-07T13:30:00.000Z" itemprop="datePublished">2013-05-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/05/logger-200-enable-session-specific/">Logger 2.0.0 - Enable Session Specific Logging</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger 2.0.0 </a>I’ve decided to write a few posts highlighting some of the new features.</em></p>
+<p>One of the most common feature request for Logger has been the ability to enable logging (or setting the logger level) for a given session. This post covers how to set and unset session specific logging.</p>
+<h2 id="Logger-Levels"><a href="#Logger-Levels" class="headerlink" title="Logger Levels"></a>Logger Levels</h2><p>There is no “on/off” switch for Logger. Instead, like most other logging and code instrumentation tools, it supports <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#logger-levels" target="_blank" rel="external">multiple levels</a>. This allows developers to turn up and down the amount of logging. In most development systems the logging level is set to debug mode and in most production instances it’s set to error mode. This means that in production only items that are explicitly logged using <code>logger.log_error</code> will be stored. For more information read the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#configuration" target="_blank" rel="external">configuration</a> section of the documentation.</p>
+<h2 id="Setting-the-Logger-Level"><a href="#Setting-the-Logger-Level" class="headerlink" title="Setting the Logger Level"></a>Setting the Logger Level</h2><p>Prior to Logger 2.0.0 you could only configure the logging level for the entire schema. To following code snippet highlights this:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">exec logger.set_level('DEBUG');</div><div class="line"></div><div class="line"><span class="keyword">begin</span></div><div class="line">  <span class="comment">-- All of these will be logged</span></div><div class="line">  logger.log(<span class="string">'Logging log level'</span>);</div><div class="line">  logger.log_information('Logging information level');</div><div class="line">  logger.log_warning('Logging warning level');</div><div class="line">  logger.log_error('Logging error level');</div><div class="line"><span class="keyword">end</span>;</div><div class="line">/</div><div class="line"></div><div class="line">exec logger.set_level('WARNING');</div><div class="line"></div><div class="line"><span class="keyword">begin</span></div><div class="line">  logger.log(<span class="string">'Logging log level'</span>); <span class="comment">-- Not stored</span></div><div class="line">  logger.log_information('Logging information level'); <span class="comment">-- Not stored</span></div><div class="line">  logger.log_warning('Logging warning level'); <span class="comment">-- Stored</span></div><div class="line">  logger.log_error('Logging error level'); <span class="comment">-- Stored</span></div><div class="line"><span class="keyword">end</span>;</div><div class="line">/</div></pre></td></tr></table></figure>
+<p>What happens in production systems when a user is experiencing some issues and you want to see all their logging information? The only way to do this before was to set the logging level to debug mode and the entire schema would be affected. This could slow down all the applications in the schema which is an undesired affect.</p>
+<h2 id="Setting-by-Session"><a href="#Setting-by-Session" class="headerlink" title="Setting by Session"></a>Setting by Session</h2><p>The term “<em>session</em>“ is a bit misleading. Since more most Oracle applications are stateless it’s not realistic to enable logging for a specific Oracle session (SID). Instead Logger uses the client_identifier (also referred to as <code>client_id</code>). Client identifiers can easily be configured and are commonly used in stateless applications. For example, APEX sets the <code>client_id</code> with: <code>:APP_USER || &#39;:&#39; || :APP_SESSION</code></p>
+<p>The following example demonstrates how to enable “session” specific logging in Logger:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- Connection 1</span></div><div class="line">exec logger.set_level ('ERROR');</div><div class="line"></div><div class="line"><span class="keyword">begin</span></div><div class="line">  logger.log(<span class="string">'will not get stored'</span>);</div><div class="line">  logger.log_error('will get stored');</div><div class="line"><span class="keyword">end</span>;</div><div class="line">/</div><div class="line"></div><div class="line"><span class="keyword">select</span> <span class="keyword">id</span>, logger_level, <span class="built_in">text</span>, client_identifier</div><div class="line"><span class="keyword">from</span> logger_logs_5_min;</div><div class="line"></div><div class="line">  ID LOGGER_LEVEL TEXT                 CLIENT_IDENTIFIER</div><div class="line"><span class="comment">---- ------------ -------------------- --------------------</span></div><div class="line">  13            2 will get stored      </div><div class="line"></div><div class="line"><span class="comment">-- Connection 2 (i.e a different connection)</span></div><div class="line">exec dbms_session.set_identifier('logger_demo');</div><div class="line"></div><div class="line">exec logger.set_level('DEBUG', sys_context('userenv','client_identifier'));</div><div class="line"><span class="comment">-- Or could have used: logger.set_level('DEBUG', 'logger_demo');</span></div><div class="line"></div><div class="line"><span class="keyword">begin</span></div><div class="line">  logger.log(<span class="string">'will get stored'</span>);</div><div class="line">  logger.log_error('will get stored');</div><div class="line"><span class="keyword">end</span>;</div><div class="line">/</div><div class="line"></div><div class="line"><span class="keyword">select</span> <span class="keyword">id</span>, logger_level, <span class="built_in">text</span>, client_identifier</div><div class="line"><span class="keyword">from</span> logger_logs_5_min;</div><div class="line"></div><div class="line">  ID LOGGER_LEVEL TEXT                 CLIENT_IDENTIFIER</div><div class="line"><span class="comment">---- ------------ -------------------- --------------------</span></div><div class="line">  14           16 will get stored      logger_demo</div><div class="line">  15            2 will get stored      logger_demo</div></pre></td></tr></table></figure>
+<h2 id="Unsettting-by-Session"><a href="#Unsettting-by-Session" class="headerlink" title="Unsettting by Session"></a>Unsettting by Session</h2><p>When setting a session specific logging level, Logger will apply an expiration time to it. By default this is set to 12 hours but can be configured by setting the <code>logger_prefs</code> value: <code>PREF_BY_CLIENT_ID_EXPIRE_HOURS</code> You can also pass in the time using the parameter <code>p_client_id_expire_hours</code>. If you don’t explicitly unset a specific session then logger will automatically clean up these sessions after the desired time.</p>
+<p>They’re three ways to explicitly unset session specific logging:<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">-- Unset by specific client_id</div><div class="line">exec logger.unset_client_level(p_client_id =&gt; 'logger_demo');</div><div class="line"></div><div class="line">-- Unset all sessions that have expired</div><div class="line">exec logger.unset_client_level;</div><div class="line"></div><div class="line">-- Unset all sessions (regardless of expiration time)</div><div class="line">exec logger.unset_client_level_all</div></pre></td></tr></table></figure></p>
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>By setting session specific logging you can allow for an individual connection to have logging enabled without affecting the rest of the applications in the schema.</p>
+<p>They’re some other interesting features in session specific logging that I wasn’t able to fit this article. In the <a href="/2013/05/logger-200-session-specific-logging/" title="next article">next article</a> I’ll discuss these features.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/" data-id="cj83x7hnn00b0ijn93d89g6ph" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-logger-200-logging-parameters" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2013/05/logger-200-logging-parameters/" class="article-date">
@@ -105,7 +158,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-logging-parameters/" data-id="cj5euf6yc009rc2n9fqk5pixi" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-logging-parameters/" data-id="cj83x7hnl00ayijn9beu81hu2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-logging-parameters/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -151,7 +204,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-beta/" data-id="cj5euf6y8009jc2n9pgol7xxf" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-beta/" data-id="cj83x7hnj00auijn93katu9hd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-beta/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -204,7 +257,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/04/logger-200-alpha/" data-id="cj5euf6xz009ec2n9ezz5ggx1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/04/logger-200-alpha/" data-id="cj83x7hnk00awijn942f420sm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/04/logger-200-alpha/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -247,7 +300,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/04/console-wrapper-104/" data-id="cj5euf6xw009ac2n9ztc4rrul" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/04/console-wrapper-104/" data-id="cj83x7hni00arijn9akwlap6y" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/04/console-wrapper-104/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -303,7 +356,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/" data-id="cj5euf6xx009cc2n9g73wj8on" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/" data-id="cj83x7hnh00apijn9bzyk7z9u" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -348,7 +401,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/console-wrapper-104-beta/" data-id="cj5euf6xu0098c2n9dhu79beg" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/console-wrapper-104-beta/" data-id="cj83x7hnf00anijn99si466x2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/console-wrapper-104-beta/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -402,7 +455,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/and-winner-is/" data-id="cj5euf6xr0096c2n9j0m1xpst" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/and-winner-is/" data-id="cj83x7hne00alijn9oht9kbch" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/and-winner-is/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -446,7 +499,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="cj5euf6xl008yc2n908lbbfqk" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="cj83x7hnc00ahijn92qwgkx9i" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/kscope-13/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -498,61 +551,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/" data-id="cj5euf6xj008wc2n9kcvioktv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/" data-id="cj83x7hn900adijn9wrh790jb" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-embedding-files-within-apex-where" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/01/embedding-files-within-apex-where/" class="article-date">
-  <time datetime="2013-01-31T01:50:00.000Z" itemprop="datePublished">2013-01-30</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/01/embedding-files-within-apex-where/">Embedding Files within APEX: Where things go wrong</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><em>This is the final part of a three part series on embedding files in your  APEX application. You should read all the articles (<a href="http://www.talkapex.com/2013/01/embedding-files-within-apex.html">Part 1</a> and <a href="http://www.talkapex.com/2013/01/embedding-files-within-apex-supporting.html">Part 2</a>) before deciding  whether or not to leverage this feature in APEX as it has its pros and  cons.</em></p>
-<p>The previous posts in this series covered how to upload, reference, and create installation scripts for embedded files within APEX. This post will cover some caveats that people may not be aware of when using embedded files within APEX.</p>
-<p>I already hinted in the first post of this series that they’re several reasons why you may not want to embed files within APEX. Besides performance issues they’re situations which you’ll get some unexpected behavior. I’ve included examples of some of these issues below. Each example assumes that you have a static file (test.js) included in the base application and it’s also in the installation scripts.</p>
-<h3 id="Copying-an-Application"><a href="#Copying-an-Application" class="headerlink" title="Copying an Application"></a>Copying an Application</h3><p>A lot of times people tend to copy an application within a workspace to back it up before doing a big change or to run some one-off tests on their own. If you copy an application, despite selecting Yes for “Copy Supporting Objects Definitions” the application specific files are not copied.</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-50h21B0FQ7A/UQnKA5tLbGI/AAAAAAAAETk/RkK0e80NlRA/s1600/embed_apex_file_copy_app.jpg" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-50h21B0FQ7A/UQnKA5tLbGI/AAAAAAAAETk/RkK0e80NlRA/s640/embed_apex_file_copy_app.jpg" alt=""></a></div><br>In this case you’ll need to manually run the Supporting Objects &gt; Install Supporting Objects to install the file (assuming that the installation script has the latest version of the file). But wait. When you do that it’ll actually remove the file from the original application and install it in the new one (i.e. it no longer exists in the application that you copied from).<br><br>### Deleting a Copied Application<br>If you copied an application and selected “Yes” for “Copy Supporting Object Definitions” we know from the previous example that it doesn’t install any embedded files. If you now delete the newly copied application and check off “Deinstall Supporting Objects” it will also remove any files from the base application that you copied from.<br><br><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-NiIJ19RZAr8/UQnK8aJ14tI/AAAAAAAAETs/1DLfMOLBjSI/s1600/embed_apex_file_deinstall_app.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-NiIJ19RZAr8/UQnK8aJ14tI/AAAAAAAAETs/1DLfMOLBjSI/s400/embed_apex_file_deinstall_app.png" alt=""></a></div><div class="separator" style="clear: both; text-align: center;"><br></div>
-
-<h3 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h3><p>If embedding files in your APEX application sounds confusing don’t worry, it is. I had to do many test cases while writing this blog to confirm some of the scenarios.</p>
-<p>If you’ve read through the entire three part series on embedding files in your APEX application you’ll notice that it can be very confusing and cumbersome_. _This can cause a lot of unexpected issues in the long run.</p>
-<p>As much as possible I avoid embedding files in APEX and instead store them on a web server. To me, it’s just not worth the hassle. Of course they’re exceptions. If I can’t get access to the web server or if the application is to be bundled as a stand alone application then it makes sense.<em> </em></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex-where/" data-id="cj5euf6xp0094c2n9937vxeec" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/01/embedding-files-within-apex-where/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
 
     </footer>
   </div>
@@ -599,7 +603,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -636,7 +640,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">12</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">13</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
