@@ -44,7 +44,8 @@ docker run -d -it --name OracleDB -p 32711:1521 container-registry.oracle.com/da
 # It takes some time for the Oracle container to fully boot up. Before trying to connect to it check the container status by running:
 docker ps
 
-# Look in the STATUS column for the container. During "boot" time it will say "... (health: starting)". Wait until it says (healthy) before trying anything else.
+# Look in the STATUS column for the container. During "boot" time it will say "... (health: starting)".
+# Wait until it says (healthy) before trying anything else.
 
 # To review/confirm the port mapping run:
 docker port OracleDB
