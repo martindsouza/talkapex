@@ -129,3 +129,5 @@ docker rmi container-registry.oracle.com/database/enterprise:12.2.0.1
 I've just started to use the Docker 12.2 image and may launch a 12.1 container as well (will blog instructions if I do it).
 
 If I run into any issues doing my tests and "learning" development (i.e. kicking the 12.2 tires) I'll write another article and link below. I also plan to look into upgrading APEX on the 12.2 container along with creating a simple web server container to test APEX with some 12.2 features. If I get this working I'll blog about it.
+
+**Update: ** [Role Hartman](https://twitter.com/RoelH) wrote a followup [post](http://roelhartman.blogspot.ca/2017/10/dockerize-your-apex-development.html) to this article that I highly suggest reading. I will update this article with some of his suggestions on how he sets up his Docker Oracle DB container.
