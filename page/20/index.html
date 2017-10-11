@@ -9,6 +9,7 @@
 <meta property="og:title" content="TalkApex">
 <meta property="og:url" content="http://www.talkapex.com/page/20/index.html">
 <meta property="og:site_name" content="TalkApex">
+<meta property="og:locale" content="default">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="TalkApex">
 <meta name="twitter:creator" content="@martindsouza">
@@ -57,7 +58,7 @@
         <a id="nav-search-btn" class="nav-icon" title="Search"></a>
       </nav>
       <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" results="0" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
       </div>
     </div>
   </div>
@@ -65,6 +66,96 @@
 
       <div class="outer">
         <section id="main">
+  
+    <article id="post-how-to-only-display-column-when" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/06/how-to-only-display-column-when/" class="article-date">
+  <time datetime="2010-06-15T15:00:00.000Z" itemprop="datePublished">2010-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/06/how-to-only-display-column-when/">How to only Display Column when Downloading</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called <code>color</code> and you want to display the color in the report. Your query would look like this:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> <span class="string">'&lt;span style="color:'</span> || color || <span class="string">'"&gt;"'</span> || color || <span class="string">'&lt;/span&gt;'</span> color</div><div class="line"><span class="keyword">FROM</span> my_colors</div></pre></td></tr></table></figure></p>
+<p><em>Note: That they’re ways to get around this simple example using Report Templates and Column Formatting. I’m just using it for demo purposes</em></p>
+<p>If you were to download this report the “color” column would contain all the html (i.e. <code>span</code> tags etc). This may confuse users since they expected to see “red, green, blue, etc…” in their download file, but instead see the colors wrapped in a lot of html.</p>
+<p>A workaround that I’ve used is to create 2 columns: color_html and color<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">SELECT</span> <span class="string">'&lt;span style="color:'</span> || color || <span class="string">'"&gt;"'</span> || color || <span class="string">'&lt;/span&gt;'</span> color_html,</div><div class="line">            color color</div><div class="line">  <span class="keyword">FROM</span> my_colors</div></pre></td></tr></table></figure></p>
+<p>And modify each report column’s attributes:</p>
+<p><strong>Standard Reports</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Column Definition</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color_html</code></td>
+<td>Include In Export</td>
+<td><code>No</code></td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td>PL/SQL Function Body Returning a Boolean</td>
+<td><code>return apex_application.g_excel_format</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interactive Reports</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Column Definition</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>color_html</code></td>
+<td>Conditional Display</td>
+<td>Request is NOT Contained within Expression 1: <code>CSV,HTMLD</code></td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td>Conditional Display</td>
+<td>Request is Contained within Expression 1: <code>CSV,HTMLD</code></td>
+</tr>
+</tbody>
+</table>
+<p>Now when a user downloads the report they’ll get the non-html version of the column. This solution works in APEX 4.0 and APEX 3.x</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2010/06/how-to-only-display-column-when/" data-id="cj8mib1pf00428rn9v6npzdmc" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2010/06/how-to-only-display-column-when/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
   
     <article id="post-interactive-reports-with-over-100" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
@@ -135,7 +226,7 @@ apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID he
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/interactive-reports-with-over-100/" data-id="cj8k0tsoc0044vkn9x9xufhge" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/interactive-reports-with-over-100/" data-id="cj8mib1pd003y8rn9zv15ivre" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/interactive-reports-with-over-100/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -186,7 +277,7 @@ apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID he
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/new-url-httptalkapexcom/" data-id="cj8k0tsof0046vkn9647g6qdh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/new-url-httptalkapexcom/" data-id="cj8mib1pc003w8rn9n189ejze" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/new-url-httptalkapexcom/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -273,7 +364,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/" data-id="cj8k0tsob0042vkn94o0tr05i" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/" data-id="cj8mib1p8003s8rn9u9kyuqqn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -317,7 +408,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/" data-id="cj8k0tso7003yvkn91d7srq0z" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/" data-id="cj8mib1pa003u8rn99hunej06" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -375,7 +466,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="cj8k0tso80040vkn9qjjy27oq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="cj8mib1p7003q8rn9q07jgope" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/03/how-to-reference-package-variables/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -434,7 +525,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="cj8k0tso3003wvkn902ikqsg9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="cj8mib1p5003o8rn9askimeqh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -481,7 +572,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="cj8k0tsnz003svkn9eb066v08" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="cj8mib1p4003m8rn9m3j7xg22" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -627,7 +718,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="cj8k0tsnx003qvkn9xu6mn2q9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="cj8mib1p2003k8rn94eo2hz24" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -705,53 +796,9 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cj8k0tso1003uvkn99znd0rc5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cj8mib1p1003i8rn91j09jw12" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/12/apex-orphaned-application-files/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-using-decimals-in-apex-page-numbers" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/11/using-decimals-in-apex-page-numbers/" class="article-date">
-  <time datetime="2009-11-16T16:30:00.000Z" itemprop="datePublished">2009-11-16</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/11/using-decimals-in-apex-page-numbers/">Using Decimals in APEX Page Numbers</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SwCbWN630kI/AAAAAAAADtg/G-w443rjVeQ/s1600/800px-999_Perspective.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SwCbWN630kI/AAAAAAAADtg/G-w443rjVeQ/s200/800px-999_Perspective.png" alt=""></a></p>
-<p>When creating an APEX page you can use decimals in the page number. If you logically group your pages by page numbers and run out of page numbers this may be useful. For example if you create pages 1 through 10 then realize you’d like a page right beside page 5, you could create Page 5.1.</p>
-<p>I don’t personally recommend using decimals in page numbers as you can’t use decimals in item names, so <span style="font-style:italic;">P5.1_X</span> won’t work. Of course you may find some other use for creating pages with decimals.</p>
-<p>If you’re concerned about logically grouping pages for your development try initially separating pages by increments of 100 or by using Page Groups. To configure Page Groups go to the main application development page and click on “Page Groups” on the right hand side. Once you’ve setup the group and assigned pages, go back to the main development page and under the “View” drop down select “Groups”.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cj8k0tsnu003ovkn9yjmjkz0u" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
@@ -801,7 +848,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">134</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -838,7 +885,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">14</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">15</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
