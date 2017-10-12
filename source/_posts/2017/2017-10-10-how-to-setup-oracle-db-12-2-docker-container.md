@@ -58,23 +58,25 @@ Your docker container should now be running. The following code shows how to con
 ```bash
 # Note on my laptop I renamed "sql" to "sqlcl". Adjust the scripts accordingly or call sqlplus
 # The difference between : and / at the end of the connection strings is :SID /SERVICE_NAME
-
-# Connect to the CDB to create a new PDB user
 # Note: Oradoc_db1 is the default password for the image
-sqlcl sys/Oradoc_db1@0.0.0.0:32711:ORCLCDB as sysdba
+
+# To connect to the CDB (but you probably don't need to do this)
+# sqlcl sys/Oradoc_db1@localhost:32711:orclcdb as sysdba
+# You'd then need to connect to PDB in SQL: alter session set container = orclpdb1;
+
+# To connect to the PDB to create schema to develop with
+sqlcl sys/Oradoc_db1@localhost:32711/orclpdb1.localdomain as sysdba
 ```
 
 In `SQL> `:
 
 ```sql
-alter session set container = orclpdb1;
-
 -- Create account to develop with
 define new_user = 'martin'
 
 create user &new_user. identified by &new_user. container = current;
-grant connect, create view, create job, create table, create synonym, create sequence, create trigger, create procedure, create any context, create type to &new_user.;
-grant unlimited tablespace to &new_user.;
+grant connect, resource, create any context to &new_user;
+alter user &new_user quota unlimited on users;
 
 exit
 ```
@@ -82,7 +84,7 @@ exit
 Connect to the PDB
 
 ```bash
-sqlcl martin/martin@0.0.0.0:32711/ORCLPDB1.localdomain
+sqlcl martin/martin@localhost:32711/orclpdb1.localdomain
 ```
 
 Note: In SQL Developer this connection looks like:
@@ -110,7 +112,13 @@ So now that you've started your Docker instance, and established a working conne
 docker ps -a
 
 # Stop the docker image
-docker stop OracleDB
+# docker stop OracleDB
+# From Gerald Venzl: By default docker will kill the container after just 10 seconds.
+# That usually means that your database will die and has to run through recovery when it restarts.
+# I always do a "docker stop -t 100 <container name>". That gives it a minute and 40 secs.
+# It won't need that, usually 30 - 40 secs is enough.
+# Docker will shutdown as soon as the database is down as well.
+docker stop -t 100 OracleDB
 
 # Start the docker image
 docker start OracleDB
