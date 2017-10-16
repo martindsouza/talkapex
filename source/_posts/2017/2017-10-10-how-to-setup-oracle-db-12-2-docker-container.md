@@ -60,7 +60,7 @@ Your docker container should now be running. The following code shows how to con
 # The difference between : and / at the end of the connection strings is :SID /SERVICE_NAME
 # Note: Oradoc_db1 is the default password for the image
 
-# To connect to the CDB (but you probably don't need to do this)
+# To connect to the CDB (you probably won't need to do this)
 # sqlcl sys/Oradoc_db1@localhost:32711:orclcdb as sysdba
 # You'd then need to connect to PDB in SQL: alter session set container = orclpdb1;
 
