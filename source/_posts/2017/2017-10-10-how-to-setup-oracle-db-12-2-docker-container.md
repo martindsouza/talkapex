@@ -5,7 +5,7 @@ tags:
 date: 2017-10-10 23:39:44
 alias:
 ---
-
+_Update: If you want to setup Oracle in an Docker container where the data is retained on your laptop (and not the container) read [this](http://www.talkapex.com/2017/10/docker-oracle-and-apex/) article._
 
 I recently had a need to do a Proof of Concept (POC) on a new feature released in Oracle 12c R2 (12.2). My first instinct was to go to my DBAs and ask them to give me access to a 12.2 environment. Thankfully I was at the [Oracle ACE](http://www.oracle.com/technetwork/community/oracle-ace/index.html) annual Oracle Open World dinner and [Gerald Venzl](https://twitter.com/geraldvenzl?lang=en) (aka Mr.Oracle-Docker) was there and convinced me otherwise. I must thank Gerald for both pushing me to start using Docker again and also for some support when I ran into issues.
 
