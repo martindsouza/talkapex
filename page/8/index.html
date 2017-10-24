@@ -67,6 +67,59 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-stopping-dynamic-actions-using" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/01/stopping-dynamic-actions-using/" class="article-date">
+  <time datetime="2014-01-13T14:00:00.000Z" itemprop="datePublished">2014-01-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/01/stopping-dynamic-actions-using/">Stopping Dynamic Actions using apex.da.cancelEvent</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>Update: <a href="https://twitter.com/nbuytaert1" target="_blank" rel="external">Nick Buytaert</a> wrote a follow-up article on the <a href="http://apexplained.wordpress.com/2014/01/18/the-apex-da-resume-function/" target="_blank" rel="external"><code>apex.da.resume</code></a> function. I suggest reading it along with this article in case you need to resume a Dynamic Action (which is especially useful for plugins).</em></p>
+<p> They’re a few times when you may need to stop a Dynamic Action part way through the executing all its actions. Since individual actions don’t have conditions associated with them there’s no supported way to do this. Thankfully there’s an undocumented JavaScript (JS) function called <code>apex.da.cancelEvent</code>. Here’s an example of how to use it:</p>
+<p>Suppose you have a page with two items, <code>P1_X</code> and <code>P1_Y</code>, and a button on P1. When the user clicks the button the Dynamic Action (DA) needs to set <code>P1_X = X</code> and <code>P1_Y = Y</code>. The DA setup will look like the following:</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-e6yhj7M1vgE/Uso4eh2QGGI/AAAAAAAAEj8/qT56EVu5mfE/s1600/Edit-Dynamic-Action.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-e6yhj7M1vgE/Uso4eh2QGGI/AAAAAAAAEj8/qT56EVu5mfE/s1600/Edit-Dynamic-Action.png" alt=""></a></div>
+
+<p>When you click the button <code>P1_X</code> and <code>P1_Y</code> are set to <code>X</code> and <code>Y</code> respectively.</p>
+<p>Now suppose that after <code>P1_X</code> is set you wanted to stop all other actions in the DA (in this case setting <code>P1_Y</code>). There’s no way to declaratively do this. Instead you must use the <code>apex.da.cancelEvent</code> function.</p>
+<p>Add a new JavaScript <code>True Action</code> to the existing DA with sequence <code>15</code> (so its between the two other actions). In the code section use: <code>apex.da.cancelEvent.call(this);</code>  Be sure to uncheck the <code>Fire On Page Load</code> option. The updated DA will look like image below (the new action is highlighted).</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-Zjm1fMjGnFc/Uso_x_2VhJI/AAAAAAAAEkM/8JHhq8GPd_E/s1600/Edit-Dynamic-Action-1.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-Zjm1fMjGnFc/Uso_x_2VhJI/AAAAAAAAEkM/8JHhq8GPd_E/s1600/Edit-Dynamic-Action-1.png" alt=""></a></div>
+
+<p>If you refresh P1 and click the button associated to this DA only <code>P1_X</code> will be set. The third action in this DA will not be executed.</p>
+<p>The above example probably isn’t the best use case for leveraging <code>apex.da.cancelEvent</code> however it does highlight its functionality. It is useful if you create your own custom confirm notice or some other process that determines if the rest of the actions in a DA can occur.</p>
+<p>Note: You’ll notice that I used the additional <code>call()</code> function when calling <code>apex.da.cancelEvent</code> in the action. Calling it defines the value of <code>this</code> in the function call as it is required in the <code>cancelEvent</code> function. For more information please read the JS <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call" target="_blank" rel="external"><code>call()</code> documentation</a>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2014/01/stopping-dynamic-actions-using/" data-id="cj950g481008uuan9k59mf0vc" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2014/01/stopping-dynamic-actions-using/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-parsing-imperfect-json" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2014/01/parsing-imperfect-json/" class="article-date">
@@ -100,7 +153,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/parsing-imperfect-json/" data-id="cj8trvypu00bn42n9pqfbua03" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/01/parsing-imperfect-json/" data-id="cj950g480008suan9mtee6xco" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/01/parsing-imperfect-json/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -150,7 +203,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/derived-columns-in-apex-standard-reports/" data-id="cj8trvypt00bl42n97ka6nrwf" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/01/derived-columns-in-apex-standard-reports/" data-id="cj950g47z008quan9notbk93n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/01/derived-columns-in-apex-standard-reports/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -209,7 +262,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/2014-speaking-engagements/" data-id="cj8trvyps00bj42n91ox7lr1h" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/01/2014-speaking-engagements/" data-id="cj950g47y008ouan9ky4cuumi" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/01/2014-speaking-engagements/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -252,7 +305,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/12/seattle-come-meet-some-oracle-ace/" data-id="cj8trvypr00bh42n9i4axmdir" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/12/seattle-come-meet-some-oracle-ace/" data-id="cj950g49e00bouan9yri7sjsr" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/12/seattle-come-meet-some-oracle-ace/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -319,7 +372,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/12/oracleapexcom/" data-id="cj8trvypq00bf42n9hhf3xt9w" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/12/oracleapexcom/" data-id="cj950g49c00bkuan9yvuolemc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/12/oracleapexcom/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -364,7 +417,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/11/logger-survey/" data-id="cj8trvypp00bd42n9ui76lri9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/11/logger-survey/" data-id="cj950g49l00c3uan99vk5hrcv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/11/logger-survey/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -414,7 +467,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/10/odtug-elections-please-vote/" data-id="cj8trvypo00ba42n91q098oj3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/10/odtug-elections-please-vote/" data-id="cj950g49a00bhuan9w2gpbvj4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/10/odtug-elections-please-vote/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -460,7 +513,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/10/leaving-it-to-experts/" data-id="cj8trvypn00b842n9y2q2e5v8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/10/leaving-it-to-experts/" data-id="cj950g49900bfuan9pxe159in" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/10/leaving-it-to-experts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -504,56 +557,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/09/presenting-at-oracle-open-world-oow/" data-id="cj8trvypm00b642n9upm21h78" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/09/presenting-at-oracle-open-world-oow/" data-id="cj950g49800bduan9l0eua3sa" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/09/presenting-at-oracle-open-world-oow/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oow/">oow</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-logger-with-batch-processes" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/09/logger-with-batch-processes/" class="article-date">
-  <time datetime="2013-09-13T15:01:00.000Z" itemprop="datePublished">2013-09-13</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/09/logger-with-batch-processes/">Logger with Batch Processes</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>At <a href="http://odtug.com/" target="_blank" rel="external">ODTUG</a> <a href="http://www.odtug.com/apexposed" target="_blank" rel="external">APEXposed</a> this week <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger</a> which highlighted some of its features. The item that got the most interest from participants was the ability to set the logging level for individual sessions without affecting any other sessions. This wasn’t a big surprise since this was the key feature that most people had asked to see in the 2.0.0 release.</p>
-<p>One attendee asked if we could modify the logging level in a particular session from another session while it was still running. The answer is yes you can. The best example I could give at the time was baking a loaf of bread. Most ovens have a window and a light. Half way during the baking process you can turn on the light and see how your bread is doing. Logger allows you to do that as well.  The following example highlights this:</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div></pre></td><td class="code"><pre><div class="line">SQL&gt; -- Simulate production setup</div><div class="line">SQL&gt; exec logger.set_level('ERROR');</div><div class="line"></div><div class="line">PL/SQL procedure successfully completed.</div><div class="line"></div><div class="line">SQL&gt; -- Procedure to simulate batch script</div><div class="line"></div><div class="line">create or replace procedure run_long_batch(</div><div class="line">  p_client_id in varchar2,</div><div class="line">  p_iterations in pls_integer)</div><div class="line">as</div><div class="line">  l_scope logger_logs.scope%type := 'run_long_batch';</div><div class="line">begin</div><div class="line">  logger.log('START', l_scope);</div><div class="line"></div><div class="line">  dbms_session.set_identifier(p_client_id);</div><div class="line"></div><div class="line">  for i in 1..p_iterations loop</div><div class="line">    logger.log('i: ' || i, l_scope);</div><div class="line">    dbms_lock.sleep(1);</div><div class="line">  end loop;</div><div class="line"></div><div class="line">  logger.log('END');</div><div class="line"> 17  </div><div class="line">end run_long_batch;</div><div class="line"> 19  /</div><div class="line"></div><div class="line">Procedure created.</div><div class="line"></div><div class="line">SQL&gt; -- *** In another session run the following code ***</div><div class="line">SQL&gt; exec run_long_batch(p_client_id =&gt; 'batchdemo', p_iterations =&gt; 60);</div><div class="line"></div><div class="line">SQL&gt; -- In current window toggle the logging level for the batch job</div><div class="line">SQL&gt; -- Note: This is done while it's still running in the other session</div><div class="line">begin</div><div class="line"></div><div class="line">  -- Enable debug mode for batch job</div><div class="line">  logger.set_level('DEBUG', 'batchdemo');</div><div class="line">  dbms_lock.sleep(2);</div><div class="line">  -- Disable</div><div class="line">  logger.unset_client_level('batchdemo');</div><div class="line">  dbms_lock.sleep(10);</div><div class="line">  -- Enable again</div><div class="line">  logger.set_level('DEBUG', 'batchdemo');</div><div class="line">  dbms_lock.sleep(2);</div><div class="line">  -- Disable</div><div class="line">  logger.unset_client_level('batchdemo');</div><div class="line">end;</div><div class="line"> 15  /</div><div class="line"></div><div class="line">PL/SQL procedure successfully completed.</div><div class="line"></div><div class="line">SQL&gt; -- View items that were logged</div><div class="line">select logger_level, text, time_stamp, scope</div><div class="line">from logger_logs</div><div class="line">order by id;</div><div class="line"></div><div class="line">LOGGER_LEVEL TEXT       TIME_STAMP</div><div class="line">------------ ---------- ---------------------------------------------------------------------------</div><div class="line">          16 i: 8       11-SEP-13 01.40.34.879699 PM</div><div class="line">          16 i: 9       11-SEP-13 01.40.35.881973 PM</div><div class="line">          16 i: 20      11-SEP-13 01.40.46.890244 PM</div><div class="line">          16 i: 21      11-SEP-13 01.40.47.891464 PM</div></pre></td></tr></table></figure>
-<p>From the query’s output you’ll notice that it started logging, then stopped for a short period, then started again, then stopped. This can really help if a batch process is taking a long time and you want to see where exactly in the code it is.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/09/logger-with-batch-processes/" data-id="cj8trvypl00b342n9qolpjzfo" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/09/logger-with-batch-processes/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
 
     </footer>
   </div>
@@ -600,7 +609,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">135</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">135</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -637,7 +646,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">16</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

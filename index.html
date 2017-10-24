@@ -67,6 +67,70 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-top-oracle-sql-developer-data-modeler-settings" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/10/top-oracle-sql-developer-data-modeler-settings/" class="article-date">
+  <time datetime="2017-10-23T06:00:00.000Z" itemprop="datePublished">2017-10-23</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/10/top-oracle-sql-developer-data-modeler-settings/">Top Oracle SQL Developer Data Modeler Settings</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I’ve started to use SQL Developer Data Modeler](<a href="http://www.oracle.com/technetwork/developer-tools/datamodeler/overview/index.html)(SDDM" target="_blank" rel="external">http://www.oracle.com/technetwork/developer-tools/datamodeler/overview/index.html)(SDDM</a>) a lot for a project and realized that pretty much everything is configurable. The problem is that there’s no single area to search all the different settings and even the settings’ search boxes don’t filter for all the options. To get around this (and for my own references) I’ve included some settings that I found very useful. <em>I’ll try to keep this post up to date as I continue to explore SDDM.</em></p>
+<p><strong>Notes</strong></p>
+<ul>
+<li><a href="https://twitter.com/thatjeffsmith" target="_blank" rel="external">Jeff Smith</a> has <a href="http://www.thatjeffsmith.com" target="_blank" rel="external">blogged</a> about a lot of the different settings. For a more extensive list check out his <a href="http://www.thatjeffsmith.com" target="_blank" rel="external">blog</a>.</li>
+<li>When <em>Preferences</em> is mentioned it’s <code>Tools &gt; Preferences</code> in Windows and <code>Oracle Data Modeler &gt; Preferences</code> in Mac.</li>
+<li>I did not include any scripting (design rules, transformations, or DDL transformations) in this list. I’ll write a separate article on that.</li>
+</ul>
+<h2 id="Adding-PROMPT-Statements-in-DDL"><a href="#Adding-PROMPT-Statements-in-DDL" class="headerlink" title="Adding PROMPT Statements in DDL"></a>Adding <code>PROMPT</code> Statements in DDL</h2><p>SDDM can generate DDL statements for you either by clicking the DDL button (1) or synchronizing the model with a schema (2):</p>
+<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_7.png"></p>
+<p>It’s always helpful to have <code>prompt</code> statements before each DDL change to help debug where an issue occurred. To do so open <code>Preferences</code> and check  <code>Include PROMPT Command (for Oracle only)</code>:</p>
+<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_6.png"></p>
+<p>All DDL will then include a <code>prompt</code> statement like:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">PROMPT CREATING TABLE 'MY_TABLE';</div><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> MY_TABLE ...</div></pre></td></tr></table></figure>
+<h2 id="12c-Identity-Column-or-Auto-Generate-Sequences"><a href="#12c-Identity-Column-or-Auto-Generate-Sequences" class="headerlink" title="12c Identity Column or Auto Generate Sequences"></a>12c Identity Column or Auto Generate Sequences</h2><p>Depending on your database version you may want to either have sequences automatically generated for you or not. In my case I was using a 12c instance and was going to use <a href="https://oracle-base.com/articles/12c/identity-columns-in-oracle-12cr1" target="_blank" rel="external">Identity Columns</a> for primary key IDs. I didn’t want sequences for each table to be automatically generated. To toggle this feature open Preferences and change the options in the image below.</p>
+<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_8.png"></p>
+<p>More on the Identity Column settings <a href="http://www.thatjeffsmith.com/archive/2014/01/defining-12c-identity-columns-in-oracle-sql-developer-data-modeler/" target="_blank" rel="external">here</a></p>
+<h2 id="DDL-Format-Lowercase-and-Tabs"><a href="#DDL-Format-Lowercase-and-Tabs" class="headerlink" title="DDL Format - Lowercase and Tabs"></a>DDL Format - Lowercase and Tabs</h2><p>If you’re really picky on the format of the DDL that is generated you can modify some of the settings in <code>Preferences &gt; Format</code>:</p>
+<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_9.png"></p>
+<h2 id="Naming-Standard-Templates"><a href="#Naming-Standard-Templates" class="headerlink" title="Naming Standard Templates"></a>Naming Standard Templates</h2><p>When adding primary keys (PK) and various other constraints a default name is always generated. You can determine how this name is generated by modifying the design’s properties settings:</p>
+<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_10.png"></p>
+<p>More information on different variables can be found <a href="https://kentgraziano.com/2015/12/29/better-data-modeling-discovering-foreign-keys-fk-in-sqldevmodeler-sddm/" target="_blank" rel="external">here</a></p>
+<h2 id="Short-Table-Names"><a href="#Short-Table-Names" class="headerlink" title="Short Table Names"></a>Short Table Names</h2><p>In most DB instances all object names are limited to 30 characters (this is changed in 12c but most organizations still haven’t enabled 128 characters). When using naming standards this can cause some issues because just referencing <code>&lt;table_name&gt;</code> may not work as its already 30 characters. Note <code>&lt;table_name&gt;</code> isn’t a real variable in SDDM.</p>
+<p>You can define a short name (SDDM calls it an <code>Abbreviation</code>) for each table via the table properties. Setting the <code>Abbreviation</code> is also very helpful when generating DDL statements or constraints from scripts.</p>
+<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170722_12.png"></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/" data-id="cj950g4bh00f1uan9u42tpsc8" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-docker-oracle-and-apex" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2017/10/docker-oracle-and-apex/" class="article-date">
@@ -216,7 +280,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/docker-oracle-and-apex/" data-id="cj8trvys900fn42n9pbupjkgy" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/docker-oracle-and-apex/" data-id="cj950g4bj00f3uan9hvd3o7qd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/docker-oracle-and-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -284,7 +348,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/" data-id="cj8trvysc00fu42n9vglixv27" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/" data-id="cj950g4bg00ezuan9c7hf2vx1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -336,7 +400,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/montreal-oracle-dev-day-2017/" data-id="cj8trvysb00fs42n9ujnthi86" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/montreal-oracle-dev-day-2017/" data-id="cj950g4be00ewuan9mho9sm4u" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/montreal-oracle-dev-day-2017/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -394,7 +458,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/09/oracle-open-world-17/" data-id="cj8trvysa00fp42n9wci0p0lq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/09/oracle-open-world-17/" data-id="cj950g4b900eruan9vjt5yxx5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/09/oracle-open-world-17/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -447,7 +511,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/07/oracle-sql-developer-randomly-closes/" data-id="cj8trvys700fk42n9x9q2wll3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/07/oracle-sql-developer-randomly-closes/" data-id="cj950g4bc00euuan9lwiw8ezl" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/07/oracle-sql-developer-randomly-closes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -517,7 +581,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/06/kscope-17/" data-id="cj8trvys600fi42n9h61z5cff" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/06/kscope-17/" data-id="cj950g4b800epuan9zv423c4i" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/06/kscope-17/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -577,7 +641,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/automatically-update-application-version-number-in-apex/" data-id="cj8trvys300fd42n9k8rf9z83" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/04/automatically-update-application-version-number-in-apex/" data-id="cj950g4b500ekuan9mipspy7j" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/04/automatically-update-application-version-number-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -628,7 +692,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/" data-id="cj8trvys400fg42n9du8krxs4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/" data-id="cj950g4b700enuan9fefbtn7u" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -685,65 +749,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/" data-id="cj8trvys100fb42n929ircr10" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/" data-id="cj950g4b400eiuan9w132msf1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-5-1/">apex-5.1</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-partial-rollbacks" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/04/partial-rollbacks/" class="article-date">
-  <time datetime="2017-04-27T10:28:41.000Z" itemprop="datePublished">2017-04-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/04/partial-rollbacks/">Partial Rollbacks</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>The ability to rollback transactionsin PL/SQL is very helpful when something goes wrong and you want to <em>undo</em> what was just done. At a very high level, most code that use <code>rollback</code> look like the following:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">begin</span></div><div class="line">  ...</div><div class="line"><span class="keyword">exception</span></div><div class="line">  <span class="keyword">when</span> others <span class="keyword">then</span></div><div class="line">    <span class="keyword">rollback</span>;</div><div class="line">    raise;</div><div class="line"><span class="keyword">end</span>;</div></pre></td></tr></table></figure>
-<p>The above code makes sense as the <code>rollback</code> occurs when an error happens. (<em>Note for APEX users, an implicit <code>rollback</code> occurs in processes if an exception occurs</em>) The caveat is that it rollsback the entire transaction (i.e. from the start). What if the code is part of a larger block of code and you only want to <code>rollback</code> to the previous step? The following pseudo code is an example:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">begin</span></div><div class="line">  do_step_1;</div><div class="line">  do_step_2;</div><div class="line">  <span class="comment">-- Step 3 may error out and if it does, still want to preserve the work of steps 1 and 2.</span></div><div class="line">  do_step_3;</div><div class="line">  do_step_4;</div><div class="line"><span class="keyword">end</span>;</div></pre></td></tr></table></figure>
-<p>In <code>do_step_3</code> if a generic <code>rollback</code> was used in the exception block it would undo any chnages that were done in step’s 1 and 2 which is not the desired outcome. Thankfully PL/SQL rollback functionality supports this by using <code>savepoint</code>. If we want <code>do_step_3</code> to work as intented this is what it should look like:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">procedure</span> do_step_3 <span class="keyword">as</span></div><div class="line"><span class="keyword">begin</span></div><div class="line">  <span class="keyword">savepoint</span> start_step_3;</div><div class="line"></div><div class="line">  ...</div><div class="line"></div><div class="line">exception</div><div class="line">  when some_expected_error then</div><div class="line">    <span class="comment">-- This will rollback all changes to the start of do_step_3</span></div><div class="line">    <span class="keyword">rollback</span> <span class="keyword">to</span> <span class="keyword">savepoint</span> start_step_3;</div><div class="line">    <span class="comment">-- no raise as this was an expected error</span></div><div class="line">  when others then</div><div class="line">    raise;</div><div class="line"><span class="keyword">end</span> do_step_3;</div></pre></td></tr></table></figure>
-<p>A few things to note about <code>savepoint</code>s:</p>
-<ul>
-<li>The <code>rollback to savepoint x</code> doesn’t need to be called in the <code>exception</code> block. I’ve used it in other places as well. Ex: <code>if &lt;&gt; then rollback to savepoint...</code></li>
-<li>Try not to litter your code with <code>savepoint</code>s. It can get very confusing and tough to debug if you have a lot of them. The business logic will really determine when you need to use them.</li>
-<li>In the past ten years I’ve only needed to use them a handful of times. It’s not a common feature that you’ll need to use but good to know when you need it.</li>
-</ul>
-<p>Oracle documentation for <code>savepoint</code> can be found <a href="http://docs.oracle.com/database/122/SQLRF/SAVEPOINT.htm#SQLRF01701" target="_blank" rel="external">here</a>.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/partial-rollbacks/" data-id="cj8trvyrz00f942n9p1j26nhp" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/04/partial-rollbacks/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
 
     </footer>
   </div>
@@ -790,7 +801,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">135</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">135</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -827,7 +838,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">16</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
