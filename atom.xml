@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.talkapex.com/"/>
-  <updated>2017-10-24T02:46:58.617Z</updated>
+  <updated>2017-10-27T12:02:03.818Z</updated>
   <id>http://www.talkapex.com/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Listagg for IR Column Break Report</title>
+    <link href="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/"/>
+    <id>http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/</id>
+    <published>2017-10-27T12:01:52.000Z</published>
+    <updated>2017-10-27T12:02:03.818Z</updated>
+    
+    <content type="html"><![CDATA[<p>If you’ve used Interactive Reports (IR) in APEX for a while you may find a need to display a delimited list of values next to a <code>sum</code> row. The following screenshot shows this problem. Suppose you wanted to have a comma delimited list of names for each job such as <code>FORD,SCOTT</code> in the aggregation (sum) row.</p><img src="/2017/10/listagg-for-ir-column-break-report/report-problem.png" alt="report-problem.png" title=""><p>In SQL this is easy to do using the <a href="https://docs.oracle.com/database/122/SQLRF/LISTAGG.htm#SQLRF30030" target="_blank" rel="external"><code>listagg</code></a> function. unfortunately <code>listagg</code> isn’t available as an IR aggregation option (<code>Actions &gt; Data &gt; Aggregate</code>). I recently needed to do this for an IR. The rest of this post will cover setup along with the JavaScript (JS) solution.</p><h2 id="Setup"><a href="#Setup" class="headerlink" title="Setup"></a>Setup</h2><ol><li>Create an Interactive Report: <code>select ename, sal from emp</code></li><li>On the IR go to <code>Actions &gt; Format &gt; Control Break</code> and Select <code>Job</code> as the column (shown below) <br> <img src="/2017/10/listagg-for-ir-column-break-report/control-break.png" alt="control-break.png" title=""><br></li><li>On the IR go to <code>Actions &gt; Data &gt; Aggregate</code> and select <code>Function: Sum</code> and <code>Column: Sal</code> as shown below. <br><img src="/2017/10/listagg-for-ir-column-break-report/aggregation-sum.png" alt="aggregation-sum.png" title=""></li></ol><p>The resulting report should look like the first screenshot at the begging of this article.</p><h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>The JavaScript below will add in the necessary <code>listagg</code> for the <code>Ename</code> column for the IR.</p><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//Set to the displayed header name</span></div><div class="line"><span class="keyword">var</span> headerName = <span class="string">'Ename'</span>;</div><div class="line"></div><div class="line"><span class="keyword">var</span> headerNum; <span class="comment">//ID for TH header object</span></div><div class="line"></div><div class="line"><span class="comment">// Find the header to listagg</span></div><div class="line">$(<span class="string">'a.a-IRR-headerLink'</span>).each(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">  <span class="keyword">var</span> $<span class="keyword">this</span> = $(<span class="keyword">this</span>)</div><div class="line">  <span class="keyword">if</span>($<span class="keyword">this</span>.text() == headerName)&#123;</div><div class="line">    headerNum = $<span class="keyword">this</span>.closest(<span class="string">'th.a-IRR-header'</span>).attr(<span class="string">'id'</span>);</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">$(<span class="string">'.a-IRR-aggregate-value'</span>).each(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">  <span class="keyword">var</span> $aggRowTr = $(<span class="keyword">this</span>).first().closest(<span class="string">'tr'</span>);</div><div class="line">  <span class="keyword">var</span> $prevRow = <span class="literal">null</span>;</div><div class="line">  <span class="keyword">var</span> listaggHtml = <span class="string">''</span>;</div><div class="line"></div><div class="line">  <span class="comment">// Loop over all the rows until next next column break</span></div><div class="line">  <span class="keyword">while</span> (<span class="literal">true</span>)&#123;</div><div class="line">    $prevRow = !$prevRow ? $aggRowTr.prev(<span class="string">'tr'</span>) : $prevRow.prev(<span class="string">'tr'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($prevRow.children(<span class="string">'th'</span>).length &gt; <span class="number">0</span>)&#123;</div><div class="line">      <span class="comment">// If TH is detected it's the end of the IR column break</span></div><div class="line">      <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span>&#123;</div><div class="line">      listaggHtml = $prevRow.children(<span class="string">`td[headers*="<span class="subst">$&#123;headerNum&#125;</span>"]`</span>).text() + <span class="string">','</span> + listaggHtml;</div><div class="line">    &#125;</div><div class="line">  &#125;<span class="comment">//for</span></div><div class="line"></div><div class="line">  <span class="comment">// Regex is to remove trailing comma</span></div><div class="line">  $aggRowTr.children(<span class="string">`td[headers*="<span class="subst">$&#123;headerNum&#125;</span>"]`</span>).html(listaggHtml.replace(<span class="regexp">/,$/gi</span>, <span class="string">''</span>));</div><div class="line"></div><div class="line">&#125;); <span class="comment">// ('.a-IRR-aggregate-value').each</span></div></pre></td></tr></table></figure><p>After running the JS code the report will look like:</p><img src="/2017/10/listagg-for-ir-column-break-report/report-solution.png" alt="report-solution.png" title=""><p>A few comments about this solution:</p><ul><li>This code was for a personal report and thus the JS hasn’t been optimized or properly tested on all browsers</li><li>Depending on your needs you may want to move it to a Dynamic Action</li><li>If you have time you may want to convert this to an APEX plugin. If so please share on <a href="https://apex.world/ords/f?p=100:700" target="_blank" rel="external">APEX.world plugins</a></li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;If you’ve used Interactive Reports (IR) in APEX for a while you may find a need to display a delimited list of values next to a &lt;code&gt;sum
+      
+    
+    </summary>
+    
+    
+      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
+    
+  </entry>
   
   <entry>
     <title>Top Oracle SQL Developer Data Modeler Settings</title>
@@ -480,29 +503,6 @@
     
     
       <category term="oow" scheme="http://www.talkapex.com/tags/oow/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>ODTUG Leadership Program</title>
-    <link href="http://www.talkapex.com/2016/08/odtug-leadership-program/"/>
-    <id>http://www.talkapex.com/2016/08/odtug-leadership-program/</id>
-    <published>2016-08-02T13:00:00.000Z</published>
-    <updated>2017-01-22T17:09:38.000Z</updated>
-    
-    <content type="html"><![CDATA[<p><em>ODTUG has long been recognized as an outstanding source for the technical content Oracle professionals desire, but that’s only half of the story. We’re providing our members with yet another avenue to add to their skills and increase their value to their employer or client. ODTUG is pleased to open enrollment for the fourth class of the</em> <a href="http://www.odtug.com/p/cm/ld/fid=127?utmsource=email&amp;utmcampaign=leadership&amp;cmp=1&amp;utm_medium=HTMLEmail" target="_blank" rel="external"><em>ODTUG Leadership Program</em></a></p><p>I’ve had the opportunity to work with some of the classes and individuals from the Leadership Program and have heard some amazing stories on how this program changed peoples lives and carriers!</p><p>If you, or someone you know, is interested I encourage you to <a href="http://www.odtug.com/p/cm/ld/fid=127?utm_source=email&amp;utm_campaign=leadership&amp;cmp=1&amp;utm_medium=HTMLEmail" target="_blank" rel="external">submit an application</a>. Applications must be submitted by August 14th so hurry up!</p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;&lt;em&gt;ODTUG has long been recognized as an outstanding source for the technical content Oracle professionals desire, but that’s only half o
-      
-    
-    </summary>
-    
-    
-      <category term="odtug" scheme="http://www.talkapex.com/tags/odtug/"/>
     
   </entry>
   
