@@ -137,10 +137,13 @@ docker network inspect oracle_network
 
 The following command will create and run the Oracle Docker container. It's TNS listener will be accesible via port `32712` on your laptop. The reference to the APEX installation files are necessary only whe installing APEX.
 
+Adding the `-e TZ` will set the appropriate timezine for the OS and the database. A full list of timezones can be found [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones). If excluded it will default to UTC.
+
 ```bash
 docker run \
   --name oracle \
   --network=oracle_network \
+  -e TZ=America/Edmonton \
   -p 32712:1521 \
   -v ~/docker/oracle:/opt/oracle/oradata \
   -v ~/docker/apex/5.1.3:/tmp/apex-install \
