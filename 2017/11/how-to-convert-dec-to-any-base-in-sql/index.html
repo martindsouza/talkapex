@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>How to Convert Dec to Any Base in SQL | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="If you want to convert decimal (base 10) to to hexadecimal (base 16) in SQL you can do so easily with the built in to_char functionality: 12345select trim(to_char(300, &apos;XXXXX&apos;)) dec2hexfrom dual;DEC2H">
+<meta name="keywords" content="sql">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to Convert Dec to Any Base in SQL">
+<meta property="og:url" content="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="If you want to convert decimal (base 10) to to hexadecimal (base 16) in SQL you can do so easily with the built in to_char functionality: 12345select trim(to_char(300, &apos;XXXXX&apos;)) dec2hexfrom dual;DEC2H">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2017-11-07T04:27:27.600Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="How to Convert Dec to Any Base in SQL">
+<meta name="twitter:description" content="If you want to convert decimal (base 10) to to hexadecimal (base 16) in SQL you can do so easily with the built in to_char functionality: 12345select trim(to_char(300, &apos;XXXXX&apos;)) dec2hexfrom dual;DEC2H">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Martin Giffy D&#39;Souza on Oracle APEX</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-how-to-convert-dec-to-any-base-in-sql" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/11/how-to-convert-dec-to-any-base-in-sql/" class="article-date">
+  <time datetime="2017-11-07T03:26:15.000Z" itemprop="datePublished">2017-11-06</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      How to Convert Dec to Any Base in SQL
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>If you want to convert decimal (base 10) to to hexadecimal (base 16) in SQL you can do so easily with the built in <code>to_char</code> functionality:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">trim</span>(to_char(<span class="number">300</span>, <span class="string">'XXXXX'</span>)) dec2hex</div><div class="line"><span class="keyword">from</span> dual;</div><div class="line"></div><div class="line">DEC2HEX</div><div class="line">12C</div></pre></td></tr></table></figure>
+<p>What if you wanted to convert a decimal number to base 20 or any other base? This question recently came up when I was looking to add a <a href="https://github.com/OraOpenSource/oos-utils/issues/173" target="_blank" rel="external">transactional number generator</a> for <a href="https://github.com/OraOpenSource/oos-utils" target="_blank" rel="external">OOS Utils</a>. The goal of the ticket is to convert a sequence number into a human readable number (ex: invoice number). It can easily be solved using PL/SQL (solution below) but I wanted to see if I could do it in SQL as it presents an interesting problem.</p>
+<h2 id="The-Formula"><a href="#The-Formula" class="headerlink" title="The Formula"></a>The Formula</h2><p>For some, this section will go down memory lane to your college / university years where you had to convert dec to hex by hand. It’s important to understand the formula to convert dec to hex (or any base),</p>
+<p>Using the first example, this is how to convert <code>300</code> to <code>12C</code> “by hand”: <em>Note <code>Q</code> = Quotient, <code>R</code> = Remainder</em></p>
+<ul>
+<li><code>300/16 = Q: 18, R: 12 (hex: C)</code></li>
+<li><code>18/16 = Q:1, R: 2 (hex: 2)</code></li>
+<li><code>1/16 = Q: 0, R: 1 (hex: 1)</code></li>
+</ul>
+<p>The steps above produce the hexadecimal number <code>12C</code>. More importantly, each value is dependent on the calculation of the previous line. This isn’t easy to do in SQL.</p>
+<h2 id="PL-SQL-Function"><a href="#PL-SQL-Function" class="headerlink" title="PL/SQL Function"></a>PL/SQL Function</h2><p>The following function will convert dec to hex in PL/SQL:</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">create or replace function dec2hex (</div><div class="line">  p_num in integer)</div><div class="line">  return varchar2</div><div class="line">as</div><div class="line">  l_return varchar2(255);</div><div class="line">  l_quotient integer;</div><div class="line">  l_remainder integer;</div><div class="line">  c_base constant pls_integer := 16;</div><div class="line">begin</div><div class="line"></div><div class="line">  l_quotient := p_num;</div><div class="line"></div><div class="line">  while l_quotient &gt; 0 loop</div><div class="line">    l_remainder := mod(l_quotient, c_base);</div><div class="line">    l_quotient := trunc(l_quotient / c_base);</div><div class="line"></div><div class="line">    -- A=10, B=11, ... F=15</div><div class="line">    l_return := substr('0123456789ABCDEF', l_remainder+1, 1) || l_return;</div><div class="line">  end loop;</div><div class="line"></div><div class="line">  return l_return;</div><div class="line">end dec2hex;</div><div class="line">/</div></pre></td></tr></table></figure>
+<p>As you can see PL/SQL uses the quotient from the previous loop to calculate the current loop’s remainder.</p>
+<h2 id="SQL-Solution"><a href="#SQL-Solution" class="headerlink" title="SQL Solution"></a>SQL Solution</h2><p>In SQL, finding the value of the previous row is easy using an analytic function such as <a href="https://docs.oracle.com/database/122/SQLRF/Analytic-Functions.htm#SQLRF06174" target="_blank" rel="external"><code>lag</code></a>. If you’ve never used analytic functions before, <a href="https://twitter.com/connor_mc_d" target="_blank" rel="external">Connor McDonald</a> has a great <a href="https://www.youtube.com/watch?v=xvZ4SmKtazs" target="_blank" rel="external">series on youtube</a> about them.</p>
+<p>Using the previous row’s calculated value for the current row is more difficult and can’t be done using analytic functions. This is where the <a href="https://docs.oracle.com/database/122/SQLRF/SELECT.htm#GUID-CFA006CA-6FF1-4972-821E-6996142A51C6__I2171160" target="_blank" rel="external">model clause</a> comes in. It’s one of the lesser known features in Oracle SQL but very powerful in the right circumstances.</p>
+<p>The query below will do dec to hex (or any other “base X”) conversion. For demo purposes I have left the <code>select ... from my_data</code> portion uncommented to highlight the model clause. To do a full translation uncomment the last few lines.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div></pre></td><td class="code"><pre><div class="line">var x number;</div><div class="line">var base number;</div><div class="line"></div><div class="line">:x := 300;</div><div class="line">:base := 16;</div><div class="line"></div><div class="line"></div><div class="line">with</div><div class="line">  <span class="comment">-- Find how many loops we'll need to convert dec to basex</span></div><div class="line">  lvls as (</div><div class="line">    <span class="keyword">select</span> <span class="keyword">level</span> lvl</div><div class="line">    <span class="keyword">from</span> dual</div><div class="line">    <span class="comment">-- The &lt;= logic will return the number of characters required for conversion</span></div><div class="line">    <span class="keyword">connect</span> <span class="keyword">by</span> <span class="keyword">level</span> &lt;= <span class="keyword">ceil</span>(<span class="keyword">log</span>(:base, :x)) + <span class="keyword">decode</span>(<span class="keyword">log</span>(:base, :x), <span class="keyword">ceil</span>(<span class="keyword">log</span>(:base, :x)), <span class="number">1</span>,<span class="number">0</span>)</div><div class="line">  ),</div><div class="line">  <span class="comment">-- Alphabet 0..Z</span></div><div class="line">  <span class="comment">-- Where 0-9, A=10, B=11 ....</span></div><div class="line">  alphabet <span class="keyword">as</span> (</div><div class="line">    <span class="keyword">select</span></div><div class="line">      <span class="keyword">level</span><span class="number">-1</span> <span class="keyword">num</span>,</div><div class="line">      <span class="keyword">case</span></div><div class="line">        <span class="keyword">when</span> <span class="keyword">level</span><span class="number">-1</span> &lt; <span class="number">10</span> <span class="keyword">then</span> to_char(<span class="keyword">level</span><span class="number">-1</span>)</div><div class="line">        <span class="keyword">else</span> <span class="keyword">chr</span>( <span class="keyword">ascii</span>(<span class="string">'A'</span>)+<span class="keyword">level</span><span class="number">-1</span><span class="number">-10</span>)</div><div class="line">      <span class="keyword">end</span> letter</div><div class="line">    <span class="keyword">from</span> dual</div><div class="line">    <span class="keyword">connect</span> <span class="keyword">by</span> <span class="keyword">level</span> &lt;= :base</div><div class="line">  ),</div><div class="line">  <span class="comment">-- Returns rows for all the Quotient and Remainder in dec value</span></div><div class="line">  my_data <span class="keyword">as</span> (</div><div class="line">    <span class="keyword">select</span></div><div class="line">      lvl,</div><div class="line">      quotient,</div><div class="line">      <span class="keyword">remainder</span></div><div class="line">    <span class="keyword">from</span> lvls</div><div class="line">    <span class="keyword">model</span></div><div class="line">      <span class="keyword">return</span> all <span class="keyword">rows</span></div><div class="line">      <span class="keyword">dimension</span> <span class="keyword">by</span> (lvl)</div><div class="line">      <span class="keyword">measures</span>( <span class="number">0</span> <span class="keyword">remainder</span>, <span class="number">0</span> quotient)</div><div class="line">      <span class="keyword">rules</span> (</div><div class="line">        <span class="comment">-- Order matters here. I.e. R must come after Q so R can "see" Q</span></div><div class="line">        <span class="comment">-- cv docs: https://docs.oracle.com/database/122/SQLRF/Model-Functions.htm#SQLRF51210</span></div><div class="line">        quotient[lvl] = trunc(nvl(quotient[cv(lvl)<span class="number">-1</span>], :x) / :base),</div><div class="line">        <span class="keyword">remainder</span>[lvl] = <span class="keyword">mod</span>(nvl(quotient[cv(lvl)<span class="number">-1</span>], :x), :base)</div><div class="line">      )</div><div class="line">  )</div><div class="line"><span class="comment">-- For demo purposes</span></div><div class="line"><span class="keyword">select</span> md.*, a.letter</div><div class="line"><span class="keyword">from</span> my_data md, alphabet a</div><div class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">  <span class="keyword">and</span> md.remainder = a.num</div><div class="line"><span class="keyword">order</span> <span class="keyword">by</span> md.lvl</div><div class="line"><span class="comment">-- Uncomment below for dec2hex conversion</span></div><div class="line"><span class="comment">--select</span></div><div class="line"><span class="comment">--  listagg(a.letter, '') within group (order by md.lvl desc) basex</span></div><div class="line"><span class="comment">--from my_data md, alphabet a</span></div><div class="line"><span class="comment">--where 1=1</span></div><div class="line"><span class="comment">--  and md.remainder = a.num</span></div><div class="line">;</div><div class="line"></div><div class="line">LVL   QUOTIENT   REMAINDER LETTER</div><div class="line">  1         18          12 C</div><div class="line">  2          1           2 2</div><div class="line">  3          0           1 1</div></pre></td></tr></table></figure>
+<h2 id="Final-Thoughts"><a href="#Final-Thoughts" class="headerlink" title="Final Thoughts"></a>Final Thoughts</h2><p>The model clause is extremely powerful when used to solve problems it was intended for. The toughest thing to do is learn and understand how it works with all it’s options/function. If it’s any help, I’m still learning more about the model clause and by no means an expert.</p>
+<p>If you do some interesting things with a model clause please blog about it and send me a message as I can list future posts in this article.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="cj9p46zgc00g9ijn922tn01sk" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2017/10/reset-authorization-cache/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Reset Authorization Cache</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">137</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">20</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2017 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-8016477-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+  </div>
+</body>
+</html>

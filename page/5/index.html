@@ -67,6 +67,65 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-and-html-form" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/07/apex-and-html-form/" class="article-date">
+  <time datetime="2015-07-28T12:30:00.000Z" itemprop="datePublished">2015-07-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/07/apex-and-html-form/">APEX and the HTML Form</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>This is the second post in a multi-part series on how APEX submits and processes input elements from your browser to the server. The goal is to understand the effects of moving elements around the page. It is important to read these articles in the following order.</em></p>
+<ul>
+<li><a href="http://www.talkapex.com/2015/07/back-to-basics-html-form.html">Back to Basics</a></li>
+<li><a href="http://www.talkapex.com/2015/07/apex-and-html-form.html">APEX and the HTML Form</a></li>
+<li><a href="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted.html">APEX and the Order Items are Submitted</a></li>
+<li><a href="http://hardlikesoftware.com/weblog/2015/07/30/apex-item-submission/" target="_blank" rel="external">Why does APEX do this? (by John Snyders)</a></li>
+</ul>
+<p>The goal of this article is to highlight how APEX actually processes the data that is sent data from the browser to the server when a submit button is pressed.</p>
+<p>Suppose you have a simple page with two elements: <code>P1_FIRST_NAME</code> and <code>P1_LAST_NAME</code> as shown below:</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s1600/Snip20150724_7.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s320/Snip20150724_7.png" alt=""></a></div>
+
+<p>Stripping out a lot code, the underlying HTML code for this page looks like:<br><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">"wwv_flow.accept"</span> <span class="attr">id</span>=<span class="string">"wwvFlowForm"</span> <span class="attr">method</span>=<span class="string">"post"</span> <span class="attr">name</span>=<span class="string">"wwv_flow"</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">"p_arg_names"</span> <span class="attr">type</span>=<span class="string">"hidden"</span> <span class="attr">value</span>=<span class="string">"32629789701858906"</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"P1_FIRST_NAME"</span> <span class="attr">name</span>=<span class="string">"p_t01"</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">value</span>=<span class="string">""</span> /&gt;</span></div><div class="line"></div><div class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">"p_arg_names"</span> <span class="attr">type</span>=<span class="string">"hidden"</span> <span class="attr">value</span>=<span class="string">"32629863123858907"</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"P1_LAST_NAME"</span> <span class="attr">name</span>=<span class="string">"p_t02"</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">value</span>=<span class="string">""</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<p>You’ll notice that despite their being four input elements they’re really only three unique sets of names that are used: <code>p_arg_names</code>, <code>p_t01</code>, and <code>p_t02</code>.  When the page is submitted the web server (APEX) will get/processes the following elements:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">p_arg_names[1] = 32629789701858906</div><div class="line">p_arg_names[2] = 32629863123858907</div><div class="line"></div><div class="line">p_t01 = Martin</div><div class="line">p_t02 = D&apos;Souza</div></pre></td></tr></table></figure>
+<p>None of the data sent back to the server make reference of <code>P1_FIRST_NAME</code> or <code>P2_LAST_NAME</code>. As well, <code>p_arg_names</code> is stored in a top down order of how they are in the page.</p>
+<p><code>p_arg_names</code> values are actually the IDs for each of the of the page items as highlighted in the following query:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> item_id, item_name</div><div class="line"><span class="keyword">from</span> apex_application_page_items</div><div class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">  <span class="keyword">and</span> application_id = <span class="number">118</span></div><div class="line">  <span class="keyword">and</span> page_id = <span class="number">1</span>;</div><div class="line"></div><div class="line">ITEM_ID           ITEM_NAME</div><div class="line"><span class="comment">----------------- -------------</span></div><div class="line">32629789701858906 P1_FIRST_NAME</div><div class="line">32629863123858907 P1_LAST_NAME</div></pre></td></tr></table></figure>
+<p>APEX is able to map the data back to their corresponding APEX items by first mapping the values in <code>p_arg_names</code> to the <code>apex_application_page_items</code> view and then using the values in the <code>p_txx</code> to retrieve the data that was submitted for each item.</p>
+<p>The order that the values are submitted in for <code>p_arg_names</code> must match the <code>p_txx</code> values for APEX to correctly map the values to their appropriate APEX item. I.e. <code>p_args_names[1]</code> will link to <code>p_t01</code> and <code>p_arg_names[2]</code> will link to <code>p_t02</code> etc.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2015/07/apex-and-html-form/" data-id="cj9p46zez00ecijn98rs4xeqf" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2015/07/apex-and-html-form/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-back-to-basics-html-form" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2015/07/back-to-basics-html-form/" class="article-date">
@@ -117,7 +176,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/07/back-to-basics-html-form/" data-id="cj9doliiu00fcuan9z39conf2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/07/back-to-basics-html-form/" data-id="cj9p46zey00eaijn90hfmwp8o" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/07/back-to-basics-html-form/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -161,7 +220,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/06/a-new-chapter/" data-id="cj9doliiv00feuan9ro9f0jh8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/06/a-new-chapter/" data-id="cj9p46zeu00e4ijn9r6nidba9" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/06/a-new-chapter/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -204,7 +263,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apex-meetups-calgary/" data-id="cj9doliit00fauan9ux6htzap" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apex-meetups-calgary/" data-id="cj9p46zex00e8ijn9hw7et84f" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apex-meetups-calgary/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -249,7 +308,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/" data-id="cj9doliis00f8uan9kb22yhp9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/" data-id="cj9p46zes00e2ijn9mnhzodxd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -301,7 +360,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/help-promote-logger/" data-id="cj9doliir00f6uan9ezfzzqga" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/help-promote-logger/" data-id="cj9p46zep00dyijn9hech73hk" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/help-promote-logger/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -346,7 +405,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apex-docs-for-ibooks/" data-id="cj9doliip00f4uan9wmjx3f4o" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apex-docs-for-ibooks/" data-id="cj9p46zeq00e0ijn9lfj8ewbb" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apex-docs-for-ibooks/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -419,7 +478,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/" data-id="cj9doliio00f2uan9dwcdsa4v" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/" data-id="cj9p46zem00dtijn9os96mxfe" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -473,7 +532,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/" data-id="cj9doliin00ezuan926q8zfwp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/" data-id="cj9p46zeo00dwijn9igkeneg2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -521,56 +580,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/oos-utilities-package/" data-id="cj9doliim00exuan9jeyu43ns" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/oos-utilities-package/" data-id="cj9p46zel00drijn9x77c8flu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/oos-utilities-package/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oos-utils/">oos-utils</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/open-source/">open-source</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-backup-script" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/04/apex-backup-script/" class="article-date">
-  <time datetime="2015-04-21T17:35:00.000Z" itemprop="datePublished">2015-04-21</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/04/apex-backup-script/">APEX Backup Script</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>A long time ago (almost 3 years ago to be exact), I blogged about <a href="http://www.talkapex.com/2012/04/command-line-backups-for-apex.html">command line backups for APEX</a>. The script was originally for DOS and required configurations to be stored directly in the script.</p>
-<p>Since making the script available I’ve had numerous requests to update it to support Linux and Mac users. I’ve done a major overhaul of the backup script which is now available on Github <a href="https://github.com/OraOpenSource/apexbackup" target="_blank" rel="external">here</a>.</p>
-<p>The main changes are that all configurations can be stored in <code>custom.properties</code> and you won’t lose your changes when you <a href="https://github.com/OraOpenSource/apexbackup#updates" target="_blank" rel="external">update the scripts</a> from the repository.</p>
-<p>If you have any comments, issues, or feedback please submit them in the <a href="https://github.com/OraOpenSource/apexbackup/issues" target="_blank" rel="external">project’s issues page</a>.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/apex-backup-script/" data-id="cj9doliil00evuan98x0y4cju" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2015/04/apex-backup-script/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/open-source/">open-source</a></li></ul>
 
     </footer>
   </div>
@@ -617,7 +632,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">137</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">137</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -654,7 +669,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">20</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
