@@ -7,7 +7,7 @@ tags:
 date: 2017-10-15 19:12:39
 alias:
 ---
-
+_Update: I've moved my setup process to Dockerize Oracle and APEX to Github. It will be maintained with the latest steps I'm using it. The repository is [docker-oracle-setup](https://github.com/martindsouza/docker-oracle-setup)._
 
 Last week I needed to test an Oracle 12.2 feature and got hooked on Docker. I wrote an article on [how to setup an Oracle DB 12.2 Docker container](http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/). This solved my goal to test the 12.2 feature. [Roel Hartman](https://twitter.com/RoelH) then wrote a [followup article](http://roelhartman.blogspot.ca/2017/10/dockerize-your-apex-development.html) about how to setup an Oracle database in a Docker container but preserve the data on his laptop. I.e. if the container was deleted or needed to be rebuilt his database data wouldn't be lost.
 
