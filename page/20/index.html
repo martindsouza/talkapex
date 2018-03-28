@@ -67,6 +67,108 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-poor-mans-vpd-in-apex-and-oracle-xe" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/07/poor-mans-vpd-in-apex-and-oracle-xe/" class="article-date">
+  <time datetime="2010-07-27T05:03:00.000Z" itemprop="datePublished">2010-07-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/07/poor-mans-vpd-in-apex-and-oracle-xe/">Poor Man&#39;s VPD in APEX and Oracle XE</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>At this year’s <a href="http://www.odtugkaleidoscope.com/" target="_blank" rel="external">ODTUG Kaleidoscope</a> I gave a presentation called “Enhancing APEX Security”. A copy of the presentation can be downloaded <a href="http://files.clarifit.com/blogs/talkapex/odtug2010/enhanced_apex_security_odtug_web.pdf" target="_blank" rel="external">here</a>.</p>
+<p>As part of the presentation I discussed how to create a “Poor Man’s” VPD using Oracle XE. The main concept was to simulate basic VPD on a non Enterprise Edition (EE) (<span style="font-style:italic;">VPD is only available on EE</span>). This post will cover how to do this. Please note, since this is for demonstration purposes I have kept things very simple and it is by no means a complete solution.</p>
+<p>Before you can review the code, we need to discuss some of the basic architecture and technology that will be used. I strongly encourage you to do some additional research on these topics if you plan to use this method in production.<br><span style="font-weight:bold;"><br>Schema Setup</span></p>
+<p>Assuming you don’t have Oracle EE, you’ll need a way to secure your existing schema. Lets say you had a schema called “DEMO”. You’ll need to create a new schema called “DEMO_PUB”. The DEMO_PUB schema will not contain any objects. Instead, it will have synonyms which point to views and packages in the DEMO schema. Note, the DEMO_PUB schema will not have any access to the DEMO tables. All DML statements will be made via packages and procedures. The views from the DEMO schema will be “secure views” which will restrict access to the data. On the flip-side the DEMO schema will only grant SELECT and EXECUTE to views and packages respectively, to the DEMO_PUB schema.</p>
+<p>You APEX applications should use the DEMO_PUB so that security logic is stored in the database rather than the front-end. This should help prevent developers from displaying data that end users don’t have access to.</p>
+<p>The following diagram, taken from my presentation, highlights the overall schema structure.</p>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/TE5lnvraZ_I/AAAAAAAADyA/ZtjTA6tLNrc/s1600/vpd_schema_design.jpg" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/TE5lnvraZ_I/AAAAAAAADyA/ZtjTA6tLNrc/s320/vpd_schema_design.jpg" alt=""></a><br><span style="font-weight:bold;">Contexts</span></p>
+<p>For people unfamiliar with Contexts, the easiest way to describe them is a globally accessible container of name/value pairs. The container is only accessible if you have the correct key. Oracle has some great reference material on this (search for VPD or FGAC) so I won’t cover this any further Here’s a diagram to illustrate Contexts.</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/TE5ln5GznFI/AAAAAAAADyI/N6FSHgK-PCg/s1600/vpd_context.jpg" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/TE5ln5GznFI/AAAAAAAADyI/N6FSHgK-PCg/s320/vpd_context.jpg" alt=""></a><br>The key to “Poor Man’s” VPD is to leverage context values in your views to restrict the data. To demonstrate this in pseudo code, if you wanted to restrict access on the EMP table to only employees in your department you’d write a view like this:</p>
+<pre class="brush: sql;">
+CREATE OR REPLACE VIEW vemp AS
+SELECT * FROM emp
+WHERE deptno = some_value_from_a_context
+</pre>
+
+<p><span style="font-weight:bold;">The Code</span></p>
+<p>Hopefully you understood the small bit of background information I wrote before. Here’s how to implement a very simple “VPD” enabled application</p>
+<p><pre class="brush: sql;"><br>– Create Context<br>– ctx_vpd is our context name<br>– pkg_vpd is the only place where we can modify values in this context<br>–  This provides a lot of security since single access point<br>CREATE OR REPLACE CONTEXT ctx_vpd USING pkg_vpd ACCESSED GLOBALLY;<br></pre><br><span style="font-style:italic;font-weight:bold;">Create pkg_vpd spec</span></p>
+<p><pre class="brush: sql;"><br>– VPD Demo Package from www.talkapex.com<br>– @author Martin Giffy D’Souza - martin@talkapex.com<br>CREATE OR REPLACE PACKAGE pkg_vpd</pre></p>
+<h2 id="AS"><a href="#AS" class="headerlink" title="AS"></a>AS</h2><p>   – Login function for APEX to login users<br>   – Spec must be as is, as required by APEX for custom authentication schemes<br>   – For demo purposes we’ll use ENAME = ENAME from EMP<br>   – @param p_username username<br>   – @param p_password password</p>
+<h2 id="–-return-TRUE-or-FALSE"><a href="#–-return-TRUE-or-FALSE" class="headerlink" title="   – @return TRUE or FALSE"></a>   – @return TRUE or FALSE</h2><p>  FUNCTION f_login (p_username IN VARCHAR2, p_password IN VARCHAR2)<br>    RETURN BOOLEAN;</p>
+<p>  –<br>  – Set context identifier<br>  – This will register our “key” which will be required each time we want to access a Context (name/value) pair</p>
+<h2 id="–-param-p-session-key-in-APEX-use-APP-USER-‘-’-APP-SESSION"><a href="#–-param-p-session-key-in-APEX-use-APP-USER-‘-’-APP-SESSION" class="headerlink" title="  – @param p_session_key in APEX use :APP_USER || ‘:’ || :APP_SESSION"></a>  – @param p_session_key in APEX use :APP_USER || ‘:’ || :APP_SESSION</h2><p>  PROCEDURE sp_set_context_identifier (p_session_key IN VARCHAR2);</p>
+<p>  –<br>  – Set context value</p>
+<h2 id="–-i-e-Sets-a-value-for-the-name-value-pair"><a href="#–-i-e-Sets-a-value-for-the-name-value-pair" class="headerlink" title="  – i.e. Sets a value for the name/value pair"></a>  – i.e. Sets a value for the name/value pair</h2><p>  PROCEDURE sp_set_context_value (p_name IN VARCHAR2, p_value IN VARCHAR2);</p>
+<p>  –<br>  – Get Context Value</p>
+<h2 id="–-i-e-Get-value-for-name-value-pair"><a href="#–-i-e-Get-value-for-name-value-pair" class="headerlink" title="  – i.e. Get value for name/value pair"></a>  – i.e. Get value for name/value pair</h2><p>  FUNCTION f_get_context_value (p_name IN VARCHAR2)<br>    RETURN VARCHAR2;</p>
+<pre><code>--
+</code></pre><p>  – To be run in Post Authentication Process in APEX</p>
+<h2 id="–-Sets-some-of-the-name-value-pairs-required-for-VPD"><a href="#–-Sets-some-of-the-name-value-pairs-required-for-VPD" class="headerlink" title="  – Sets some of the name/value pairs required for VPD"></a>  – Sets some of the name/value pairs required for VPD</h2><p>  PROCEDURE sp_apex_post_auth;  </p>
+<p>END pkg_vpd;<br>/<br><br><span style="font-style:italic;font-weight:bold;">Create pkg_vpd body</span></p>
+<p><pre class="brush: sql;"><br>– VPD Demo Package from www.talkapex.com<br>– @author Martin Giffy D’Souza - martin@talkapex.com</pre></p>
+<p>CREATE OR REPLACE PACKAGE BODY pkg_vpd</p>
+<h2 id="AS-1"><a href="#AS-1" class="headerlink" title="AS"></a>AS</h2><p>  – Login function for APEX to login users<br>  – Spec must be as is, as required by APEX for custom authentication schemes<br>  – For demo purposes we’ll use ENAME = ENAME from EMP<br>  – @param p_username username<br>  – @param p_password password</p>
+<h2 id="–-return-TRUE-or-FALSE-1"><a href="#–-return-TRUE-or-FALSE-1" class="headerlink" title="  – @return TRUE or FALSE"></a>  – @return TRUE or FALSE</h2><p>  FUNCTION f_login (p_username IN VARCHAR2, p_password IN VARCHAR2)<br>    RETURN BOOLEAN<br>  AS<br>    v_count   PLS_INTEGER;<br>  BEGIN<br>    SELECT COUNT (e.ename)<br>      INTO v_count<br>      FROM emp e – Notice how I’m not reference the view (vemp) it would return no rows at this point<br>     WHERE LOWER (e.ename) = LOWER (p_username)<br>       AND LOWER (p_username) = LOWER (p_password);</p>
+<pre><code>IF v_count = 1 THEN
+  RETURN TRUE;
+END IF;
+
+RETURN FALSE;
+</code></pre><p>  END f_login;</p>
+<p>  –<br>  – Set context identifier<br>  – This will register our “key” which will be required each time we want to access a Context (name/value) pair</p>
+<h2 id="–-param-p-session-key-in-APEX-use-APP-USER-‘-’-APP-SESSION-1"><a href="#–-param-p-session-key-in-APEX-use-APP-USER-‘-’-APP-SESSION-1" class="headerlink" title="  – @param p_session_key in APEX use :APP_USER || ‘:’ || :APP_SESSION"></a>  – @param p_session_key in APEX use :APP_USER || ‘:’ || :APP_SESSION</h2><p>  PROCEDURE sp_set_context_identifier (p_session_key IN VARCHAR2)<br>  AS<br>  BEGIN<br>    dbms_session.set_identifier (client_id =&gt; p_session_key);<br>  END sp_set_context_identifier;</p>
+<p>  –<br>  – Set context value</p>
+<h2 id="–-i-e-Sets-a-value-for-the-name-value-pair-1"><a href="#–-i-e-Sets-a-value-for-the-name-value-pair-1" class="headerlink" title="  – i.e. Sets a value for the name/value pair"></a>  – i.e. Sets a value for the name/value pair</h2><p>  PROCEDURE sp_set_context_value (p_name IN VARCHAR2, p_value IN VARCHAR2)<br>  AS<br>  BEGIN<br>    dbms_session.set_context (‘CTX_VPD’,<br>                              p_name,<br>                              p_value,<br>                              USER,<br>                              SYS_CONTEXT (‘USERENV’, ‘CLIENT_IDENTIFIER’));<br>  END;</p>
+<p>  –<br>  – Get Context Value</p>
+<h2 id="–-i-e-Get-value-for-name-value-pair-1"><a href="#–-i-e-Get-value-for-name-value-pair-1" class="headerlink" title="  – i.e. Get value for name/value pair"></a>  – i.e. Get value for name/value pair</h2><p>  FUNCTION f_get_context_value (p_name IN VARCHAR2)<br>    RETURN VARCHAR2<br>  AS<br>  BEGIN<br>    RETURN SYS_CONTEXT (‘CTX_VPD’, p_name);<br>  END f_get_context_value;</p>
+<p>  –<br>  – To be run in Post Authentication Process in APEX</p>
+<h2 id="–-Sets-some-of-the-name-value-pairs-required-for-VPD-1"><a href="#–-Sets-some-of-the-name-value-pairs-required-for-VPD-1" class="headerlink" title="  – Sets some of the name/value pairs required for VPD"></a>  – Sets some of the name/value pairs required for VPD</h2><p>  PROCEDURE sp_apex_post_auth<br>  AS<br>    v_empno    emp.empno%TYPE;<br>    v_deptno   emp.deptno%TYPE;<br>  BEGIN<br>    – Get User Information<br>    SELECT empno, deptno<br>      INTO v_empno, v_deptno<br>      FROM emp<br>     WHERE LOWER (ename) = LOWER (v (‘app_user’));</p>
+<pre><code>-- Set Context Identifier
+pkg_vpd.sp_set_context_identifier (p_session_key =&gt; v (&apos;app_user&apos;) || &apos;:&apos; || v (&apos;app_session&apos;));
+-- Set Name/Value pairs
+pkg_vpd.sp_set_context_value (p_name =&gt; &apos;EMPNO&apos;, p_value =&gt; v_empno);
+pkg_vpd.sp_set_context_value (p_name =&gt; &apos;DEPTNO&apos;, p_value =&gt; v_deptno);
+-- This demo won&apos;t highlight the Last Access date, but can be very useful to kill sessions in the back end that have not been access for a given period of time.
+pkg_vpd.sp_set_context_value (p_name =&gt; &apos;LAST_ACCESS&apos;, p_value =&gt; TO_CHAR (SYSDATE, &apos;DD-MON-YYYY HH24:MI:SS&apos;));
+</code></pre><p>  END sp_apex_post_auth;<br>END pkg_vpd;<br>/<br><br><span style="font-style:italic;font-weight:bold;">Create view which leverages the context</span></p>
+<p><pre class="brush: sql;"><br>CREATE OR REPLACE FORCE VIEW vemp<br>AS<br>  SELECT e.empno,<br>         e.ename,<br>         e.job,<br>         e.mgr,<br>         e.hiredate,<br>         e.sal,<br>         e.comm,<br>         e.deptno<br>    FROM emp e<br>   WHERE e.deptno = pkg_vpd.f_get_context_value (‘DEPTNO’); – Can only view employees in same department<br>/<br></pre><span style="font-style:italic; font-weight:bold;">Create Custom Authentication Scheme</span></p>
+<p>Shared Components / Authentication Schemes<br>Create<br>From Scratch<br>Name: VPD Demo<br>Page Sentry Function:<br>Session Verification Function:<br>Invalid Session Target: Page in This Application - 101 Login<br>Pre-Authentication Process:<br>Credentials Verification Method: Use my custom function to authenticate: return pkg_vpd.f_login<br>Post-Authentication Process: pkg_vpd.sp_apex_post_auth;<br>Cookies:<br>Logout URL: wwv_flow_custom_auth_std.logout?p_this_flow=&amp;APP_ID.&amp;p_next_flow_page_sess=&amp;APP_ID.:1</p>
+<p>Change current Authentication Scheme to “VPD Demo”. This will vary between APEX 3.x and APEX 4.0</p>
+<p>Create a Region Report with:</p>
+<p><pre class="brush: sql;"><br>SELECT *<br>FROM vemp<br></pre><br>Now login to your application with “KING/KING”. Notice how you only see 3 rows in the report? Now logout and login with “MARTIN/MARTIN”. You should now see 6 rows returned. As you can see, none of security was handled in the front end.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2010/07/poor-mans-vpd-in-apex-and-oracle-xe/" data-id="cjfait80t004lpln93edd4d3m" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2010/07/poor-mans-vpd-in-apex-and-oracle-xe/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/security/">security</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apex-plugin-syntax-highlighter" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2010/07/apex-plugin-syntax-highlighter/" class="article-date">
@@ -106,7 +208,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/07/apex-plugin-syntax-highlighter/" data-id="cja7nvx1o004eusn9487fqdcp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/07/apex-plugin-syntax-highlighter/" data-id="cjfait80s004jpln9d1028n32" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/07/apex-plugin-syntax-highlighter/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -151,7 +253,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/07/how-do-they-do-it/" data-id="cja7nvx1m004cusn9iex3wz65" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/07/how-do-they-do-it/" data-id="cjfait80n004bpln9hjbvwg7h" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/07/how-do-they-do-it/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -201,7 +303,7 @@ ORDER BY syn.synonym_name</pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/07/missing-views-from-apexdictionary/" data-id="cja7nvx1l004ausn9pfdo7eeg" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/07/missing-views-from-apexdictionary/" data-id="cjfait80q004fpln9qjlk0v74" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/07/missing-views-from-apexdictionary/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -377,7 +479,7 @@ SELECT AR.APPLICATION_ID,
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/07/apex-report-download-logger/" data-id="cja7nvx1j0048usn9z9kms2uv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/07/apex-report-download-logger/" data-id="cjfait80o004dpln9xrecw290" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/07/apex-report-download-logger/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -421,7 +523,7 @@ SELECT AR.APPLICATION_ID,
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/how-to-find-current-apex-version/" data-id="cja7nvx1i0046usn9vybmpn3y" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/how-to-find-current-apex-version/" data-id="cjfait80m0049pln9y8m1ja3r" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/how-to-find-current-apex-version/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -471,7 +573,7 @@ SELECT AR.APPLICATION_ID,
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/conditional-validations-in-apex/" data-id="cja7nvx1h0044usn90v8teej2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/conditional-validations-in-apex/" data-id="cjfait80i0043pln90ff5zwlb" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/conditional-validations-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -514,7 +616,7 @@ SELECT AR.APPLICATION_ID,
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/special-columns-for-apex-standard/" data-id="cja7nvx1g0042usn9t2ksgcyr" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/special-columns-for-apex-standard/" data-id="cjfait80k0047pln9bugral91" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/special-columns-for-apex-standard/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -604,7 +706,7 @@ SELECT AR.APPLICATION_ID,
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/how-to-only-display-column-when/" data-id="cja7nvx1f0040usn90td7x1tv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/how-to-only-display-column-when/" data-id="cjfait80h0041pln9yxy93uom" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/how-to-only-display-column-when/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -687,63 +789,12 @@ apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID he
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/interactive-reports-with-over-100/" data-id="cja7nvx1e003yusn9uholwkky" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/interactive-reports-with-over-100/" data-id="cjfait80e003zpln9mxzxz5sy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/interactive-reports-with-over-100/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-new-url-httptalkapexcom" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2010/06/new-url-httptalkapexcom/" class="article-date">
-  <time datetime="2010-06-10T15:00:00.000Z" itemprop="datePublished">2010-06-10</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2010/06/new-url-httptalkapexcom/">New URL: http://TalkApex.com</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Well it’s been a while since I’ve had any new posts on this blog. I’ve been extremely busy with “after school” activities <span style="font-style:italic;">(soccer, speed skating, biking, etc…)</span></p>
-<p>I don’t have an APEX specific post today but I do have a few items to discuss. The first, in case you haven’t noticed yet, is that I’ve changed the URL of this blog from <a href="http://apex-smb.blogspot.com" target="_blank" rel="external">http://apex-smb.blogspot.com</a> to <a href="http://talkapex.com" target="_blank" rel="external">http://TalkApex.com</a>, The old URL, <a href="http://apex-smb.blogspot.com" target="_blank" rel="external">http://apex-smb.blogspot.com</a> will still work so you don’t need to update any old links.</p>
-<p>Just because I haven’t had time to write about APEX, doesn’t mean I’ve forgotten about this blog. I’ve been compiling a fairly large list of new things to write about over the past few months. I hope to spend a some time soon to write about these items.</p>
-<p>Last, but not least, I’ll be giving 2 presentations at <a href="http://www.odtugkaleidoscope.com/" target="_blank" rel="external">ODTUG Kaleidoscope</a>. I submitted my presentation for the CD, however I think that they’ll change significantly by the time I present. As such I will post the final slides used for my presentation here after the conference. The presentations I’ll be giving are</p>
-<ul>
-<li><span style="font-weight:bold;">Enhancing APEX Security</span>: Monday 2:30~3:30</li>
-<li><span style="font-weight:bold;">How to be Creative: Using the APEX Dictionary to Create Solutions</span>: Tuesday 4:45~5:45Hope to see most of you at ODTUG!</li>
-</ul>
-<ul>
-<li>Martin</li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/new-url-httptalkapexcom/" data-id="cja7nvx1d003wusn9gjxl69kr" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2010/06/new-url-httptalkapexcom/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
 
     </footer>
   </div>
@@ -790,7 +841,7 @@ apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID he
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -827,7 +878,7 @@ apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID he
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -840,7 +891,7 @@ apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID he
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2017 Martin Giffy D&#39;Souza<br>
+      &copy; 2018 Martin Giffy D&#39;Souza<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
