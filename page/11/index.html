@@ -67,6 +67,57 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-logger-200-session-specific-logging" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/05/logger-200-session-specific-logging/" class="article-date">
+  <time datetime="2013-05-08T13:30:00.000Z" itemprop="datePublished">2013-05-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/05/logger-200-session-specific-logging/">Logger 2.0.0 - Session Specific Logging - Advanced Features</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="noopener">Logger 2.0.0 </a> I’ve decided to write a few posts highlighting some of the new features.</em></p>
+<p>In my <a href="http://www.talkapex.com/2013/05/logger-200-enable-session-specific.html">previous post</a> I covered how to set and unset session specific logging based on the Client Identifier. In this post I’ll cover some advanced options for this functionality. Before continuing, please be sure to read the previous post or else this won’t make sense.</p>
+<p>In the previous post the demo code to set a session specific logging level only used two parameters: the logging level and the Client Identifier. In <code>logger.set_level</code> they’re actually four parameters:</p>
+<p><strong><code>p_level</code></strong>: This is the level to set. If p_client_id is null then it will set the system level configuration in <code>logger_prefs</code> &gt; <code>LEVEL</code>.</p>
+<p>The additional parameters are only valid if <code>p_client_id</code> is defined.</p>
+<p><strong><code>p_client_id</code></strong>: If not null, will apply <code>p_level</code> for the specific client_id only. If null then <code>p_level</code> will be applied for the system level configuration.</p>
+<p><strong><code>p_include_call_stack</code></strong>: Determines if the call stack should be stored. If null then will use the default setting in <code>logger_prefs</code> &gt; <code>INCLUDE_CALL_STACK</code>. Valid values are <code>TRUE</code> and <code>FALSE</code> (strings).</p>
+<p><strong><code>p_client_id_expire_hours</code></strong>: Will end session specific logging after set hours. If not defined then the default setting will be used<code>logger_prefs</code> &gt; <code>PREF_BY_CLIENT_ID_EXPIRE_HOURS</code>. Note that this will not be exact as a job is run hourly to clean up expired session specific logging that has expired for a given client_id. Instead of waiting for the job to clean up expired sessions you can explicitly <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#unset-client-specific-logging" target="_blank" rel="noopener">unset</a> them.</p>
+<h2 id="How-to-View-All-Client-id-Settings"><a href="#How-to-View-All-Client-id-Settings" class="headerlink" title="How to View All Client_id Settings"></a>How to View All Client_id Settings</h2><p>To view the system level settings you can use the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#status" target="_blank" rel="noopener"><code>logger.status</code></a> procedure. There was debate as to whether or not we include all the client_id settings in this procedure. In the end we did not include it list them in this procedure as the list may get very long. To view all the session specific logging configurations use the following query:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> *</div><div class="line"><span class="keyword">from</span> logger_prefs_by_client_id;</div></pre></td></tr></table></figure>
+<h2 id="Renewing"><a href="#Renewing" class="headerlink" title="Renewing"></a>Renewing</h2><p>When calling <code>logger.set_level</code> with a <code>client_id</code>that already exists in <code>logger_prefs_by_client_id</code> it will update the values and update the expiry date (i.e. you extend the setting).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/" data-id="cjfcl2wfz009ofurafmvw6fxl" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-logger-200-enable-session-specific" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2013/05/logger-200-enable-session-specific/" class="article-date">
@@ -89,9 +140,9 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger 2.0.0 </a>I’ve decided to write a few posts highlighting some of the new features.</em></p>
+        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="noopener">Logger 2.0.0 </a>I’ve decided to write a few posts highlighting some of the new features.</em></p>
 <p>One of the most common feature request for Logger has been the ability to enable logging (or setting the logger level) for a given session. This post covers how to set and unset session specific logging.</p>
-<h2 id="Logger-Levels"><a href="#Logger-Levels" class="headerlink" title="Logger Levels"></a>Logger Levels</h2><p>There is no “on/off” switch for Logger. Instead, like most other logging and code instrumentation tools, it supports <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#logger-levels" target="_blank" rel="external">multiple levels</a>. This allows developers to turn up and down the amount of logging. In most development systems the logging level is set to debug mode and in most production instances it’s set to error mode. This means that in production only items that are explicitly logged using <code>logger.log_error</code> will be stored. For more information read the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#configuration" target="_blank" rel="external">configuration</a> section of the documentation.</p>
+<h2 id="Logger-Levels"><a href="#Logger-Levels" class="headerlink" title="Logger Levels"></a>Logger Levels</h2><p>There is no “on/off” switch for Logger. Instead, like most other logging and code instrumentation tools, it supports <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#logger-levels" target="_blank" rel="noopener">multiple levels</a>. This allows developers to turn up and down the amount of logging. In most development systems the logging level is set to debug mode and in most production instances it’s set to error mode. This means that in production only items that are explicitly logged using <code>logger.log_error</code> will be stored. For more information read the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#configuration" target="_blank" rel="noopener">configuration</a> section of the documentation.</p>
 <h2 id="Setting-the-Logger-Level"><a href="#Setting-the-Logger-Level" class="headerlink" title="Setting the Logger Level"></a>Setting the Logger Level</h2><p>Prior to Logger 2.0.0 you could only configure the logging level for the entire schema. To following code snippet highlights this:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">exec logger.set_level('DEBUG');</div><div class="line"></div><div class="line"><span class="keyword">begin</span></div><div class="line">  <span class="comment">-- All of these will be logged</span></div><div class="line">  logger.log(<span class="string">'Logging log level'</span>);</div><div class="line">  logger.log_information('Logging information level');</div><div class="line">  logger.log_warning('Logging warning level');</div><div class="line">  logger.log_error('Logging error level');</div><div class="line"><span class="keyword">end</span>;</div><div class="line">/</div><div class="line"></div><div class="line">exec logger.set_level('WARNING');</div><div class="line"></div><div class="line"><span class="keyword">begin</span></div><div class="line">  logger.log(<span class="string">'Logging log level'</span>); <span class="comment">-- Not stored</span></div><div class="line">  logger.log_information('Logging information level'); <span class="comment">-- Not stored</span></div><div class="line">  logger.log_warning('Logging warning level'); <span class="comment">-- Stored</span></div><div class="line">  logger.log_error('Logging error level'); <span class="comment">-- Stored</span></div><div class="line"><span class="keyword">end</span>;</div><div class="line">/</div></pre></td></tr></table></figure>
 <p>What happens in production systems when a user is experiencing some issues and you want to see all their logging information? The only way to do this before was to set the logging level to debug mode and the entire schema would be affected. This could slow down all the applications in the schema which is an undesired affect.</p>
@@ -106,7 +157,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/" data-id="cjfait83p009kpln932mtfck8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/" data-id="cjfcl2wfz009mfurasc6uws5n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -142,7 +193,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger 2.0.0</a> I’ve decided to write a few posts highlighting some of the new features.</em></p>
+        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="noopener">Logger 2.0.0</a> I’ve decided to write a few posts highlighting some of the new features.</em></p>
 <p>After using Logger for several years one thing I found that I was doing over and over again is logging the parameters to functions and parameters. The beginning of a procedure usually looked like this:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">procedure my_proc(</div><div class="line">  p_empno in number,</div><div class="line">  p_hiredate in date,</div><div class="line">  p_boolean in boolean) <span class="comment">-- not really relevant for proc, but good for demo</span></div><div class="line">as</div><div class="line">  l_scope logger_logs.scope%type := 'my_proc';</div><div class="line"><span class="keyword">begin</span></div><div class="line">  logger.log(<span class="string">'START'</span>, l_scope);</div><div class="line">  logger.log('p_empno: ' || to_char(p_empno), l_scope);</div><div class="line">  logger.log('p_hiredate: ' || to_char(p_hiredate, 'DD-MON-YYYY HH24:MI:SS'), l_scope);</div><div class="line">  logger.log('p_boolean: ' || case when p_boolean then 'TRUE' else 'FALSE' <span class="keyword">end</span>, l_scope);</div><div class="line">  ...</div><div class="line"><span class="keyword">end</span> my_proc;</div></pre></td></tr></table></figure></p>
 <p>When you have data types that aren’t strings the conversion process can become a bit tedious especially if you have to log a lot of parameters. Of course snippets can help reduce some of the time but it was still annoying.</p>
 <p>Another issue that I found was that developers would use their own formatting for logging parameters. Some would include a dash instead of a colon, some would include spaces and others wouldn’t, etc. Eventually it became difficult to read the logs with all the different formatting.</p>
@@ -152,14 +203,14 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="built_in">text</span>, <span class="keyword">scope</span>, extra</div><div class="line"><span class="keyword">from</span> logger_logs_5_min;</div><div class="line"></div><div class="line">TEXT  SCOPE     EXTRA</div><div class="line"><span class="comment">----- --------- ----------------------------------</span></div><div class="line"><span class="keyword">START</span> my_proc   *** <span class="keyword">Parameters</span> ***</div><div class="line">                p_empno: <span class="number">123</span></div><div class="line">                p_hiredate: <span class="number">26</span>-APR<span class="number">-2013</span> <span class="number">03</span>:<span class="number">14</span>:<span class="number">58</span></div><div class="line">                p_boolean: <span class="literal">TRUE</span></div></pre></td></tr></table></figure>
 <p>You’ll notice that all the formatting and implicit conversions have been taken care of.</p>
 <p><strong>Performance</strong></p>
-<p>Unless you are running Logger in <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#no-op-option-for-production-environments" target="_blank" rel="external">no-op mode</a> then there will be a slight performance hit each time you append a parameter (for the cost of appending to an array and implicit conversion). You’ll need to factor this in when leveraging this feature. Odds are you’ll be able to use the <code>p_params</code> parameter on most of your procedures and functions, but not on frequently used methods.</p>
+<p>Unless you are running Logger in <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#no-op-option-for-production-environments" target="_blank" rel="noopener">no-op mode</a> then there will be a slight performance hit each time you append a parameter (for the cost of appending to an array and implicit conversion). You’ll need to factor this in when leveraging this feature. Odds are you’ll be able to use the <code>p_params</code> parameter on most of your procedures and functions, but not on frequently used methods.</p>
 <p><strong>Other Considerations</strong></p>
 <p>Not all people will use the parameters option, and that’s fine. We made it an optional parameter specifically for that reason. We added this feature to support one of the primary goals of Logger which is “to be as simple as possible to use”.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-logging-parameters/" data-id="cjfait83q009mpln9tetf6y6d" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-logging-parameters/" data-id="cjfcl2wfx009kfurah5o6rsjq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-logging-parameters/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -195,17 +246,17 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><em>Logger is a PL/SQL logging and debugging framework. It’s used in many organizations to instrument code in their Oracle applications. <a href="http://tylermuth.wordpress.com/" target="_blank" rel="external">Tyler Muth</a> created Logger a few years ago and has since released several upgrades, the last being 1.4.0.</em></p>
-<p>After some great feedback, I’m pleased to announce that we’ve just launched <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/tree/master/releases/2.0.0.b01" target="_blank" rel="external">Logger 2.0.0 Beta</a>. Please download it, install, and provide us with your feedback or any issues you encounter. If you installed the alpha version you’ll need to do a complete <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#uninstall" target="_blank" rel="external">uninstall</a> and <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#install-into-an-existing-schema" target="_blank" rel="external">reinstall</a> before using the beta version. The beta version will upgrade over 1.4.0.</p>
-<p>The beta release includes some minor bug fixes and documentation updates. The major change is that the <code>log_params</code> procedure has been dropped (I had hinted that this may happen in my <a href="http://www.talkapex.com/2013/04/logger-200-alpha.html">previous post</a>). Instead, to remain consistent, a fourth parameter has been added to the major log procedures to support a parameters array. For more information, see the documentation regarding <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#p_params-optional" target="_blank" rel="external"><code>p_params</code></a>.</p>
-<p>If you have any feedback, suggestions, or issues please use the project’s <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues" target="_blank" rel="external">issues</a> page. If you don’t already have a GitHub account, you’ll need to create one (it’s free). If your curious as to the direction of this project, please look at the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues" target="_blank" rel="external">issues</a> page and you’ll see what we have planned and what others have requested.</p>
+        <p><em>Logger is a PL/SQL logging and debugging framework. It’s used in many organizations to instrument code in their Oracle applications. <a href="http://tylermuth.wordpress.com/" target="_blank" rel="noopener">Tyler Muth</a> created Logger a few years ago and has since released several upgrades, the last being 1.4.0.</em></p>
+<p>After some great feedback, I’m pleased to announce that we’ve just launched <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/tree/master/releases/2.0.0.b01" target="_blank" rel="noopener">Logger 2.0.0 Beta</a>. Please download it, install, and provide us with your feedback or any issues you encounter. If you installed the alpha version you’ll need to do a complete <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#uninstall" target="_blank" rel="noopener">uninstall</a> and <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#install-into-an-existing-schema" target="_blank" rel="noopener">reinstall</a> before using the beta version. The beta version will upgrade over 1.4.0.</p>
+<p>The beta release includes some minor bug fixes and documentation updates. The major change is that the <code>log_params</code> procedure has been dropped (I had hinted that this may happen in my <a href="http://www.talkapex.com/2013/04/logger-200-alpha.html">previous post</a>). Instead, to remain consistent, a fourth parameter has been added to the major log procedures to support a parameters array. For more information, see the documentation regarding <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#p_params-optional" target="_blank" rel="noopener"><code>p_params</code></a>.</p>
+<p>If you have any feedback, suggestions, or issues please use the project’s <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues" target="_blank" rel="noopener">issues</a> page. If you don’t already have a GitHub account, you’ll need to create one (it’s free). If your curious as to the direction of this project, please look at the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues" target="_blank" rel="noopener">issues</a> page and you’ll see what we have planned and what others have requested.</p>
 <p>This release will be the last major release before officially launching Logger 2.0.0. Once it’s released I’d like to start working on some of the feature requests that have been suggested.</p>
 <p>Special thanks to Mark Wagoner for helping test and provide some additional feedback on the latest release.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-beta/" data-id="cjfait83o009ipln9ptm6lba5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-beta/" data-id="cjfcl2wfv009gfurakg45hr96" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-beta/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -241,16 +292,16 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Logger is a PL/SQL logging and debugging framework. It’s used in many organizations to instrument code in their Oracle applications. <a href="http://tylermuth.wordpress.com/" target="_blank" rel="external">Tyler Muth</a> created Logger a few years ago and has since released several upgrades, the last being 1.4.0.</p>
-<p>I contacted Tyler a few months ago about the possibility of working together to upgrade Logger and expand on its capabilities. Since then we’ve been busy working on Logger on our spare time (which isn’t much these days). That being said, I’m pleased to announce that <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/tree/master/releases/" target="_blank" rel="external">Logger 2.0.0.a01</a> (Alpha) is now available to download!</p>
-<p>Besides some underlying changes, such as moving to <a href="https://github.com/" target="_blank" rel="external">GitHub</a> and a new build script, the following things were added to Logger:</p>
+        <p>Logger is a PL/SQL logging and debugging framework. It’s used in many organizations to instrument code in their Oracle applications. <a href="http://tylermuth.wordpress.com/" target="_blank" rel="noopener">Tyler Muth</a> created Logger a few years ago and has since released several upgrades, the last being 1.4.0.</p>
+<p>I contacted Tyler a few months ago about the possibility of working together to upgrade Logger and expand on its capabilities. Since then we’ve been busy working on Logger on our spare time (which isn’t much these days). That being said, I’m pleased to announce that <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/tree/master/releases/" target="_blank" rel="noopener">Logger 2.0.0.a01</a> (Alpha) is now available to download!</p>
+<p>Besides some underlying changes, such as moving to <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a> and a new build script, the following things were added to Logger:</p>
 <ul>
 <li>Upgrade process: Can upgrade Logger rather than having to uninstall the old version and install the new version.</li>
 <li>Log parameters: Standardize the logging of parameters when entering a procedure or function. You won’t need to convert the data format as the procedure is overloaded to handle many different object types.</li>
 <li>Logger level by Client Identifier: This is by far one of the features I think most people wanted in Logger. You can now set the logging level based on a Client Identifier.</li>
-<li>Other: They’re a few other features we may get into this 2.0.0 release. If not they will be added in future releases.You can read more about the new features, along with demo snippets on Logger’s new home page: <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">https://github.com/tmuth/Logger—A-PL-SQL-Logging-Utility</a> The new home page contains all the help text and sample code.</li>
+<li>Other: They’re a few other features we may get into this 2.0.0 release. If not they will be added in future releases.You can read more about the new features, along with demo snippets on Logger’s new home page: <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="noopener">https://github.com/tmuth/Logger—A-PL-SQL-Logging-Utility</a> The new home page contains all the help text and sample code.</li>
 </ul>
-<p>What next? Well we’ve been busy at work developing Logger now we’re looking to the community to help test it out. Please download it, install or upgrade, and give it a try. <strong>If you find any issues please post them on this <a href="https://docs.google.com/forms/d/1HRCYjTi3wkpjt1_mJepA9MgYxGHBtiSg3Dv1G14he_c/viewform" target="_blank" rel="external">simple issue logging form</a>.</strong></p>
+<p>What next? Well we’ve been busy at work developing Logger now we’re looking to the community to help test it out. Please download it, install or upgrade, and give it a try. <strong>If you find any issues please post them on this <a href="https://docs.google.com/forms/d/1HRCYjTi3wkpjt1_mJepA9MgYxGHBtiSg3Dv1G14he_c/viewform" target="_blank" rel="noopener">simple issue logging form</a>.</strong></p>
 <p>Don’t forget that this is an alpha release and things may be changed before the final release 2.0.0 release. One thing I’m still up in the air is how we implement <code>log_params</code>, as such I highly suspect some of the syntax will change in the upcoming weeks.</p>
 <p>When will this be officially released? Calendar year 2013 (sound familiar ;-). In all honesty I hope that we can release this by the end of May. Of course the release date all depends on the feedback we get back from you, so please help test!</p>
 <p>If you want to follow updates on this project, I’ll be labeling all Logger related posts with “<a href="http://www.talkapex.com/search/label/logger">logger</a>“.</p>
@@ -258,7 +309,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/04/logger-200-alpha/" data-id="cjfait83o009gpln9br7e0552" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/04/logger-200-alpha/" data-id="cjfcl2wfw009ifuraw75z86pn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/04/logger-200-alpha/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -294,14 +345,14 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Console Wrapper 1.0.4 is officially out. You can download it from the project page: <a href="https://code.google.com/p/js-console-wrapper/" target="_blank" rel="external">https://code.google.com/p/js-console-wrapper/</a></p>
+        <p>Console Wrapper 1.0.4 is officially out. You can download it from the project page: <a href="https://code.google.com/p/js-console-wrapper/" target="_blank" rel="noopener">https://code.google.com/p/js-console-wrapper/</a></p>
 <p>The only change for this release was to resolve an IE 9/10 issue which I <a href="http://www.talkapex.com/2013/03/console-wrapper-104-beta.html">previous blogged</a> about.</p>
-<p>If you’re using any of the <a href="http://plugins.clarifit.com/" target="_blank" rel="external">ClariFit plugins</a> you may want to update the <code>$console_wrapper.js</code> file that’s  included with each plugin. I’ll be sure to include the update file for  each of the plugin’s updates.</p>
+<p>If you’re using any of the <a href="http://plugins.clarifit.com/" target="_blank" rel="noopener">ClariFit plugins</a> you may want to update the <code>$console_wrapper.js</code> file that’s  included with each plugin. I’ll be sure to include the update file for  each of the plugin’s updates.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/04/console-wrapper-104/" data-id="cjfait83m009dpln922pgked6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/04/console-wrapper-104/" data-id="cjfcl2wfu009dfura77zohx7d" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/04/console-wrapper-104/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -340,7 +391,7 @@
         <p>A while back I broke down to the peer pressure in the APEX community (you know who you are ;-) and bought a Mac Book Air. I’m still learning the ropes and one thing that took some time to get working was the Oracle Instant Client. Installing it isn’t as straightforward as installing the Instant Client on Windows.</p>
 <p>I finally got it working and thought I’d post what I did for others that are new to OS X.</p>
 <p><strong>Download Instant Client</strong></p>
-<p>First you’ll nee to download the <a href="http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html" target="_blank" rel="external">Instant Client for OS X</a>. I downloaded the following files for Version 11.2.0.3.0 (64-bit):</p>
+<p>First you’ll nee to download the <a href="http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html" target="_blank" rel="noopener">Instant Client for OS X</a>. I downloaded the following files for Version 11.2.0.3.0 (64-bit):</p>
 <ul>
 <li>instantclient-basic-macos.x64-11.2.0.3.0.zip</li>
 <li>instantclient-sqlplus-macos.x64-11.2.0.3.0.zip</li>
@@ -352,12 +403,12 @@
 <p><strong>Running SQL*Plus</strong></p>
 <p>Now when you open a new terminal window you should be able to run SQL*Plus<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#ex: sqlplus username/password@//server:port/sid</span></div><div class="line">sqlplus system/oracle@//localhost:1521/XE</div><div class="line"><span class="comment">#or use a connection string leveraging a tnsnames entry</span></div></pre></td></tr></table></figure></p>
 <p><strong>Additional Addons</strong></p>
-<p>When using SQL*Plus in Windows you can use the Up arrow to get your previous command. If you do that in Linux you’ll get some weird character. The good news is that there’s a program to resolve it called <code>rlwrap</code>. CJ Travis has a good post on how to <a href="http://www.cjtravis.com/?p=744" target="_blank" rel="external">install rlwrap of Mac OS X</a>.</p>
+<p>When using SQL*Plus in Windows you can use the Up arrow to get your previous command. If you do that in Linux you’ll get some weird character. The good news is that there’s a program to resolve it called <code>rlwrap</code>. CJ Travis has a good post on how to <a href="http://www.cjtravis.com/?p=744" target="_blank" rel="noopener">install rlwrap of Mac OS X</a>.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/" data-id="cjfait83l009bpln95x79yl8u" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/" data-id="cjfcl2wfs009bfurayr3vc4l1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -393,16 +444,16 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Recently <a href="http://dgielis.blogspot.ca/" target="_blank" rel="external">Dimitri Gielis</a> sent me an email letting me know that there was a bug with <a href="https://code.google.com/p/js-console-wrapper/" target="_blank" rel="external">Console Wrapper</a> 1.0.3. He also include the following screen shot with the error:</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-2pPWyBLOzAQ/UVPQjtlsMRI/AAAAAAAAEUg/M9kmhH7LGfw/s1600/console_wrapper_ie9_error.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-2pPWyBLOzAQ/UVPQjtlsMRI/AAAAAAAAEUg/M9kmhH7LGfw/s640/console_wrapper_ie9_error.png" alt=""></a></div><br>In case you can’t see it, the error is <code>Object doesn&#39;t support property or method &#39;apply&#39;</code>. It turns out that the issue was caused by a change in IE9 and IE10 on how they handle the <code>console</code> object. The following article describes the issue in detail: <a href="http://whattheheadsaid.com/2011/04/internet-explorer-9s-problematic-console-object" target="_blank" rel="external">http://whattheheadsaid.com/2011/04/internet-explorer-9s-problematic-console-object</a></p>
-<strike>I’ve fixed Console Wrapper to handle the issues presented in IE9 and IE10. Before I officially release 1.0.4 on <a href="https://code.google.com/p/js-console-wrapper/" target="_blank" rel="external">https://code.google.com/p/js-console-wrapper/</a> I’d like some people to beta test it. If you’re interested in testing 1.0.4 you can download it <a href="https://www.dropbox.com/s/g5zzz4qexj8p9jc/%24console_wrapper_1.0.4.js" target="_blank" rel="external">here</a>. If you find any issues please send me an email (my email address is in the comments section at the top).</strike>
+        <p>Recently <a href="http://dgielis.blogspot.ca/" target="_blank" rel="noopener">Dimitri Gielis</a> sent me an email letting me know that there was a bug with <a href="https://code.google.com/p/js-console-wrapper/" target="_blank" rel="noopener">Console Wrapper</a> 1.0.3. He also include the following screen shot with the error:</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-2pPWyBLOzAQ/UVPQjtlsMRI/AAAAAAAAEUg/M9kmhH7LGfw/s1600/console_wrapper_ie9_error.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/-2pPWyBLOzAQ/UVPQjtlsMRI/AAAAAAAAEUg/M9kmhH7LGfw/s640/console_wrapper_ie9_error.png" alt=""></a></div><br>In case you can’t see it, the error is <code>Object doesn&#39;t support property or method &#39;apply&#39;</code>. It turns out that the issue was caused by a change in IE9 and IE10 on how they handle the <code>console</code> object. The following article describes the issue in detail: <a href="http://whattheheadsaid.com/2011/04/internet-explorer-9s-problematic-console-object" target="_blank" rel="noopener">http://whattheheadsaid.com/2011/04/internet-explorer-9s-problematic-console-object</a></p>
+<strike>I’ve fixed Console Wrapper to handle the issues presented in IE9 and IE10. Before I officially release 1.0.4 on <a href="https://code.google.com/p/js-console-wrapper/" target="_blank" rel="noopener">https://code.google.com/p/js-console-wrapper/</a> I’d like some people to beta test it. If you’re interested in testing 1.0.4 you can download it <a href="https://www.dropbox.com/s/g5zzz4qexj8p9jc/%24console_wrapper_1.0.4.js" target="_blank" rel="noopener">here</a>. If you find any issues please send me an email (my email address is in the comments section at the top).</strike>
 
-<p><em>Update: 6-Apr-2013: 1.0.4 has been officially released and is now available to download on the official <a href="https://code.google.com/p/js-console-wrapper/" target="_blank" rel="external">project page</a>.</em></p>
+<p><em>Update: 6-Apr-2013: 1.0.4 has been officially released and is now available to download on the official <a href="https://code.google.com/p/js-console-wrapper/" target="_blank" rel="noopener">project page</a>.</em></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/console-wrapper-104-beta/" data-id="cjfait83k0099pln9ka27motn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/console-wrapper-104-beta/" data-id="cjfcl2wfr0099furarpdss77e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/console-wrapper-104-beta/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -450,13 +501,13 @@
 <p>To test the solutions I set my current <code>SYSDATE</code> to 1-Feb-2013 so that it would have to encounter people that were hired on 29-Feb (even though 29-Feb doesn’t exist in 2013).</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> fixed_date=<span class="string">'2013-02-01-14:10:00'</span>;</div></pre></td></tr></table></figure>
 <p><strong>Winners</strong></p>
-<p>The winners are <em>Erik van Roon (aka “Belly”)</em> and <em>Iudith Mentzel</em>. Please email me (my email address is top right corner of blog) and I will forward your information to <a href="http://www.red-gate.com/" target="_blank" rel="external">Red Gate</a> so that you can claim your prize.</p>
-<p>Thanks for all the entries and thanks again to <a href="http://www.red-gate.com/" target="_blank" rel="external">Red Gate</a> for offering up the prizes (licenses to their new product: <a href="http://www.red-gate.com/products/oracle-development/source-control-for-oracle/" target="_blank" rel="external">Source Control for Oracle</a>). If you haven’t already seen what <a href="http://www.red-gate.com/products/oracle-development/source-control-for-oracle/" target="_blank" rel="external">Source Control for Oracle</a> is or want to download a free trial I encourage you to check it out.</p>
+<p>The winners are <em>Erik van Roon (aka “Belly”)</em> and <em>Iudith Mentzel</em>. Please email me (my email address is top right corner of blog) and I will forward your information to <a href="http://www.red-gate.com/" target="_blank" rel="noopener">Red Gate</a> so that you can claim your prize.</p>
+<p>Thanks for all the entries and thanks again to <a href="http://www.red-gate.com/" target="_blank" rel="noopener">Red Gate</a> for offering up the prizes (licenses to their new product: <a href="http://www.red-gate.com/products/oracle-development/source-control-for-oracle/" target="_blank" rel="noopener">Source Control for Oracle</a>). If you haven’t already seen what <a href="http://www.red-gate.com/products/oracle-development/source-control-for-oracle/" target="_blank" rel="noopener">Source Control for Oracle</a> is or want to download a free trial I encourage you to check it out.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/and-winner-is/" data-id="cjfait83j0097pln9ut3r064b" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/and-winner-is/" data-id="cjfcl2wfq0097furatpkf2xtp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/and-winner-is/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -492,72 +543,20 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Taking a note out of Simon Sinek’s famous <a href="http://www.ted.com/talks/simon_sinek_how_great_leaders_inspire_action.html" target="_blank" rel="external">TED talk</a>, I won’t focus on the <em>How</em> or <em>What</em> for <a href="http://kscope13.com/" target="_blank" rel="external">Kscope 13</a>, rather the <em>Why</em>.</p>
+        <p>Taking a note out of Simon Sinek’s famous <a href="http://www.ted.com/talks/simon_sinek_how_great_leaders_inspire_action.html" target="_blank" rel="noopener">TED talk</a>, I won’t focus on the <em>How</em> or <em>What</em> for <a href="http://kscope13.com/" target="_blank" rel="noopener">Kscope 13</a>, rather the <em>Why</em>.</p>
 <p>So why does Kscope exist? It’s goal is to bring together Oracle developers from around the world and offer them a unique learning and networking experience unlike any other conference.</p>
-<p>I’ve been to many other conferences, Oracle related or otherwise, and none offer the experience that you will get at Kscope. That being said, they’re still 12 days to take advantage of the <a href="http://kscope13.com/registration" target="_blank" rel="external">Early Bird rate </a>and if you haven’t already signed up I encourage you to do so!</p>
-<p>For those that prefer more of the <em>How</em> and <em>What</em> about <a href="http://kscope13.com/" target="_blank" rel="external">Kscope 13</a>, you to check out the website: <a href="http://kscope13.com/" target="_blank" rel="external">kscope13.com</a></p>
+<p>I’ve been to many other conferences, Oracle related or otherwise, and none offer the experience that you will get at Kscope. That being said, they’re still 12 days to take advantage of the <a href="http://kscope13.com/registration" target="_blank" rel="noopener">Early Bird rate </a>and if you haven’t already signed up I encourage you to do so!</p>
+<p>For those that prefer more of the <em>How</em> and <em>What</em> about <a href="http://kscope13.com/" target="_blank" rel="noopener">Kscope 13</a>, you to check out the website: <a href="http://kscope13.com/" target="_blank" rel="noopener">kscope13.com</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="cjfait83i0095pln94ktzs5ey" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="cjfcl2wfp0095furaa9a0uw0r" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/kscope-13/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">kscope</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-whos-birthday-is-it-in-n-number-of-days" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/03/whos-birthday-is-it-in-n-number-of-days/" class="article-date">
-  <time datetime="2013-03-11T13:00:00.000Z" itemprop="datePublished">2013-03-11</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/03/whos-birthday-is-it-in-n-number-of-days/">Who&#39;s Birthday is it in n number of days?</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>A friend of mine recently asked me the following question: “<em>I have a table with names and birthdays. How do I find who’s birthday is coming up in the next 15 days</em>“. Initially this it appears to be a simple question but it’s a bit more complex than I originally thought.</p>
-<p>I was going to post my solution here, then <a href="https://twitter.com/AllThingsOracle" target="_blank" rel="external">James Murtagh</a>, from Red Gate, offered me two five-user licenses for their new product called <a href="http://www.red-gate.com/source-control-for-oracle" target="_blank" rel="external">Source Control for Oracle</a> to give away to the readers of this blog. Instead, I’m going to run an informal contest to give away these sets of licenses (each valued at $1475). As with all contests, please read the <a href="http://www.red-gate.com/products/oracle-development/source-control-for-oracle/source-control-oracle-prize-terms" target="_blank" rel="external">terms and conditions</a> from Redgate.</p>
-<p>So here’s the question (similar to my friend’s question about birthday’s but on the common <code>EMP</code> table): <em>Suppose that I’m the HR manager and am planning to recognize the anniversary date that each employee was hired on. I’d like to know all the employees who’s anniversary hire date is in the next 30 days.</em></p>
-<p>Please post your solution in the comments section below. Every answer with a correct solution will have their name entered into the draw. Answers must be submitted by end of day on Friday March 15th. I’ll announce the winners next week.</p>
-<p>Notes:</p>
-<ul>
-<li>Use <code>SYSDATE</code> for today’s date. I’ll just alter the <a href="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing.html"><code>FIXED_DATE</code></a> setting in oracle to set the <code>SYSDATE</code> value for my testing.  </li>
-<li>Write your query for the default <code>EMP</code> table. If you don’t have the <code>EMP</code> table in your schema <a href="http://www.scribd.com/doc/55324111/Oracle-Emp-Table-Script" target="_blank" rel="external">this article</a> contains the scripts to generate it.</li>
-</ul>
-<p>I’m looking forward to everyone’s solutions!</p>
-<p><em><strong>Update</strong>: Please read the <a href="http://www.talkapex.com/2013/03/and-winner-is.html">follow up post</a> to see how I tested this solution.
-</em></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/" data-id="cjfait83g0091pln97zj0lsnn" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
 
     </footer>
   </div>
@@ -604,7 +603,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -641,7 +640,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

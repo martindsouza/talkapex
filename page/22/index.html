@@ -67,6 +67,83 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-standardizing-help-text-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/10/standardizing-help-text-in-apex/" class="article-date">
+  <time datetime="2009-10-27T15:00:00.000Z" itemprop="datePublished">2009-10-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/10/standardizing-help-text-in-apex/">Standardizing Help Text in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SuaEhEG5sJI/AAAAAAAADtY/62XBUIfwlE0/s1600-h/help_key.jpg" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SuaEhEG5sJI/AAAAAAAADtY/62XBUIfwlE0/s200/help_key.jpg" alt=""></a><br>I had a requirement where the same item name was used in various areas of the application. To maintain consistancy, and to minimize development time, I decided to create a “help framework” to standardize on the help text for these items.</p>
+<p><span style="font-style:italic">Note: I know APEX comes with a great tool to maintain consistancy for your page items called User Interface Defaults, however it would not work in this case.</span></p>
+<p>The goal was for developers not to have to enter any help text for commonly named page items. Instead, when applicable, the help text would automatically be retreived from a common area so we’d only need to maintain it in one place. The design also had to handle custom help text (i.e. if we needed to override the default help text).</p>
+<p>To do this I used Tool Tip Help (<span style="font-style:italic;">see: <a href="http://apex-smb.blogspot.com/2009/09/tooltip-help-in-apex-alternative-to.html" target="_blank" rel="noopener">http://apex-smb.blogspot.com/2009/09/tooltip-help-in-apex-alternative-to.html</a></span>) and made the following modifications:</p>
+<p><span style="font-weight:bold;">- Create a Default Help Page</span><br>Page Name: Default Help Page</p>
+<p>Create a region called “Default Help Items” and add all the items you want default help text for. For example, I created P10 and added the following items: P10_EMPNO, P10_ENAME. In each of these items I added the default help text for similarly named items.</p>
+<p><span style="font-weight:bold;">- Modify the Application Process AP_GET_HELP_TEXT </span></p>
+<pre class="brush: sql">
+BEGIN
+  FOR x IN (SELECT    '<span class="itemToolTip" foritem="'
+                   || item_name
+                   || '">'
+                   || item_help_text
+                   || '</span>' help_html
+              FROM (SELECT a.item_name,
+                           NVL (a.item_help_text, dflt_help_text.item_help_text)
+                                                                           item_help_text
+                      FROM apex_application_page_items a,
+                           (SELECT 'P' || :app_page_id || '_' || LTRIM (item_name, 'P10_')
+                                                                                item_name,
+                                   item_help_text
+                              FROM apex_application_page_items
+                             WHERE application_id = :app_id
+                               AND page_id = 10 -- Enter Default Help Page number here (and modify select statement above)
+                               AND item_help_text IS NOT NULL) dflt_help_text
+                     WHERE a.application_id = :app_id
+                       AND a.page_id = :app_page_id
+                       AND a.item_name = dflt_help_text.item_name(+)
+                       AND NVL (a.item_help_text, 'null') != '@NO_HELP@')
+             WHERE item_help_text IS NOT NULL)
+  LOOP
+    HTP.p (x.help_html);
+  END LOOP;
+END;
+</pre>
+
+<p>Now when I run the application, any item that is called PXX_EMPNO or PXX_ENAME will try to use the help text from P10 for the corresponding items. Developers can easily override the default help text by filling in specific help text for an item or by entering in “@NO_HELP@”</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cjfcl2wb9003ffura6ogaps2z" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-saving-saved-interactive-reports-when" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/10/saving-saved-interactive-reports-when/" class="article-date">
@@ -89,8 +166,8 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><span style="font-style:italic;color:red;">Their is now a supported method to preserve saved interactive reports. Please read the following post which explains how to do this in APEX 4.0: <a href="http://joelkallman.blogspot.com/2010/07/where-did-my-saved-interactive-reports.html" target="_blank" rel="external">http://joelkallman.blogspot.com/2010/07/where-did-my-saved-interactive-reports.html</a></span></p>
-<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/SuU1P0nNQOI/AAAAAAAADtQ/ElNfSXkuM04/s1600-h/save_key_small.jpg" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/SuU1P0nNQOI/AAAAAAAADtQ/ElNfSXkuM04/s320/save_key_small.jpg" alt=""></a><br>When updating existing APEX applications that contain Interactive Reports (IR) you may, not knowningly, delete users saved IRs. The only supported way to prevent this from happening is to ensure that your Application ID is the same when you move it from Dev, to Test, to Production. <a href="http://dpeake.blogspot.com" target="_blank" rel="external">David Peake</a> wrote a full explanation of this issue here: <a href="http://dpeake.blogspot.com/2009/01/preserving-user-saved-interactive.html" target="_blank" rel="external">http://dpeake.blogspot.com/2009/01/preserving-user-saved-interactive.html</a>. I suggest you read his post before continuing.</p>
+        <p><span style="font-style:italic;color:red;">Their is now a supported method to preserve saved interactive reports. Please read the following post which explains how to do this in APEX 4.0: <a href="http://joelkallman.blogspot.com/2010/07/where-did-my-saved-interactive-reports.html" target="_blank" rel="noopener">http://joelkallman.blogspot.com/2010/07/where-did-my-saved-interactive-reports.html</a></span></p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/SuU1P0nNQOI/AAAAAAAADtQ/ElNfSXkuM04/s1600-h/save_key_small.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/SuU1P0nNQOI/AAAAAAAADtQ/ElNfSXkuM04/s320/save_key_small.jpg" alt=""></a><br>When updating existing APEX applications that contain Interactive Reports (IR) you may, not knowningly, delete users saved IRs. The only supported way to prevent this from happening is to ensure that your Application ID is the same when you move it from Dev, to Test, to Production. <a href="http://dpeake.blogspot.com" target="_blank" rel="noopener">David Peake</a> wrote a full explanation of this issue here: <a href="http://dpeake.blogspot.com/2009/01/preserving-user-saved-interactive.html" target="_blank" rel="noopener">http://dpeake.blogspot.com/2009/01/preserving-user-saved-interactive.html</a>. I suggest you read his post before continuing.</p>
 <p>What if you develop a single application that needed to be deployed to multiple clients/instances? I.e. you develop your application in DEV (100) and deploy to PROD (200), PROD (300), and PROD (400). Currently there’s no supported way of doing this while maintaining your saved interactive reports.</p>
 <p>The following script can be  run after updating your production applications to ensure that your saved IRs don’t get lost. <span style="color:red;font-weight:bold;">Please note that this is not supported by Oracle and can put your application in an unsupported state.</span> <span style="font-style:italic;color:red;">If you are not an advanced APEX developer I do not suggest using this as it may result in unexpected results.</span></p>
 <p>Besides preserving saved IRs, users who are currently on the system will retain their current IR configurations, otherwise they will be lost. For example a user is working on an IR and applys some filters to it, you then update the application which will cause the interactive_report_id to change. The next time the user refreshes the page they won’t see their filters any more (i.e. they’ll have the default IR again). Running this script will prevent this from happening.</p>
@@ -119,7 +196,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cjfait800003fpln91e2ei4rj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cjfcl2wbb003hfura0s0dj33e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -156,20 +233,20 @@ END;
     <div class="article-entry" itemprop="articleBody">
       
         <p>When doing any sort of development it’s important to use the right tool for the right job. With that in mind, I thought I’d discuss mockups for APEX applications, or better yet any GUI.</p>
-<p>One of my biggest pet peeves is when I get a functional or technical spec with modified screen shots of existing applications for the UI mockups. I’m not a graphic artist or a UI expert but I do know that taking a screen shot of a similar application, then spending several hours moving things around in Paint isn’t very good. Using MS Paint, or similar applications, would be like developing your application using a typewriter (I’ve included a picture for those that have never used one :-).<br><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Stbwntt0aJI/AAAAAAAADr8/o3pfdONNC-A/s1600-h/typewriter.jpg" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Stbwntt0aJI/AAAAAAAADr8/o3pfdONNC-A/s320/typewriter.jpg" alt=""></a>I know some people have developed basic APEX applications and used screen shots for their UI mockups. I think APEX is a great tool for creating demo applications but it shouldn’t be used for mockups. People reviewing the design may get carried away with the specifics since it looks like a real application.</p>
-<p>What should you use to create application mockups? Personally I like a good old-fashion hand drawn diagram (I’ve been known to ask colleagues to give me their mockups on scrap paper). Though they are quick they don’t work well in documents and they aren’t great when doing several design iterations. Wireframe diagrams are an excellent alternative as they’re exactly like hand drawn diagrams with pre-defined shapes.<br><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Stb0cEpQevI/AAAAAAAADtI/6GJPWXyhwlc/s1600-h/balsamiq_example.PNG" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Stb0cEpQevI/AAAAAAAADtI/6GJPWXyhwlc/s400/balsamiq_example.PNG" alt=""></a><br>Why use wireframe diagrams?</p>
+<p>One of my biggest pet peeves is when I get a functional or technical spec with modified screen shots of existing applications for the UI mockups. I’m not a graphic artist or a UI expert but I do know that taking a screen shot of a similar application, then spending several hours moving things around in Paint isn’t very good. Using MS Paint, or similar applications, would be like developing your application using a typewriter (I’ve included a picture for those that have never used one :-).<br><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Stbwntt0aJI/AAAAAAAADr8/o3pfdONNC-A/s1600-h/typewriter.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Stbwntt0aJI/AAAAAAAADr8/o3pfdONNC-A/s320/typewriter.jpg" alt=""></a>I know some people have developed basic APEX applications and used screen shots for their UI mockups. I think APEX is a great tool for creating demo applications but it shouldn’t be used for mockups. People reviewing the design may get carried away with the specifics since it looks like a real application.</p>
+<p>What should you use to create application mockups? Personally I like a good old-fashion hand drawn diagram (I’ve been known to ask colleagues to give me their mockups on scrap paper). Though they are quick they don’t work well in documents and they aren’t great when doing several design iterations. Wireframe diagrams are an excellent alternative as they’re exactly like hand drawn diagrams with pre-defined shapes.<br><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Stb0cEpQevI/AAAAAAAADtI/6GJPWXyhwlc/s1600-h/balsamiq_example.PNG" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Stb0cEpQevI/AAAAAAAADtI/6GJPWXyhwlc/s400/balsamiq_example.PNG" alt=""></a><br>Why use wireframe diagrams?</p>
 <ul>
 <li>Quick to develop <span style="font-style:italic;">(the example above took me 2 minutes to create)</span></li>
 <li>Easy to modify</li>
 <li>Focus on flow and useability, not specifics</li>
 <li>Cheap/Easy to do multiple design iterations<br>The list could go on, but I’ll stop there. I’d like to emphasize on the fact that people will focus on specifics rather than the flow and usability of the application when looking at screen shots. For example: if you use have a screen shot with a drop down list of 100 countries and you only include 2 or 3 in the diagram, readers may wonder where the other 100 or so countries are etc. They aren’t focused on the fact that it’s a drop down list with countries, rather there’s something wrong with the list. With a wireframe diagram it will be extremly clear that it’s a drop down list of countries with no real focus on the values inside the select list.</li>
 </ul>
-<p>I’ve you’re looking for an application to do wireframe diagrams I’d recommend <a href="http://www.balsamiq.com/products/mockups" target="_blank" rel="external">Balsamiq</a>. I’ve been really impressed with it so far as it allows me to do UI mockups really quickly <span style="font-style:italic">(I have no affiliation with Balsamiq, so please don’t take this as an advertisement)</span>. Of course they’re many other tools out there that will do this so I encourage you to find one that is suitable for your organization.</p>
+<p>I’ve you’re looking for an application to do wireframe diagrams I’d recommend <a href="http://www.balsamiq.com/products/mockups" target="_blank" rel="noopener">Balsamiq</a>. I’ve been really impressed with it so far as it allows me to do UI mockups really quickly <span style="font-style:italic">(I have no affiliation with Balsamiq, so please don’t take this as an advertisement)</span>. Of course they’re many other tools out there that will do this so I encourage you to find one that is suitable for your organization.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cjfait7zz003dpln9pcx13601" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cjfcl2wb8003dfuradutr7fah" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -213,12 +290,12 @@ END;
 </ul>
 <p>To keep with the theme of this blog please only submit Oracle (SQL,PL/SQL) and APEX related jobs.</p>
 <p><span style="font-style:italic;">On a side note I may create a small application where people can post jobs specific to APEX.</span></p>
-<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/StbxVpZXRgI/AAAAAAAADso/Kw406pQsAw8/s1600-h/jobs.PNG" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/StbxVpZXRgI/AAAAAAAADso/Kw406pQsAw8/s320/jobs.PNG" alt=""></a></p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/StbxVpZXRgI/AAAAAAAADso/Kw406pQsAw8/s1600-h/jobs.PNG" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/StbxVpZXRgI/AAAAAAAADso/Kw406pQsAw8/s320/jobs.PNG" alt=""></a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="cjfait7zx003bpln95apec2hx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="cjfcl2wb50039furam3s9y5fb" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -254,17 +331,17 @@ END;
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><a href="http://stackoverflow.com/" target="_blank" rel="external">stackoverflow</a> is a programming Q &amp; A site that  <a href="http://www.codinghorror.com/blog/" target="_blank" rel="external">Jeff Atwood</a> and <a href="http://www.joelonsoftware.com/" target="_blank" rel="external">Joel Spolsky</a> created a while ago. It is now a very popular programming Q &amp; A site and takes a different approach to asking questions then conventional forums.</p>
-<p>They recently launched a site which allows individuals to host their own version of the application that focuses on a specific topic. I decided to register <a href="http://apex.stackexchange.com" target="_blank" rel="external">apex.stackexchange.com</a> for Oracle Application Express (APEX) questions.</p>
-<p>I realize that the <a href="http://forums.oracle.com/forums/forum.jspa?forumID=137&amp;start=0" target="_blank" rel="external">APEX Forum</a> is the main source of questions and answers regarding APEX, but I thought I’d see if anyone was interested in a different approach to handle questions.</p>
-<p>If you’re interested in trying it out, please go to: <a href="http://apex.stackexchange.com" target="_blank" rel="external">http://apex.stackexchange.com</a>. You don’t need to register to ask a question, but if you want to you can register using an <a href="http://openid.net/" target="_blank" rel="external">OpenID</a> account.</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Ss3K2CIjAVI/AAAAAAAADrU/KnXW0KMjaLs/s1600-h/question.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Ss3K2CIjAVI/AAAAAAAADrU/KnXW0KMjaLs/s400/question.png" alt=""></a></p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Ss3LBAODg2I/AAAAAAAADrc/xiaHoN_eYvA/s1600-h/question_2.PNG" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Ss3LBAODg2I/AAAAAAAADrc/xiaHoN_eYvA/s400/question_2.PNG" alt=""></a></p>
+        <p><a href="http://stackoverflow.com/" target="_blank" rel="noopener">stackoverflow</a> is a programming Q &amp; A site that  <a href="http://www.codinghorror.com/blog/" target="_blank" rel="noopener">Jeff Atwood</a> and <a href="http://www.joelonsoftware.com/" target="_blank" rel="noopener">Joel Spolsky</a> created a while ago. It is now a very popular programming Q &amp; A site and takes a different approach to asking questions then conventional forums.</p>
+<p>They recently launched a site which allows individuals to host their own version of the application that focuses on a specific topic. I decided to register <a href="http://apex.stackexchange.com" target="_blank" rel="noopener">apex.stackexchange.com</a> for Oracle Application Express (APEX) questions.</p>
+<p>I realize that the <a href="http://forums.oracle.com/forums/forum.jspa?forumID=137&amp;start=0" target="_blank" rel="noopener">APEX Forum</a> is the main source of questions and answers regarding APEX, but I thought I’d see if anyone was interested in a different approach to handle questions.</p>
+<p>If you’re interested in trying it out, please go to: <a href="http://apex.stackexchange.com" target="_blank" rel="noopener">http://apex.stackexchange.com</a>. You don’t need to register to ask a question, but if you want to you can register using an <a href="http://openid.net/" target="_blank" rel="noopener">OpenID</a> account.</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Ss3K2CIjAVI/AAAAAAAADrU/KnXW0KMjaLs/s1600-h/question.png" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Ss3K2CIjAVI/AAAAAAAADrU/KnXW0KMjaLs/s400/question.png" alt=""></a></p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Ss3LBAODg2I/AAAAAAAADrc/xiaHoN_eYvA/s1600-h/question_2.PNG" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Ss3LBAODg2I/AAAAAAAADrc/xiaHoN_eYvA/s400/question_2.PNG" alt=""></a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/apexstackexchangecom/" data-id="cjfait7zv0037pln9wrozv29e" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/apexstackexchangecom/" data-id="cjfcl2wb6003bfuraf13idy0n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/apexstackexchangecom/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -300,15 +377,15 @@ END;
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Yesterday I found out that the application I submitted for the Oracle Application Express Developer Competition 2009 finished in the top 12! You can view all the winners here: <a href="http://www.oracle.com/technology/products/database/application_express/html/comp_winners.html" target="_blank" rel="external">http://www.oracle.com/technology/products/database/application_express/html/comp_winners.html</a></p>
-<p>You can read about my application here: <a href="http://apex-smb.blogspot.com/2009/09/apex-rules-guidelines.html" target="_blank" rel="external">http://apex-smb.blogspot.com/2009/09/apex-rules-guidelines.html</a>. There’s a link where you can download a copy of it as well.</p>
+        <p>Yesterday I found out that the application I submitted for the Oracle Application Express Developer Competition 2009 finished in the top 12! You can view all the winners here: <a href="http://www.oracle.com/technology/products/database/application_express/html/comp_winners.html" target="_blank" rel="noopener">http://www.oracle.com/technology/products/database/application_express/html/comp_winners.html</a></p>
+<p>You can read about my application here: <a href="http://apex-smb.blogspot.com/2009/09/apex-rules-guidelines.html" target="_blank" rel="noopener">http://apex-smb.blogspot.com/2009/09/apex-rules-guidelines.html</a>. There’s a link where you can download a copy of it as well.</p>
 <p>I put together my application rather quickly in a weekend so it does have some bugs. I’ll try to update it soon for those that are using / interested in using it in their organization.</p>
 <p>Thank you to all the judges and congrats to everyone that participated!</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/" data-id="cjfait7zu0035pln922zf5pi2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/" data-id="cjfcl2wb10035furaw52ry3gj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/apex-developer-competition-2009-top-12/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -346,23 +423,23 @@ END;
       
         <p>APEX has built in logic to set the lifetime of a session. <span style="font-style:italic;">To configure this option go to Shared Components / Edit Security Attributes / Maximum Session Idle Time in Seconds and set the time in seconds</span></p>
 <p>This essentially terminates the user’s session in the database and the next time they submit the page they’ll be redirected to the login screen. <span style="font-weight:bold;font-style:italic">The user will only know that they are logged out once they submit the page</span>. If you have an Interactive Report (IR), or use Partial Page Refresh (PPR) the users won’t know they’re logged out. Instead it will look as though the report is still trying to load.</p>
-<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SrZjdKYpklI/AAAAAAAADqs/GPxkwVTc1Ow/s1600-h/apex_session_timeout_ir_ex.PNG" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SrZjdKYpklI/AAAAAAAADqs/GPxkwVTc1Ow/s400/apex_session_timeout_ir_ex.PNG" alt=""></a><br>Another situation that may happen is that the user is filling out a long form on your page, their session timesout, then they click “submit”. They’ll be redirected to the login page and they’ll lose all the information that they entered.</p>
-<p>What if a user wants to extend their session? i.e. they haven’t done anything to the page but would like a warning message before we automatically log them out? Or they are entering a log form and don’t want to be logged out? I got this idea from the <a href="http://www.aircanada.com/" target="_blank" rel="external">Air Canada</a> web site when I was booking tickets. I really liked the fact that they let me know that they were to end my session, and gave me the option to extend my session.</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/SrZjlS8xbPI/AAAAAAAADq0/GlyvVtBhr2Y/s1600-h/ac_session_timeout.PNG" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/SrZjlS8xbPI/AAAAAAAADq0/GlyvVtBhr2Y/s400/ac_session_timeout.PNG" alt=""></a><br>The following solution will allow you to use APEX’s session timeout and resolve the issues listed above. You can view the demo here: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2600" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=20195:2600</a></p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SrZjdKYpklI/AAAAAAAADqs/GPxkwVTc1Ow/s1600-h/apex_session_timeout_ir_ex.PNG" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SrZjdKYpklI/AAAAAAAADqs/GPxkwVTc1Ow/s400/apex_session_timeout_ir_ex.PNG" alt=""></a><br>Another situation that may happen is that the user is filling out a long form on your page, their session timesout, then they click “submit”. They’ll be redirected to the login page and they’ll lose all the information that they entered.</p>
+<p>What if a user wants to extend their session? i.e. they haven’t done anything to the page but would like a warning message before we automatically log them out? Or they are entering a log form and don’t want to be logged out? I got this idea from the <a href="http://www.aircanada.com/" target="_blank" rel="noopener">Air Canada</a> web site when I was booking tickets. I really liked the fact that they let me know that they were to end my session, and gave me the option to extend my session.</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/SrZjlS8xbPI/AAAAAAAADq0/GlyvVtBhr2Y/s1600-h/ac_session_timeout.PNG" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/SrZjlS8xbPI/AAAAAAAADq0/GlyvVtBhr2Y/s400/ac_session_timeout.PNG" alt=""></a><br>The following solution will allow you to use APEX’s session timeout and resolve the issues listed above. You can view the demo here: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2600" target="_blank" rel="noopener">http://apex.oracle.com/pls/otn/f?p=20195:2600</a></p>
 <p><span style="font-style:italic">Please note that since the demo page is set to public you can refresh after the session is supposed to have timedout and it will still work. If you set the Idle Session in APEX, this will work for pages that require authentication</span></p>
-<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SrZkYgKz7_I/AAAAAAAADrM/U8se-ZIHyIw/s1600-h/apex_session_extend.PNG" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SrZkYgKz7_I/AAAAAAAADrM/U8se-ZIHyIw/s400/apex_session_extend.PNG" alt=""></a><br><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SrZj0SLARDI/AAAAAAAADrE/0ywt1wBNUNA/s1600-h/apex_session_ended.PNG" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SrZj0SLARDI/AAAAAAAADrE/0ywt1wBNUNA/s400/apex_session_ended.PNG" alt=""></a><br>Here’s a high level overview of what this solution does:</p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SrZkYgKz7_I/AAAAAAAADrM/U8se-ZIHyIw/s1600-h/apex_session_extend.PNG" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SrZkYgKz7_I/AAAAAAAADrM/U8se-ZIHyIw/s400/apex_session_extend.PNG" alt=""></a><br><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SrZj0SLARDI/AAAAAAAADrE/0ywt1wBNUNA/s1600-h/apex_session_ended.PNG" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SrZj0SLARDI/AAAAAAAADrE/0ywt1wBNUNA/s400/apex_session_ended.PNG" alt=""></a><br>Here’s a high level overview of what this solution does:</p>
 <ul>
 <li>Start a timer (pingApexSession) that will constantly “ping” (therefore refresh) your APEX session every X seconds.</li>
 <li>Start a timer (idleTimer) to detect movement on the page.</li>
 <li>If the idleTimer times out, give the user the option to extend session</li>
 <li>If the user does not extend their session, terminate their session<br><span style="font-style:italic">I haven’t put this code into a production application yet. As I mention below, I plan to make a jQuery plugin for this, so if you please send me any feedback that would be useful fur the plugin.</span></li>
 </ul>
-<p>This solution uses <a href="http://jquery.com" target="_blank" rel="external">jQuery</a> and the following plugins:</p>
+<p>This solution uses <a href="http://jquery.com" target="_blank" rel="noopener">jQuery</a> and the following plugins:</p>
 <ul>
-<li><a href="http://www.ericmmartin.com/projects/simplemodal/" target="_blank" rel="external">Simple Modal</a></li>
-<li><a href="http://paulirish.com/2009/jquery-idletimer-plugin/" target="_blank" rel="external">jQuery idleTimer</a></li>
-<li><a href="http://tylermuth.wordpress.com/2009/08/19/japex-a-jquery-plugin-for-apex/" target="_blank" rel="external">jApex</a></li>
-<li><a href="http://keith-wood.name/countdown.html" target="_blank" rel="external">jQuery Countdown</a></li>
+<li><a href="http://www.ericmmartin.com/projects/simplemodal/" target="_blank" rel="noopener">Simple Modal</a></li>
+<li><a href="http://paulirish.com/2009/jquery-idletimer-plugin/" target="_blank" rel="noopener">jQuery idleTimer</a></li>
+<li><a href="http://tylermuth.wordpress.com/2009/08/19/japex-a-jquery-plugin-for-apex/" target="_blank" rel="noopener">jApex</a></li>
+<li><a href="http://keith-wood.name/countdown.html" target="_blank" rel="noopener">jQuery Countdown</a></li>
 </ul>
 <p><span style="font-weight:bold">- Create Application Process: AP_NULL</span></p>
 <ul>
@@ -612,7 +689,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/" data-id="cjfait7zw0039pln9iafzo8a8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/" data-id="cjfcl2wb30037furaf6r9kk7v" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/enhanced-apex-session-timeouts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -649,8 +726,8 @@ $(document).ready(function(){
     <div class="article-entry" itemprop="articleBody">
       
         <p>With APEX Tabs you may not want the page to be submitted each time the user clicks on a tab. If you look at the link for the tabs they look like: <span style="font-style:italic">javascript:doSubmit(‘xxxx’);</span> Where “xxx” is the name of the tab. “doSubmit” will submit the page and could trigger page computations, validations, and processes. If all you want to do is use the tabs as a form of navigation (i.e. when you click on a tab it redirects to another page) then this could cause some problems.</p>
-<p>To avoid triggering Page Processing on tabs you can modify all the conditions on your Page Process (this could be very long) or change the link. They’re multiple ways to change the links, here’s a simple one using <a href="http://jquery.com" target="_blank" rel="external">jQuery</a>.</p>
-<p>Here’s a link to the demo: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2500" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=20195:2500</a>. Note, in the demo I don’t trigger the javascript to change the link automatically so you can see what they look like before and after changing the links.</p>
+<p>To avoid triggering Page Processing on tabs you can modify all the conditions on your Page Process (this could be very long) or change the link. They’re multiple ways to change the links, here’s a simple one using <a href="http://jquery.com" target="_blank" rel="noopener">jQuery</a>.</p>
+<p>Here’s a link to the demo: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2500" target="_blank" rel="noopener">http://apex.oracle.com/pls/otn/f?p=20195:2500</a>. Note, in the demo I don’t trigger the javascript to change the link automatically so you can see what they look like before and after changing the links.</p>
 <p><span style="font-weight:bold;">- Create an Application Process</span><br><span style="font-style:italic">Note: You may want to only apply this to certain pages depending on the use case</span></p>
 <p>Name: AP_UNSUBMIT_TABS<br>Process Point: On Load: After Header</p>
 <pre class="brush: sql">
@@ -697,7 +774,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/" data-id="cjfait7zr0033pln93m6krpm7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/" data-id="cjfcl2way0031furasc11e7w6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/redirects-for-apex-tabs-instead-of-page/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -734,9 +811,9 @@ END;
     <div class="article-entry" itemprop="articleBody">
       
         <p>The default help functionality for APEX is ok but can cause some problems with users browsers since it uses popup windows to display the help. If you do some digging around regarding web development best practices you’ll find a lot of articles discussing why you should avoid popup windows. Instead of using the default help popup windows I prefer to use tooltips to display the help. Besides avoiding the popup window, tooltips generate a good user experience by displaying item help very quickly.</p>
-<p>This demo uses a jQuery tooltip plugin: <a href="http://bassistance.de/jquery-plugins/jquery-plugin-tooltip/" target="_blank" rel="external">http://bassistance.de/jquery-plugins/jquery-plugin-tooltip/</a>. Please visit the Bassistance website to find out how to configure the look and feel of the tool tips.</p>
-<p>Here’s a link to the demo: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2400" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=20195:2400</a></p>
-<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Sq0Cb8Ae2WI/AAAAAAAADqc/flO0nQATWCA/s1600-h/tooltiphelp.jpg" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Sq0Cb8Ae2WI/AAAAAAAADqc/flO0nQATWCA/s400/tooltiphelp.jpg" alt=""></a></p>
+<p>This demo uses a jQuery tooltip plugin: <a href="http://bassistance.de/jquery-plugins/jquery-plugin-tooltip/" target="_blank" rel="noopener">http://bassistance.de/jquery-plugins/jquery-plugin-tooltip/</a>. Please visit the Bassistance website to find out how to configure the look and feel of the tool tips.</p>
+<p>Here’s a link to the demo: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2400" target="_blank" rel="noopener">http://apex.oracle.com/pls/otn/f?p=20195:2400</a></p>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Sq0Cb8Ae2WI/AAAAAAAADqc/flO0nQATWCA/s1600-h/tooltiphelp.jpg" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Sq0Cb8Ae2WI/AAAAAAAADqc/flO0nQATWCA/s400/tooltiphelp.jpg" alt=""></a></p>
 <p><span style="font-weight:bold;">- Create or Update Label Template</span><br><span style="font-style: italic;">Note: You don’t need to create a new template. If you want to, just update the existing templates</span></p>
 <ul>
 <li><p>Copy the “Optional Label with Help” and rename to “Optional Label with ToolTip”.<br><span style="font-style: italic;">Note: You can do this for required labels as well</span></p>
@@ -745,7 +822,7 @@ END;
 </li>
 </ul>
 <p>To:<br><span style="font-style: italic;">I removed the href reference and replaced with #</span><br>&lt;label for=”#CURRENT_ITEM_NAME#” tabindex=”999”&gt;&lt;a class=”t20OptionalLabelwithHelp” href=”#” tabindex=”999”&gt;</p>
-<p><span style="font-weight:bold;">- Create a HTML region</span><br><span style="font-style: italic;">This can be done on P0 to load for each page</span><br><span style="font-style: italic;">Don’t forget to upload the <a href="http://jquery.com/" target="_blank" rel="external">jQuery</a> and <a href="http://bassistance.de/jquery-plugins/jquery-plugin-tooltip/" target="_blank" rel="external">tooltip</a> JS files into Shared Components / Static Files</span></p>
+<p><span style="font-weight:bold;">- Create a HTML region</span><br><span style="font-style: italic;">This can be done on P0 to load for each page</span><br><span style="font-style: italic;">Don’t forget to upload the <a href="http://jquery.com/" target="_blank" rel="noopener">jQuery</a> and <a href="http://bassistance.de/jquery-plugins/jquery-plugin-tooltip/" target="_blank" rel="noopener">tooltip</a> JS files into Shared Components / Static Files</span></p>
 <pre class="brush: html">
 <script src="#APP_IMAGES#jquery-1.3.2.min.js" type="text/javascript"></script>
 <script src="#APP_IMAGES#jquery.tooltip.pack-1.3.js" type="text/javascript"></script>
@@ -803,7 +880,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/tooltip-help-in-apex-alternative-to/" data-id="cjfait7zp0031pln9ns0msijo" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/tooltip-help-in-apex-alternative-to/" data-id="cjfcl2waz0033furagqll5htp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/tooltip-help-in-apex-alternative-to/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -840,14 +917,14 @@ END;
     <div class="article-entry" itemprop="articleBody">
       
         <p>A colleague had a requirement where he had over 10,000 rows of data which had to be updateable. Using Interactive Reports (IR) was the preferred approach as it would allow users to filter the data to modify the rows they wanted to before submitting the page. Tabular forms wouldn’t work since the page would be to large. This is the solution that I proposed to make “Updateable IRs”.</p>
-<p>The following solution will work with IRs and standard reports with pagination. If the users applies filters or paginates to another set of data, the changes they make will remain in the collection. This is using a similar technique that I wrote about for <a href="http://apex-smb.blogspot.com/2009/01/apex-report-with-checkboxes-advanced.html" target="_blank" rel="external">APEX Report with checkboxes (advanced)</a>. To summarize this process:</p>
+<p>The following solution will work with IRs and standard reports with pagination. If the users applies filters or paginates to another set of data, the changes they make will remain in the collection. This is using a similar technique that I wrote about for <a href="http://apex-smb.blogspot.com/2009/01/apex-report-with-checkboxes-advanced.html" target="_blank" rel="noopener">APEX Report with checkboxes (advanced)</a>. To summarize this process:</p>
 <ul>
 <li>Store the current query data into a collection as well as the md5 checksum.</li>
 <li>Build an IR against the collection and use APEX_ITEMs to display input fields.*   When a user changes a field, we submit that change to the collection.</li>
 <li>Once the user is done with their changes you’ll need to process the collection as required. In the last step in this example I have a query that will help identify changed rows.<br>You can do a lot with this approach but if you don’t have an urgent need I’d suggest holding off until APEX 4.0. They’re some security issues that would need to be addressed before launching this code in a public application. I didn’t include the security updates in this example since I did not want to lose scope of the base functionality. Updating the code to make it secure shouldn’t be too difficult.</li>
 </ul>
-<p>Here’s the link to the demo: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2300" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=20195:2300</a></p>
-<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/SqxaSe21azI/AAAAAAAADqU/xsH4IhHxhwg/s1600-h/updateable_ir.jpg" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/SqxaSe21azI/AAAAAAAADqU/xsH4IhHxhwg/s400/updateable_ir.jpg" alt=""></a></p>
+<p>Here’s the link to the demo: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2300" target="_blank" rel="noopener">http://apex.oracle.com/pls/otn/f?p=20195:2300</a></p>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/SqxaSe21azI/AAAAAAAADqU/xsH4IhHxhwg/s1600-h/updateable_ir.jpg" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/SqxaSe21azI/AAAAAAAADqU/xsH4IhHxhwg/s400/updateable_ir.jpg" alt=""></a></p>
 <p><span style="font-weight: bold;">- Create IR Report Region</span><br><span style="font-style: italic;">Note: You can use this for regular reports with pagination as well</span></p>
 <pre class="brush: sql">
 SELECT e.empno,
@@ -945,7 +1022,7 @@ END IF;
 END;
 </pre>
 
-<p><span style="font-weight: bold;">- Create HTML Region to store JS code:</span><br>Note: This uses <a href="http://jquery.com/" target="_blank" rel="external">jQuery</a> and <a href="http://tylermuth.wordpress.com" target="_blank" rel="external">Tyler Muth’s</a> <a href="http://tylermuth.wordpress.com/2009/08/19/japex-a-jquery-plugin-for-apex/" target="_blank" rel="external">jApex plugin</a>. You’ll have to upload the .js files as static files in Shared Components.</p>
+<p><span style="font-weight: bold;">- Create HTML Region to store JS code:</span><br>Note: This uses <a href="http://jquery.com/" target="_blank" rel="noopener">jQuery</a> and <a href="http://tylermuth.wordpress.com" target="_blank" rel="noopener">Tyler Muth’s</a> <a href="http://tylermuth.wordpress.com/2009/08/19/japex-a-jquery-plugin-for-apex/" target="_blank" rel="noopener">jApex plugin</a>. You’ll have to upload the .js files as static files in Shared Components.</p>
 <pre class="brush: html">
 <script src="#APP_IMAGES#jquery-1.3.2.min.js" type="text/javascript"></script>
 <script src="#APP_IMAGES#jquery.jApex.0.9.2.js" type="text/javascript"></script>
@@ -1031,64 +1108,12 @@ WHERE collection_name = :p2300_collection_name
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/updateable-interactive-report-for-apex/" data-id="cjfait7zo002ypln91x0t2bmp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/09/updateable-interactive-report-for-apex/" data-id="cjfcl2wax002yfurae6bgas62" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/09/updateable-interactive-report-for-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-rules-guidelines" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/09/apex-rules-guidelines/" class="article-date">
-  <time datetime="2009-09-02T15:00:00.000Z" itemprop="datePublished">2009-09-02</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/09/apex-rules-guidelines/">APEX Rules &amp; Guidelines</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>After several late nights of nerding I’ve finally submitted/completed my APEX application for the <a href="http://www.oracle.com/technology/products/database/application_express/html/competition.html" target="_blank" rel="external">APEX Developer Competition 2009</a>.</p>
-<p><strike>You can demo and download the application here: <a href="http://apex.oracle.com/pls/otn/f?p=46865" target="_blank" rel="external">http://apex.oracle.com/pls/otn/f?p=46865</a></strike><br><em>Note: Demo is no longer up and will not be supported.</em></p>
-<p>This purpose of this application is to allow development teams to create an online Rules &amp; Guidelines development document. The template for this application is based on Patrick Cimolini’s (Cayman Islands Government) presentation at <a href="http://www.odtugkaleidoscope.com/" target="_blank" rel="external">ODTUG</a>.</p>
-<p>The concept of the R&amp;G template is:</p>
-<p><span style="font-weight: bold;">Rule:</span> Follow 100% of the time<br><span style="font-weight: bold;">Guideline:</span> Follow 90% of the time</p>
-<p><span style="font-style: italic; font-weight: bold;">Mandatory Headings:</span></p>
-<p><span style="font-weight: bold;">Rule/Guideline:</span> Active voice sentence.<br><span style="font-weight: bold;">Why:</span>Important for Team Buy-In</p>
-<p><span style="font-style: italic; font-weight: bold;">Optional Headings:</span></p>
-<p><span style="font-weight: bold;">Result:</span> Illustration of desired outcome<br><span style="font-weight: bold;">How:</span> How the result is achieved.<br><span style="font-weight: bold;">Notes:</span> State the non-obvious<br><span style="font-weight: bold;">See Also:</span> Point to related Rules and Guidelines</p>
-<p>You can use this template for both APEX development and your PL/SQL standards. I’ve included the installation files in the demo application so feel <span style="font-weight: bold;">free</span> to install at your organization. If you are using it please post any comments/suggestions on this post and I’ll try to write some updates.</p>
-<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Sp4BV-rhSZI/AAAAAAAADqE/DLGLV8dMcs4/s1600-h/rng_screen_shot_01.gif" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Sp4BV-rhSZI/AAAAAAAADqE/DLGLV8dMcs4/s400/rng_screen_shot_01.gif" alt=""></a></p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Sp4BWTCNUYI/AAAAAAAADqM/kgNcLDgq4Q4/s1600-h/rng_screen_shot_02.gif" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Sp4BWTCNUYI/AAAAAAAADqM/kgNcLDgq4Q4/s400/rng_screen_shot_02.gif" alt=""></a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/09/apex-rules-guidelines/" data-id="cjfait7zn002wpln9rbvsxuak" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/09/apex-rules-guidelines/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/best-practice/">best-practice</a></li></ul>
 
     </footer>
   </div>
@@ -1135,7 +1160,7 @@ WHERE collection_name = :p2300_collection_name
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -1172,7 +1197,7 @@ WHERE collection_name = :p2300_collection_name
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

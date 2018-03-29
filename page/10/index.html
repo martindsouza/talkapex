@@ -67,6 +67,51 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-logger-210-10g-sequence-fixed" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/08/logger-210-10g-sequence-fixed/" class="article-date">
+  <time datetime="2013-08-09T13:00:00.000Z" itemprop="datePublished">2013-08-09</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/08/logger-210-10g-sequence-fixed/">Logger 2.1.0 - 10g Sequence Fixed</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>In preparation for the release of Logger 2.1.0 I’ve decided to write a few posts highlighting some of the new features.</em></p>
+<p>Apparently not too many people who use Logger are still running Oracle 11gR1 or lower since I was only notified of this issue now. Patrick Jolliffe was kind enough to point out that there was an <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/26" target="_blank" rel="noopener">issue</a> when installing Logger in a 10g. It turns out that  <code>:new.id := logger_logs_seq.nextval;</code> doesn’t work in 10g. It only works in 11gR2 and above. Clearly it’s been a while since I’ve used 10g, or better yet 11gR1.</p>
+<p>The ability to reference sequences <code>nextval</code> in PL/SQL is mentioned in the 11gR2 <a href="http://docs.oracle.com/cd/B28359_01/server.111/b28279/chapter1.htm#FEATURENO07450" target="_blank" rel="noopener">New Features guide</a>.</p>
+<p>Logger 2.1.0 address this issue by only supporting the old <code>select into...</code>  technique for various reasons. At first I was skeptical about  performance impacts of having the context switch, however it appears  that behind the scenes if called from PL/SQL it does an internal select  into to obtain the value. <a href="http://connormcdonald.wordpress.com/" target="_blank" rel="noopener">Connor McDonald</a> has some good slides about this <a href="http://www.oracledba.co.uk/perth08/mcdonald_oct08_11g_developers.pdf" target="_blank" rel="noopener">here</a> (see page 59 onwards).</p>
+<p>Thanks to <a href="https://twitter.com/dmcghan" target="_blank" rel="noopener">Dan McGhan</a> and <a href="https://twitter.com/swesley_perth" target="_blank" rel="noopener">Scott Wesley</a> for helping sort this issue out.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-10g-sequence-fixed/" data-id="cjfcl2wgo00abfuraveoeer5o" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2013/08/logger-210-10g-sequence-fixed/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-logger-210-insloggerlogs" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2013/08/logger-210-insloggerlogs/" class="article-date">
@@ -90,13 +135,13 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p><em>In preparation for the release of Logger 2.1.0 I’ve decided to write a few posts highlighting some of the new features.</em></p>
-<p>Prior to 2.1.0, Logger used a trigger when inserting into the <code>LOGGER_LOGS</code> table. Though their was never a compelling reason to remove the trigger a <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/26" target="_blank" rel="external">bug request</a> and an unrelated <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/17" target="_blank" rel="external">enhancement request</a> prompted me to reexamine the need for it.</p>
-<p>Starting with 2.1.0 there is no trigger on the primary Logger table: <code>LOGGER_LOGS</code>. Instead all insert statements are handled by a single procedure:  <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API#wiki-procedure-ins_logger_logs" target="_blank" rel="external"><code>ins_logger_logs</code></a>. I’m sure this will make <a href="https://twitter.com/OracleAskTom" target="_blank" rel="external">Tom Kyte</a> happy as there’s one less trigger in the world now.</p>
+<p>Prior to 2.1.0, Logger used a trigger when inserting into the <code>LOGGER_LOGS</code> table. Though their was never a compelling reason to remove the trigger a <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/26" target="_blank" rel="noopener">bug request</a> and an unrelated <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/17" target="_blank" rel="noopener">enhancement request</a> prompted me to reexamine the need for it.</p>
+<p>Starting with 2.1.0 there is no trigger on the primary Logger table: <code>LOGGER_LOGS</code>. Instead all insert statements are handled by a single procedure:  <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API#wiki-procedure-ins_logger_logs" target="_blank" rel="noopener"><code>ins_logger_logs</code></a>. I’m sure this will make <a href="https://twitter.com/OracleAskTom" target="_blank" rel="noopener">Tom Kyte</a> happy as there’s one less trigger in the world now.</p>
 <p>On the performance perspective, initial testing has shown a ~15% performance increase when using the standard logging procedures. Though this may not seem like a lot, in large systems where Logger is called often it can start to add up.</p>
 <p>As you can imagine, if you have a direct insert into <code>LOGGER_LOGS</code> and leveraged some of the features that the trigger had (i.e. obtaining the sequence for the ID column) then your application will have a run time error. I was very hesitant about removing the trigger for this sole reason but am able to justify it by the fact that directly inserting into the table has never been supported by Logger. Regardless, if you do have insert statements into the table you can simply replace them with calls to the <code>ins_logger_logs</code> procedure.</p>
 <p><code>ins_logger_logs</code> should not be used often and only makes sense in very specific cases. A few things to note about this procedure:</p>
 <ul>
-<li>It is an <a href="http://www.oracle-base.com/articles/misc/autonomous-transactions.php" target="_blank" rel="external">autonomous transaction</a> procedure. This means that an explicit commit occurs at the end of the procedure. Since it is an autonomous transaction it will not affect (i.e. not commit) your current session.</li>
+<li>It is an <a href="http://www.oracle-base.com/articles/misc/autonomous-transactions.php" target="_blank" rel="noopener">autonomous transaction</a> procedure. This means that an explicit commit occurs at the end of the procedure. Since it is an autonomous transaction it will not affect (i.e. not commit) your current session.</li>
 <li>It will always insert the value into the <code>LOGGER_LOGS</code> table. No check is performed to factor in the current logging level. For this reason you’re better off using the standard Logger procedures.</li>
 </ul>
 <p>On a side note, you may be wondering why you would manually do a direct insert into the <code>LOGGER_LOGS</code> table? In rare occasions you may need the ID that was generated from a log statement for other purposes. None of primary log procedures returns the ID. One situation that I’ve seen in the past is to log all the APEX info on the APEX error handling page. On that page the user would see an error code that developers can reference. That unique code is actually the ID from Logger.</p>
@@ -105,7 +150,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-insloggerlogs/" data-id="cjfait84700a7pln9qfyvnmed" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-insloggerlogs/" data-id="cjfcl2wgd00a7furap08d8r0i" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-insloggerlogs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -145,7 +190,7 @@
 <p>A while ago, someone asked me to add a feature into logger to determine if a log statement would actually be logged. I fought this off like the plague as I wanted to <u>avoid</u> the following situation:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">...</div><div class="line">if can_log then</div><div class="line">  logger.log('some message');</div><div class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</div><div class="line">...</div><div class="line"></div><div class="line">if can_log then</div><div class="line">  logger.log('another message');</div><div class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</div><div class="line">...</div></pre></td></tr></table></figure>
 <p>Unfortunately I’ve seen this type of coding style many times and it makes code difficult to read and maintain. This also ruins one of the key goals behind Logger which is to make it easy and quick for developers to use.</p>
-<p>Reluctantly, I finally caved in. As a result there’s a new function called <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API#wiki-procedure-ok_to_log" target="_blank" rel="external"><code>ok_to_log</code></a>. <code>ok_to_log</code> tells you if what you’re about to log will actually get logged. <strong>It is <u>not</u> meant to be used like the example above</strong>. I can’t emphasize this enough.</p>
+<p>Reluctantly, I finally caved in. As a result there’s a new function called <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API#wiki-procedure-ok_to_log" target="_blank" rel="noopener"><code>ok_to_log</code></a>. <code>ok_to_log</code> tells you if what you’re about to log will actually get logged. <strong>It is <u>not</u> meant to be used like the example above</strong>. I can’t emphasize this enough.</p>
 <p>The main use case for <code>ok_to_log</code> is for situations where you <u>only</u> want to do something for logging purposes that will slow down the system. A good example is when you want to log the values of an array. Since it will take time to loop through the array there’s no point in doing it if Logger won’t actually log anything. The following example highlights this:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> *</div><div class="line"><span class="keyword">declare</span></div><div class="line">  <span class="keyword">type</span> typ_array <span class="keyword">is</span> <span class="keyword">table</span> <span class="keyword">of</span> <span class="built_in">number</span> <span class="keyword">index</span> <span class="keyword">by</span> pls_integer;</div><div class="line">  l_array typ_array;</div><div class="line"><span class="keyword">begin</span></div><div class="line">  <span class="comment">-- Load test data</span></div><div class="line">  <span class="keyword">for</span> x <span class="keyword">in</span> <span class="number">1.</span><span class="number">.100</span> <span class="keyword">loop</span></div><div class="line">    l_array(x) := x;</div><div class="line">  <span class="keyword">end</span> <span class="keyword">loop</span>;</div><div class="line"></div><div class="line">  <span class="comment">-- Only log if logging is enabled</span></div><div class="line">  if logger.ok_to_log('DEBUG') then</div><div class="line">    for x in 1..l_array.count loop</div><div class="line">      logger.log(l_array(x));</div><div class="line">    <span class="keyword">end</span> <span class="keyword">loop</span>;</div><div class="line">  <span class="keyword">end</span> <span class="keyword">if</span>;</div><div class="line"><span class="keyword">end</span>;</div><div class="line">/</div></pre></td></tr></table></figure>
 <p>If the logging level is set to DEBUG or higher (as it would be in development environments) then logger will loop through the array and log the values. If the logging level is set to <code>ERROR</code> (as it normally would be in production instances) it won’t loop over the array since it now knows ahead of time that Logger won’t log the values.</p>
@@ -160,7 +205,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-oktolog/" data-id="cjfait84500a5pln9zurkilc8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-oktolog/" data-id="cjfcl2wgb00a5furad1lsyxp3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-oktolog/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -197,13 +242,13 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p><em>In preparation for the release of Logger 2.1.0 I’ve decided to write a few posts highlighting some of the new features.</em></p>
-<p>The new Logger <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki" target="_blank" rel="external">documentation</a> contains a lot of sample code. Though this is good for documentation  purposes I found that I still needed to build a set of demos for various  presentations and demonstrations about Logger. Instead of recreating  demos each time I’ve started to keep them in a demo folder (included in  each release). This can also be useful for individuals looking to demo  Logger at an organization for the first time.</p>
+<p>The new Logger <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki" target="_blank" rel="noopener">documentation</a> contains a lot of sample code. Though this is good for documentation  purposes I found that I still needed to build a set of demos for various  presentations and demonstrations about Logger. Instead of recreating  demos each time I’ve started to keep them in a demo folder (included in  each release). This can also be useful for individuals looking to demo  Logger at an organization for the first time.</p>
 <p>Though  not complete, expect the list of demos to expand over time. If you have  a demo script you want added, please feel free to send it to me or make  a pull request.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-demo-scripts/" data-id="cjfait840009vpln9n0ihcfpq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-demo-scripts/" data-id="cjfcl2wg800a1furamlvtzh29" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-demo-scripts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -240,16 +285,16 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p><em>In preparation for the release of Logger 2.1.0 I’ve decided to write a few posts highlighting some of the new features.</em></p>
-<p>As <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger</a> expands, so does its documentation. We have reached a point that it was  no longer feasible to continue with a one page documentation structure.  Besides being hard to find a specific bit of information I also found  that it was hard to get a quick overview of all the functions that  Logger has.</p>
-<p>The documentation for Logger has been  completely revamped. It’s broken up into two main sections: the initial readme file (found on the main <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">project page</a>) and a <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki" target="_blank" rel="external">wiki</a>.  The readme file contains a brief overview of logger and links to the  wiki. The wiki has been broken up into four sub sections: <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Installation" target="_blank" rel="external">Installation</a>, <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API" target="_blank" rel="external">Logger API</a>, <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Change%20Logs" target="_blank" rel="external">Change Log</a>, and <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Best-Practices" target="_blank" rel="external">Best Practices</a>.  This is a start to make Logger’s documentation similar to Oracle’s  documentation format which should make things consistent for developers.</p>
-<p>If you’ve already used Logger for a while, take a look at the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API" target="_blank" rel="external">Logger API</a> page. I think you’ll find some functions that you didn’t know existed.</p>
+<p>As <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="noopener">Logger</a> expands, so does its documentation. We have reached a point that it was  no longer feasible to continue with a one page documentation structure.  Besides being hard to find a specific bit of information I also found  that it was hard to get a quick overview of all the functions that  Logger has.</p>
+<p>The documentation for Logger has been  completely revamped. It’s broken up into two main sections: the initial readme file (found on the main <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="noopener">project page</a>) and a <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki" target="_blank" rel="noopener">wiki</a>.  The readme file contains a brief overview of logger and links to the  wiki. The wiki has been broken up into four sub sections: <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Installation" target="_blank" rel="noopener">Installation</a>, <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API" target="_blank" rel="noopener">Logger API</a>, <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Change%20Logs" target="_blank" rel="noopener">Change Log</a>, and <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Best-Practices" target="_blank" rel="noopener">Best Practices</a>.  This is a start to make Logger’s documentation similar to Oracle’s  documentation format which should make things consistent for developers.</p>
+<p>If you’ve already used Logger for a while, take a look at the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/wiki/Logger-API" target="_blank" rel="noopener">Logger API</a> page. I think you’ll find some functions that you didn’t know existed.</p>
 <p>The  wiki documents are stored in a separate repository on GitHub. This  means that they aren’t synced with a release is tagged. To get around  this issue, each build now contains a folder called “wiki”. In it, you  will find all the wiki files (in markdown format) generated at the time  of the build.</p>
 <p>On a side note, the documentation  restructuring took a lot of time. I didn’t have enough time to document  all the functions and they will all be updated in the near future once I  have more time. Of course you’re encouraged to fork the project and  update the documentation if you want to help out.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-documentation-overhaul/" data-id="cjfait84300a1pln92qb6jniq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-documentation-overhaul/" data-id="cjfcl2wga00a3furaqm9z76ob" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-documentation-overhaul/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -286,15 +331,15 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p><em>In preparation for the release of Logger 2.1.0 I’ve decided to write a few posts highlighting some of the new features.</em></p>
-<p><em>I must thank <a href="https://twitter.com/juergenschuster" target="_blank" rel="external">Juergen Schuster</a> for suggestion the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/17" target="_blank" rel="external">following change</a> to Logger. He sent me an email with this request and though it took a  while to get in, I’m glad to finally see it in this release of Logger.</em></p>
+<p><em>I must thank <a href="https://twitter.com/juergenschuster" target="_blank" rel="noopener">Juergen Schuster</a> for suggestion the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/17" target="_blank" rel="noopener">following change</a> to Logger. He sent me an email with this request and though it took a  while to get in, I’m glad to finally see it in this release of Logger.</em></p>
 <p>In the main Logger procedures the first parameter, <code>p_text</code>,  is a varchar2 data type. This means that in PL/SQL you can pass in  strings up to 32767 characters however the max table size (pre 12c) for a varchar2 is 4000 characters. As you can imagine it caused some people  some unexpected runtime errors when they passed in large blocks of text.  The only way to get around this was either check the size of text  before logging it (if you were unsure of it’s final size) or store it in the <code>EXTRA</code> (clob) column.</p>
 <p>Starting in 2.1.0, Logger  will gracefully handle text entries larger than 4000 characters. If the  text is larger than 4000 characters it will automatically be appended to the <code>EXTRA</code> column and a message, “<em><strong><em> Content moved to EXTRA column </em></strong></em>“ will be displayed in the <code>TEXT</code> column. I hope this resolves some unforeseen runtime errors that may have occurred in the past.</p>
-<p>With  12c finally released (and its ability to have varchar2 columns of 32767 length) this functionality is bound to change / become obsolete. A <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/30" target="_blank" rel="external">new issue</a> has been created to address this in a future release of Logger.</p>
+<p>With  12c finally released (and its ability to have varchar2 columns of 32767 length) this functionality is bound to change / become obsolete. A <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/issues/30" target="_blank" rel="noopener">new issue</a> has been created to address this in a future release of Logger.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/logger-210-text-length-4000-characters/" data-id="cjfait84400a3pln9of5fb5w3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/08/logger-210-text-length-4000-characters/" data-id="cjfcl2wg7009zfurag4uidmf5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/08/logger-210-text-length-4000-characters/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -333,7 +378,7 @@
         <p>I was working on another post today and noticed that I had just exceed the 400,000 pageviews milestone! The next thing that caught my eye is that it has been 5 years to the day since my first post. So I thought I’d write an article reflecting the past five years.</p>
 <p>I started this blog (initially called apex-smb.blogspot.com) to simply post some of code I was working on and elicit feedback from the community. Seemed simple to me: post some code and get free feedback. Over the life of this blog I certainly did get a lot of feedback. I also got a lot more than I had imagined. Since my initial post I have achieved many milestones that I didn’t think were possible or hadn’t even thought of when I first started. These include:</p>
 <ul>
-<li>Co-founding <a href="http://www.clarifit.com/" target="_blank" rel="external">ClariFit</a></li>
+<li>Co-founding <a href="http://www.clarifit.com/" target="_blank" rel="noopener">ClariFit</a></li>
 <li>Writing several <a href="http://www.talkapex.com/p/books.html">books</a></li>
 <li>Becoming an Oracle ACE, then later ACE Director</li>
 <li>Working on various <a href="http://www.talkapex.com/p/open-source.html">open source projects</a></li>
@@ -350,7 +395,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/07/5-years-later/" data-id="cjfait842009zpln9yvgvexp3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/07/5-years-later/" data-id="cjfcl2wg5009xfuraqjzdd2dp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/07/5-years-later/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -386,22 +431,22 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>This fall <a href="http://www.odtug.com/" target="_blank" rel="external">ODTUG</a> will be in Montreal for the 2nd annual <a href="http://www.odtug.com/apexposed" target="_blank" rel="external">APEXposed</a> conference. Like last year, there’s a star-studded lineup of speakers including Oracle’s Director of Software Development, APEX’s product manager, and Oracle ACE and ACE Directors. The one difference compared with last year is that we have some local speakers from Montreal and Toronto.</p>
-<p>Some of the <a href="http://www.odtug.com/apexposed_presentations" target="_blank" rel="external">presentations</a> that I’m looking forward to are:</p>
+        <p>This fall <a href="http://www.odtug.com/" target="_blank" rel="noopener">ODTUG</a> will be in Montreal for the 2nd annual <a href="http://www.odtug.com/apexposed" target="_blank" rel="noopener">APEXposed</a> conference. Like last year, there’s a star-studded lineup of speakers including Oracle’s Director of Software Development, APEX’s product manager, and Oracle ACE and ACE Directors. The one difference compared with last year is that we have some local speakers from Montreal and Toronto.</p>
+<p>Some of the <a href="http://www.odtug.com/apexposed_presentations" target="_blank" rel="noopener">presentations</a> that I’m looking forward to are:</p>
 <ul>
 <li>Joel Kallman’s (Oracle Director of Software Development) talk on APEX 5.0, giving us an inside look of what’s coming up in the near future.</li>
 <li>David Peake’s (APEX Product Manager) talk on how to leverage some of the new features in 12c with APEX.</li>
 <li>Roel Hartman’s (Director at APEX Evangelists) presentation on building mobile applications in APEX.</li>
 <li>Steve Feuerstein’s (Dell) keynote. I just talked to him about it, should be great!</li>
 </ul>
-<p>And, as shameless plug, I’ll be giving two talks: “Instrumenting your PL/SQL and APEX Applications” and “APEX Development Best Practices”. I’m really excited about the talk on code instrumentation as I’ll be highlighted some of the new features that I’ve integrated into the 2.0.0 version of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger</a> and also share some of the new upcoming features.</p>
-<p>If you’re interested and yet haven’t already registered for the conference you’re in luck. It’s still not to late to sign up for this 2 day (September 10th and 11th) conference. To register simply go to <a href="http://www.odtug.com/apexposed" target="_blank" rel="external">http://www.odtug.com/apexposed</a> and sign up.</p>
+<p>And, as shameless plug, I’ll be giving two talks: “Instrumenting your PL/SQL and APEX Applications” and “APEX Development Best Practices”. I’m really excited about the talk on code instrumentation as I’ll be highlighted some of the new features that I’ve integrated into the 2.0.0 version of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="noopener">Logger</a> and also share some of the new upcoming features.</p>
+<p>If you’re interested and yet haven’t already registered for the conference you’re in luck. It’s still not to late to sign up for this 2 day (September 10th and 11th) conference. To register simply go to <a href="http://www.odtug.com/apexposed" target="_blank" rel="noopener">http://www.odtug.com/apexposed</a> and sign up.</p>
 <p>See you in Montreal!</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/07/apexposed-en-montreal-sept-1011/" data-id="cjfait83z009spln91gwjtibo" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/07/apexposed-en-montreal-sept-1011/" data-id="cjfcl2wg4009ufurahjzkx7y6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/07/apexposed-en-montreal-sept-1011/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -437,15 +482,15 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>At ODTUG Kscope 13 last week I got to moderate the APEX Lunch &amp; Learn experts panel. One of the questions that came up was  when a certain feature was going to be added to <a href="http://www.oracle-and-apex.com/" target="_blank" rel="external">Peter Raganitsch</a>‘s <a href="http://apex.oracle.com/pls/apex/f?p=APEX_DEVELOPER_ADDON:ABOUT:0:::::" target="_blank" rel="external">APEX Developer Addon</a>.</p>
+        <p>At ODTUG Kscope 13 last week I got to moderate the APEX Lunch &amp; Learn experts panel. One of the questions that came up was  when a certain feature was going to be added to <a href="http://www.oracle-and-apex.com/" target="_blank" rel="noopener">Peter Raganitsch</a>‘s <a href="http://apex.oracle.com/pls/apex/f?p=APEX_DEVELOPER_ADDON:ABOUT:0:::::" target="_blank" rel="noopener">APEX Developer Addon</a>.</p>
 <p>This  sparked a bit of conversation around open source projects in the Oracle  and APEX communities. They’re a few people who create and maintain  these open source projects. Unfortunately they’re not a lot of other  people who contribute to these projects. Because of this, projects don’t  get upgraded and enhanced as quickly as they could.</p>
 <p>It’s  up to all of us in the community to enhance open source projects. Next  time you need a new feature added to a project, instead of asking for  it, I encourage everyone to add it yourself then contact the developer  with the changes so it can be implemented to the project.</p>
-<p>On a personal note, I’m heavily involved with several open source projects. The two most popular ones are <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger</a> and the<a href="https://github.com/ClariFit/apex_plugins" target="_blank" rel="external"> ClariFit APEX Plugins</a>. I just moved the ClariFit APEX Plugins to GitHub yesterday to make it easier for others to contribute to.</p>
+<p>On a personal note, I’m heavily involved with several open source projects. The two most popular ones are <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="noopener">Logger</a> and the<a href="https://github.com/ClariFit/apex_plugins" target="_blank" rel="noopener"> ClariFit APEX Plugins</a>. I just moved the ClariFit APEX Plugins to GitHub yesterday to make it easier for others to contribute to.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/07/its-up-to-you-oracle-and-apex-open/" data-id="cjfait83s009qpln9e1fq5j9e" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/07/its-up-to-you-oracle-and-apex-open/" data-id="cjfcl2wg2009sfurahygbjd5h" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/07/its-up-to-you-oracle-and-apex-open/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -481,7 +526,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>After several months in Beta, I’m please to announce that Logger  2.0.0 is now officially released! You can download the zip file from the  <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/tree/master/releases/2.0.0" target="_blank" rel="external">2.0.0 release page</a>. </p>
+        <p>After several months in Beta, I’m please to announce that Logger  2.0.0 is now officially released! You can download the zip file from the  <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility/tree/master/releases/2.0.0" target="_blank" rel="noopener">2.0.0 release page</a>. </p>
 <p>Over  the past few months I’ve blogged about some of the significant changes  we’ve made to Logger. Here are all the articles describing some of the  new functionality:</p>
 <ul>
 <li><a href="http://www.talkapex.com/2013/04/logger-200-alpha.html">Alpha</a> (contains some high level change notes)</li>
@@ -495,60 +540,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/06/logger-200-released/" data-id="cjfait841009xpln9198eiozw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/06/logger-200-released/" data-id="cjfcl2wg0009qfura2sb7gsz7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/06/logger-200-released/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-logger-200-session-specific-logging" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/05/logger-200-session-specific-logging/" class="article-date">
-  <time datetime="2013-05-08T13:30:00.000Z" itemprop="datePublished">2013-05-08</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/05/logger-200-session-specific-logging/">Logger 2.0.0 - Session Specific Logging - Advanced Features</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="external">Logger 2.0.0 </a> I’ve decided to write a few posts highlighting some of the new features.</em></p>
-<p>In my <a href="http://www.talkapex.com/2013/05/logger-200-enable-session-specific.html">previous post</a> I covered how to set and unset session specific logging based on the Client Identifier. In this post I’ll cover some advanced options for this functionality. Before continuing, please be sure to read the previous post or else this won’t make sense.</p>
-<p>In the previous post the demo code to set a session specific logging level only used two parameters: the logging level and the Client Identifier. In <code>logger.set_level</code> they’re actually four parameters:</p>
-<p><strong><code>p_level</code></strong>: This is the level to set. If p_client_id is null then it will set the system level configuration in <code>logger_prefs</code> &gt; <code>LEVEL</code>.</p>
-<p>The additional parameters are only valid if <code>p_client_id</code> is defined.</p>
-<p><strong><code>p_client_id</code></strong>: If not null, will apply <code>p_level</code> for the specific client_id only. If null then <code>p_level</code> will be applied for the system level configuration.</p>
-<p><strong><code>p_include_call_stack</code></strong>: Determines if the call stack should be stored. If null then will use the default setting in <code>logger_prefs</code> &gt; <code>INCLUDE_CALL_STACK</code>. Valid values are <code>TRUE</code> and <code>FALSE</code> (strings).</p>
-<p><strong><code>p_client_id_expire_hours</code></strong>: Will end session specific logging after set hours. If not defined then the default setting will be used<code>logger_prefs</code> &gt; <code>PREF_BY_CLIENT_ID_EXPIRE_HOURS</code>. Note that this will not be exact as a job is run hourly to clean up expired session specific logging that has expired for a given client_id. Instead of waiting for the job to clean up expired sessions you can explicitly <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#unset-client-specific-logging" target="_blank" rel="external">unset</a> them.</p>
-<h2 id="How-to-View-All-Client-id-Settings"><a href="#How-to-View-All-Client-id-Settings" class="headerlink" title="How to View All Client_id Settings"></a>How to View All Client_id Settings</h2><p>To view the system level settings you can use the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#status" target="_blank" rel="external"><code>logger.status</code></a> procedure. There was debate as to whether or not we include all the client_id settings in this procedure. In the end we did not include it list them in this procedure as the list may get very long. To view all the session specific logging configurations use the following query:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> *</div><div class="line"><span class="keyword">from</span> logger_prefs_by_client_id;</div></pre></td></tr></table></figure>
-<h2 id="Renewing"><a href="#Renewing" class="headerlink" title="Renewing"></a>Renewing</h2><p>When calling <code>logger.set_level</code> with a <code>client_id</code>that already exists in <code>logger_prefs_by_client_id</code> it will update the values and update the expiry date (i.e. you extend the setting).</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/" data-id="cjfait83r009opln9yt7s5ns3" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
@@ -598,7 +592,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -635,7 +629,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

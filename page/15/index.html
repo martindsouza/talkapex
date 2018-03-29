@@ -67,6 +67,229 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-apex-processes-various-conditions" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/how-apex-processes-various-conditions/" class="article-date">
+  <time datetime="2012-03-20T17:05:00.000Z" itemprop="datePublished">2012-03-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/how-apex-processes-various-conditions/">How APEX Processes Various Conditions and Validations</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I was recently teaching an Intro to APEX course and the students had some questions about what to put in the <em>Expression 1</em> text area for different conditions and validations based on the <em>Type</em> selected. If you’re new to APEX the various options can be confusing.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s1600/condition_types.png" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/-bkOzklcOyIc/T2i16zitiyI/AAAAAAAAEG0/10kpVAfRl5g/s640/condition_types.png" alt=""></a></div><br>To help clear things up I’ve included a list of the various APEX conditions and validations along with code that demonstrates how APEX processes the value in <em>Expression 1</em> based on the given <em>Type</em>. I didn’t include the definition for each type as they are already well documented in the APEX documentation and popup help.</p>
+<p>_Note: the calls to DBMS<em>OUTPUT are there to show you if the validation/condition is true or false.</em></p>
+<p><strong>Exists</strong></p>
+<pre class="brush: sql; highlight: [8,9,10]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM (
+    -- Start Expression 1
+    SELECT 1
+    FROM emp
+    WHERE sal &gt; :p1_sal
+    -- End Expression 1
+  );
+
+  IF l_rows &gt; 0 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**Not Exists**
+<pre class="brush: sql; highlight: [8, 9, 10]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM (
+    -- Start Expression 1
+    SELECT 1
+    FROM emp
+    WHERE sal &gt; :p1_sal
+    -- End Expression 1
+  );
+
+  IF l_rows = 0 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**SQL Expression**
+_Note: SQL Expression and PL/SQL Expression are very similar but some SQL expressions can't be used in PL/SQL. Example: Decode_
+<pre class="brush: sql; highlight: [9]">DECLARE
+  l_rows pls_integer;
+BEGIN
+  SELECT count(1)
+  INTO l_rows
+  FROM dual
+  WHERE
+    -- Start Expression 1
+    :p1_sal &gt; 500
+    -- End Expression 1
+  ;
+
+  IF l_rows = 1 THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+END;
+/
+</pre>**PL/SQL Expression**
+<pre class="brush: sql; highlight: [5]">DECLARE
+BEGIN
+  IF (
+    -- Start Expression 1
+    :p1_sal &gt; 500
+    -- End Expression 1
+  ) THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+
+END;
+/
+</pre>**PL/SQL Function Returning Boolean**
+<pre class="brush: sql; highlight: [6,7,8,9,10,11,12,13,14,15,16,17,18,19]">DECLARE
+  FUNCTION f_apex_condtion RETURN boolean
+  AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN -- only want at most 1 president
+        RETURN FALSE;
+      ELSE
+        RETURN TRUE;
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+
+  IF f_apex_condtion THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE');
+  END IF;
+
+END;
+/
+</pre>**_Conditions Only_**
+
+**Function Returning Error Text**
+<pre class="brush: sql; highlight: [8,9,10,11,12,13,14,15,16,17,18,19,20,21]">DECLARE
+  l_err_msg varchar2(4000);
+
+  FUNCTION f_apex_condtion RETURN varchar2
+  AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN
+        RETURN 'Only 1 president can exist for the company';
+      ELSE
+        RETURN NULL; -- no error
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+  l_err_msg := f_apex_condtion;
+
+  IF l_err_msg IS NULL THEN
+    dbms_output.put_line('TRUE');
+  ELSE
+    dbms_output.put_line('FALSE - Error message: ' || l_err_msg);
+  END IF;
+
+END;
+/
+</pre>**PL/SQL Error**
+<pre class="brush: sql; highlight: [6,7,8,9,10,11,12,13,14,15,16,17]">DECLARE
+
+  PROCEDURE sp_apex_condtion AS
+  BEGIN
+    -- Start Expression 1
+    DECLARE
+      l_rows pls_integer;
+    BEGIN
+      SELECT count(*)
+      INTO l_rows
+      FROM emp
+      WHERE JOB = 'PRESIDENT';
+
+      IF l_rows &gt; 1 THEN
+        raise_application_error(-20001, 'Only 1 president can exist for the company');
+      END IF;
+    END;
+    -- End Expression 1
+  END;
+
+BEGIN
+  sp_apex_condtion;
+
+  dbms_output.put_line('TRUE');
+
+exception WHEN others THEN
+  dbms_output.put_line('FALSE'); -- Error message is defined in the validation's error message
+END;
+/
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/" data-id="cjfcl2wee007efurahhkxcs47" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apex-process-condition-with-multiple" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2011/12/apex-process-condition-with-multiple/" class="article-date">
@@ -92,17 +315,17 @@
         <p>For new APEX developers, adding a page process condition can be a bit confusing at first when basing it on multiple buttons. This post will go through a scenario on how to easily use multiple buttons in a page condition.</p>
 <p><strong><span style="font-size: small;">The Setup</span></strong><br>A classic example of having multiple buttons on a page is when you want to save or update a record. The Save button should only appear for new records, whereas the Update button should only appear for existing records. The catch is that when saving and updating the page you may need to run the same process.</p>
 <p>The following setup highlights this classic example. Create a region in a page with two fields: P1_X and P1_Y. Then create three buttons: Save, Update, and Cancel. All three buttons should submit the page and an example of the page is shown below</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-Th7GcS6UnvY/TtpJnsNnnqI/AAAAAAAAEFQ/yTphEesUKKo/s1600/process_condition_setup.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-Th7GcS6UnvY/TtpJnsNnnqI/AAAAAAAAEFQ/yTphEesUKKo/s1600/process_condition_setup.png" alt=""></a></div><br>Create the following page process:<br>Name: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">Update P1_Y</span><br>Process Point: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">On Submit - After Computations and Validations</span><br>Process: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">:P1_Y := :P1_X * 2;</span></p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-Th7GcS6UnvY/TtpJnsNnnqI/AAAAAAAAEFQ/yTphEesUKKo/s1600/process_condition_setup.png" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-Th7GcS6UnvY/TtpJnsNnnqI/AAAAAAAAEFQ/yTphEesUKKo/s1600/process_condition_setup.png" alt=""></a></div><br>Create the following page process:<br>Name: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">Update P1_Y</span><br>Process Point: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">On Submit - After Computations and Validations</span><br>Process: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">:P1_Y := :P1_X * 2;</span></p>
 <p><strong>The Problem</strong><br>You’d like this process to run when both the Save and Update buttons are clicked. If you scroll down to the process’s conditions area you’ll notice that it has an option to restrict the process when a particular button is clicked (shown below).</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png" alt=""></a></div><br>As you can see you can only select one button from the list. At first glance the only option that you have to resolve the two button issue is to create a new process, which is a copy of the existing process, and set the condition to the other button. That doesn’t necessarily make sense and can be an obvious maintenance nightmear.</p>
-<p>The good news is that there is a very simple way to get around this issue. When you click a button it actually sets the <a href="http://docs.oracle.com/cd/E23903_01/doc/doc.41/e21674/concept_sub.htm#BEIFJJBC" target="_blank" rel="external">REQUEST</a> variable to the button name. The button name is defined in the button. For example the Save button’s request is actually SAVE (shown below).</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-NAhzVX9cpf0/TtpJn8-vFYI/AAAAAAAAEFM/kJn-_bwXs-Q/s1600/process_condition_button.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-NAhzVX9cpf0/TtpJn8-vFYI/AAAAAAAAEFM/kJn-_bwXs-Q/s1600/process_condition_button.png" alt=""></a></div><br>Going back to the original problem, and leveraging what we know about the REQUEST variable, you can modify the process’s condition to have it run when either the Save or Update buttons are selected as shown below.</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-M_w6hjuT-EQ/TtpJngA96WI/AAAAAAAAEFA/PZTYRg5XwX4/s1600/process_condition_condition_good.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-M_w6hjuT-EQ/TtpJngA96WI/AAAAAAAAEFA/PZTYRg5XwX4/s1600/process_condition_condition_good.png" alt=""></a></div><br><em>Note: They’re other ways to use the REQUEST variable in the conditions section. This one highlights a very simple use.</em></p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png" alt=""></a></div><br>As you can see you can only select one button from the list. At first glance the only option that you have to resolve the two button issue is to create a new process, which is a copy of the existing process, and set the condition to the other button. That doesn’t necessarily make sense and can be an obvious maintenance nightmear.</p>
+<p>The good news is that there is a very simple way to get around this issue. When you click a button it actually sets the <a href="http://docs.oracle.com/cd/E23903_01/doc/doc.41/e21674/concept_sub.htm#BEIFJJBC" target="_blank" rel="noopener">REQUEST</a> variable to the button name. The button name is defined in the button. For example the Save button’s request is actually SAVE (shown below).</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-NAhzVX9cpf0/TtpJn8-vFYI/AAAAAAAAEFM/kJn-_bwXs-Q/s1600/process_condition_button.png" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-NAhzVX9cpf0/TtpJn8-vFYI/AAAAAAAAEFM/kJn-_bwXs-Q/s1600/process_condition_button.png" alt=""></a></div><br>Going back to the original problem, and leveraging what we know about the REQUEST variable, you can modify the process’s condition to have it run when either the Save or Update buttons are selected as shown below.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-M_w6hjuT-EQ/TtpJngA96WI/AAAAAAAAEFA/PZTYRg5XwX4/s1600/process_condition_condition_good.png" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/-M_w6hjuT-EQ/TtpJngA96WI/AAAAAAAAEFA/PZTYRg5XwX4/s1600/process_condition_condition_good.png" alt=""></a></div><br><em>Note: They’re other ways to use the REQUEST variable in the conditions section. This one highlights a very simple use.</em></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/" data-id="cjfait829007cpln9artwnizv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/" data-id="cjfcl2wed007cfura4u7fheiy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -139,14 +362,14 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>When you are developing an APEX application there may be certain situations (primarily depending on your page template) that require you to move the APEX toolbar from the bottom of the screen. The screen shot below shows such a case where there is content all the way to the end of the screen and the toolbar is preventing you from accessing/clicking on something at the bottom. If you try to click the last Edit button nothing happens since the toolbar is overlaying it. <em>Note: I modified the page template to highlight this issue.</em></p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-0g2ayhW6PWU/Ttpjlmd51TI/AAAAAAAAEFw/9rO2p4y4UAk/s1600/toolbar_issue.png" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-0g2ayhW6PWU/Ttpjlmd51TI/AAAAAAAAEFw/9rO2p4y4UAk/s400/toolbar_issue.png" alt=""></a></div><br>This doesn’t occur very often but when it does there’s a simple solution to move the toolbar from the bottom to the top of the screen. Run the following JavaScript code in your browser’s console window and the toolbar will move to the top of the page.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-0g2ayhW6PWU/Ttpjlmd51TI/AAAAAAAAEFw/9rO2p4y4UAk/s1600/toolbar_issue.png" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-0g2ayhW6PWU/Ttpjlmd51TI/AAAAAAAAEFw/9rO2p4y4UAk/s400/toolbar_issue.png" alt=""></a></div><br>This doesn’t occur very often but when it does there’s a simple solution to move the toolbar from the bottom to the top of the screen. Run the following JavaScript code in your browser’s console window and the toolbar will move to the top of the page.</p>
 <p><pre class="brush: js">//Note on older versions of APEX you’ll need to check the toolbar’s ID<br>$(‘#apex-dev-toolbar’).css({<br>  top: 0,<br>  height: ‘22px’<br>});<br></pre>Once at the top it will look like the image below. Note that the logout link (top right corner) is no longer clickable.</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-fKt5RGq7A3s/TtphxW0ipVI/AAAAAAAAEFg/G1P671C5oqU/s1600/toolbar_top.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-fKt5RGq7A3s/TtphxW0ipVI/AAAAAAAAEFg/G1P671C5oqU/s400/toolbar_top.png" alt=""></a></div><br>If this happens a lot in development you could create a special button for the JavaScript code and add it as a dynamic action.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-fKt5RGq7A3s/TtphxW0ipVI/AAAAAAAAEFg/G1P671C5oqU/s1600/toolbar_top.png" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/-fKt5RGq7A3s/TtphxW0ipVI/AAAAAAAAEFg/G1P671C5oqU/s400/toolbar_top.png" alt=""></a></div><br>If this happens a lot in development you could create a special button for the JavaScript code and add it as a dynamic action.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/" data-id="cjfait828007apln9ad6iqrv5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/" data-id="cjfcl2wed007afura14gvwy2n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -185,8 +408,8 @@
         <p>Something that was upgraded in APEX 4.1 with little to no far fair was the addition of a new (supported) procedure called <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application.stop_apex_engine</span>. The <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application.stop_apex_engine</span> essentially stops the APEX engine and, as a result, will stop processing the rest of the page. It is most commonly used when forcing URL redirects from a page.</p>
 <p>Before APEX 4.1 you could still use a similar feature however it was an unsupported variable in the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application</span> package called <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">g_unrecoverable_error</span>.</p>
 <p>I’ve included an example below of the before vs. after 4.1 ways to stop the APEX engine.</p>
-<p><pre class="brush: sql; highlight: [4, 9]">– Pre-APEX 4.1 (not supported)<br>…<br>owa_util.redirect_url(‘<a href="http://www.clarifit.com" target="_blank" rel="external">http://www.clarifit.com</a>‘);<br>apex_application.g_unrecoverable_error:= true; – End APEX session</pre></p>
-<p>– APEX 4.1 and above (supported)<br>…<br>owa_util.redirect_url(‘<a href="http://www.clarifit.com" target="_blank" rel="external">http://www.clarifit.com</a>‘);<br>apex_application.stop_apex_engine; – End APEX session<br><br>For those who have used the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application.g_unrecoverable_error</span> variable in some of your applications you should go back and upgrade to the new procedure. For more information about the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">stop_apex_engine</span> procedure please read the APEX <a href="http://docs.oracle.com/cd/E23903_01/doc/doc.41/e21676/apex_app.htm#BABGIDII" target="_blank" rel="external">documentation</a>.</p>
+<p><pre class="brush: sql; highlight: [4, 9]">– Pre-APEX 4.1 (not supported)<br>…<br>owa_util.redirect_url(‘<a href="http://www.clarifit.com" target="_blank" rel="noopener">http://www.clarifit.com</a>‘);<br>apex_application.g_unrecoverable_error:= true; – End APEX session</pre></p>
+<p>– APEX 4.1 and above (supported)<br>…<br>owa_util.redirect_url(‘<a href="http://www.clarifit.com" target="_blank" rel="noopener">http://www.clarifit.com</a>‘);<br>apex_application.stop_apex_engine; – End APEX session<br><br>For those who have used the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application.g_unrecoverable_error</span> variable in some of your applications you should go back and upgrade to the new procedure. For more information about the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">stop_apex_engine</span> procedure please read the APEX <a href="http://docs.oracle.com/cd/E23903_01/doc/doc.41/e21676/apex_app.htm#BABGIDII" target="_blank" rel="noopener">documentation</a>.</p>
 <p>Thanks to Jason Long for posting the following comment about the <strong>differences between <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">apex_application.g_unrecoverable_error</span> and <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">stop_apex_engine</span></strong>. Be sure to read it carefully because in the right conditions switching between the two calls can have significant impacts.</p>
 <p>_There appear to be a couple gotchas with simply replacing g_unrecoverable_error with stop_apex_engine.</p>
 <p>1.  If there is any PL/SQL code immediately following the  g_unrecoverable_error it will still be executed. It looks like  stop_apex_engine actually exits out of the routine.</p>
@@ -195,7 +418,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/" data-id="cjfait8260076pln92eq0ntfe" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/" data-id="cjfcl2wec0078fura4slbcteq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -232,10 +455,10 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>In my <a href="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex.html">previous post</a> I discussed an issue about dynamic min and max dates using the APEX date picker. If you haven’t read the article please take a few minutes before continuing.</p>
-<p>At the end of my <a href="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex.html">previous post</a> I left off with the following question: How do you solve the dynamic min/max date issue? The answer is to use a new plugin that I created called <a href="http://apex.oracle.com/pls/apex/f?p=45587:700:0::NO:::" target="_blank" rel="external">ClariFit From To Date Picker</a>. This is a free and open source plugin created as part of the <a href="http://www.clarifit.com/" target="_blank" rel="external">ClariFit</a> plugin set and is covered in detail in the book: <a href="http://goo.gl/089zi" target="_blank" rel="external">Expert Oracle Application Express Plugins</a>.</p>
+<p>At the end of my <a href="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex.html">previous post</a> I left off with the following question: How do you solve the dynamic min/max date issue? The answer is to use a new plugin that I created called <a href="http://apex.oracle.com/pls/apex/f?p=45587:700:0::NO:::" target="_blank" rel="noopener">ClariFit From To Date Picker</a>. This is a free and open source plugin created as part of the <a href="http://www.clarifit.com/" target="_blank" rel="noopener">ClariFit</a> plugin set and is covered in detail in the book: <a href="http://goo.gl/089zi" target="_blank" rel="noopener">Expert Oracle Application Express Plugins</a>.</p>
 <p>The plugin is an item plugin. Its options (shown below) are similar to the APEX date picker. The main difference is that instead of having Minimum and Maximum date attributes you now have Date Type and Corresponding Date Item attributes. The Date Type can either be a From or To date (i.e. min/max date). The Corresponding Date Item is the item name for the date picker that will determine the date’s restrictions.</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-f8_DJfxd6CM/Ts6_686oU4I/AAAAAAAAEDs/nKfmswd-1vU/s1600/plugin_date_picker_settings.jpg" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-f8_DJfxd6CM/Ts6_686oU4I/AAAAAAAAEDs/nKfmswd-1vU/s1600/plugin_date_picker_settings.jpg" alt=""></a></div><br>I’ve created a demo on <a href="http://apex.oracle.com/pls/apex/f?p=45587:700:0::NO:::" target="_blank" rel="external">plugins.clarifit.com</a>. If you select a date in the From Date field (in this case 24-Nov-2011) then open the To Date date picker you’ll notice that you can’t select anything before 24-Nov-2011 as shown below.</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-RBnZdaHdxbg/Ts6_6p7r0XI/AAAAAAAAEDk/K0C2JsQstI4/s1600/plugin_date_picker.jpg" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-RBnZdaHdxbg/Ts6_6p7r0XI/AAAAAAAAEDk/K0C2JsQstI4/s1600/plugin_date_picker.jpg" alt=""></a></div><br>The plugin also comes bundled with some nifty features that may not be visible at first but are really useful:</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-f8_DJfxd6CM/Ts6_686oU4I/AAAAAAAAEDs/nKfmswd-1vU/s1600/plugin_date_picker_settings.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-f8_DJfxd6CM/Ts6_686oU4I/AAAAAAAAEDs/nKfmswd-1vU/s1600/plugin_date_picker_settings.jpg" alt=""></a></div><br>I’ve created a demo on <a href="http://apex.oracle.com/pls/apex/f?p=45587:700:0::NO:::" target="_blank" rel="noopener">plugins.clarifit.com</a>. If you select a date in the From Date field (in this case 24-Nov-2011) then open the To Date date picker you’ll notice that you can’t select anything before 24-Nov-2011 as shown below.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-RBnZdaHdxbg/Ts6_6p7r0XI/AAAAAAAAEDk/K0C2JsQstI4/s1600/plugin_date_picker.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/-RBnZdaHdxbg/Ts6_6p7r0XI/AAAAAAAAEDk/K0C2JsQstI4/s1600/plugin_date_picker.jpg" alt=""></a></div><br>The plugin also comes bundled with some nifty features that may not be visible at first but are really useful:</p>
 <ul>
 <li><p>Allows for different From/To date formats (i.e. they don’t need to be the same).&nbsp;*   Built in validations:</p>
 </li>
@@ -244,12 +467,12 @@
 <li><p>Validates that From Date is less than or equal to the To Date*   Javascript Console instrumentation (run the page in debug mode and look at the console)<em>Note: The built in validations will run as part of the page’s validations and are only executed if you enable validation as part of your submit button.</em></p>
 </li>
 </ul>
-<p>The plugin can be downloaded from <a href="http://apex-plugin.com/oracle-apex-plugins/item-plugin/clarifit-from-to-date-picker_154.html" target="_blank" rel="external">apex-plugin.com</a>.<em> </em></p>
+<p>The plugin can be downloaded from <a href="http://apex-plugin.com/oracle-apex-plugins/item-plugin/clarifit-from-to-date-picker_154.html" target="_blank" rel="noopener">apex-plugin.com</a>.<em> </em></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/" data-id="cjfait8270078pln9gtl6pqlx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/" data-id="cjfcl2we70074furabypeksun" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -285,20 +508,20 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>APEX 4.0 introduced native support for the <a href="http://jqueryui.com/demos/datepicker/" target="_blank" rel="external">jQuery UI Date Picker</a>. When you create a date item in APEX you now have the option to set a Minimum and Maximum date as shown below. The catch is that those dates restrictions are defined when the page is rendered and aren’t updated in real time. This is an issue if you want those constraints to dynamically change based on user input.</p>
-<p><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody><tr><td style="text-align: center;"><a href="http://2.bp.blogspot.com/--ly8YwuJPOU/Ts62l3lym0I/AAAAAAAAEDU/0H3Yl9uyeXI/s1600/date_picker_settings.jpg" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/--ly8YwuJPOU/Ts62l3lym0I/AAAAAAAAEDU/0H3Yl9uyeXI/s320/date_picker_settings.jpg" alt=""></a></td></tr><tr><td class="tr-caption" style="text-align: center;">Date Picker Settings</td></tr></tbody></table><br>In some cases you’ll need the min and max dates to change dynamically. A classic example is when you book a plane ticket and set your departure and return dates. When you select a departure date then select a return date, the return date can’t be before the departure date. Dates before the departure date are usually greyed out. Using APEX you could try to implement this example by doing the following:</p>
+        <p>APEX 4.0 introduced native support for the <a href="http://jqueryui.com/demos/datepicker/" target="_blank" rel="noopener">jQuery UI Date Picker</a>. When you create a date item in APEX you now have the option to set a Minimum and Maximum date as shown below. The catch is that those dates restrictions are defined when the page is rendered and aren’t updated in real time. This is an issue if you want those constraints to dynamically change based on user input.</p>
+<p><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody><tr><td style="text-align: center;"><a href="http://2.bp.blogspot.com/--ly8YwuJPOU/Ts62l3lym0I/AAAAAAAAEDU/0H3Yl9uyeXI/s1600/date_picker_settings.jpg" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/--ly8YwuJPOU/Ts62l3lym0I/AAAAAAAAEDU/0H3Yl9uyeXI/s320/date_picker_settings.jpg" alt=""></a></td></tr><tr><td class="tr-caption" style="text-align: center;">Date Picker Settings</td></tr></tbody></table><br>In some cases you’ll need the min and max dates to change dynamically. A classic example is when you book a plane ticket and set your departure and return dates. When you select a departure date then select a return date, the return date can’t be before the departure date. Dates before the departure date are usually greyed out. Using APEX you could try to implement this example by doing the following:</p>
 <ul>
 <li>Create a Date Item, P1_DEPT_DATE. Set the <em>Maxium Date</em> to be &amp;P1_RETURN_DATE.</li>
 <li>Create a Date Item, P1_RETURN_DATE. Set the <em>Mininum Date</em> to be &amp;P1_DEPT_DATE.</li>
 </ul>
 <p>Run the page and select a date for the Departure Date (in this example 24-Nov-11). Next, select a Return Date. You’ll notice that the calendar picker does not prevent you from selecting a return date before 24-Nov-2011.</p>
-<p><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody><tr><td style="text-align: center;"><a href="http://4.bp.blogspot.com/-KQduHbQfqZo/Ts63sHZ2sNI/AAAAAAAAEDc/u_BtVED6DAA/s1600/date_picker_restrictions.jpg" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-KQduHbQfqZo/Ts63sHZ2sNI/AAAAAAAAEDc/u_BtVED6DAA/s320/date_picker_restrictions.jpg" alt=""></a></td></tr><tr><td class="tr-caption" style="text-align: center;"><br></td></tr></tbody></table><br><em>Note: If you submit the page now it’ll raise an exception since the Min and Max attributes requires the date to be in YYYYMMDDHH24MI format.&nbsp;</em></p>
+<p><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody><tr><td style="text-align: center;"><a href="http://4.bp.blogspot.com/-KQduHbQfqZo/Ts63sHZ2sNI/AAAAAAAAEDc/u_BtVED6DAA/s1600/date_picker_restrictions.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-KQduHbQfqZo/Ts63sHZ2sNI/AAAAAAAAEDc/u_BtVED6DAA/s320/date_picker_restrictions.jpg" alt=""></a></td></tr><tr><td class="tr-caption" style="text-align: center;"><br></td></tr></tbody></table><br><em>Note: If you submit the page now it’ll raise an exception since the Min and Max attributes requires the date to be in YYYYMMDDHH24MI format.&nbsp;</em></p>
 <p>So how do you have the min and max date restrictions change based on the user input? Excellent question. My <a href="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in.html">next post</a> introduces a plugin that resolves this issue.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/" data-id="cjfait8240072pln9yk4wfy82" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/" data-id="cjfcl2we80076furao4kbqo3r" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -334,10 +557,10 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Over a year ago I released the <a href="http://apex.oracle.com/pls/apex/f?p=45587:400:0" target="_blank" rel="external">ClariFit Simple Modal</a> plugin. Since it’s inception it’s been downloaded almost 5000 times and has been used in several production applications (that I know of).</p>
-<p>Today I’m please to release an “updated” version of plugin called <a href="http://apex.oracle.com/pls/apex/f?p=45587:800:0::NO:::" target="_blank" rel="external">ClariFit Dialog</a> plugin. Like the Simple Modal plugin, the Dialog plugin is a dynamic action and allows you to have a modal or dialog window. It also has a lot of new features (listed below). Going forward if you’re going to use a modal/dialog window plug-in I recommend using the ClariFit Dialog plugin.</p>
-<p>A demo is available on <a href="http://apex.oracle.com/pls/apex/f?p=45587:800:0" target="_blank" rel="external">plugins.clarifit.com</a> and it can be downloaded from <a href="http://apex-plugin.com/oracle-apex-plugins/dynamic-action-plugin/clarifit-dialog_152.html" target="_blank" rel="external">apex-plugin.com</a>.</p>
-<p><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody><tr><td style="text-align: center;"><a href="http://1.bp.blogspot.com/-AuQ8Zqz0vB0/TtGsh5-MX9I/AAAAAAAAED0/rXO_-mv-A-A/s1600/dialog_plugin_settings.jpg" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-AuQ8Zqz0vB0/TtGsh5-MX9I/AAAAAAAAED0/rXO_-mv-A-A/s1600/dialog_plugin_settings.jpg" alt=""></a></td></tr><tr><td class="tr-caption" style="text-align: center;">ClariFit Dialog Plugin Settings</td></tr></tbody></table>List of features:</p>
+        <p>Over a year ago I released the <a href="http://apex.oracle.com/pls/apex/f?p=45587:400:0" target="_blank" rel="noopener">ClariFit Simple Modal</a> plugin. Since it’s inception it’s been downloaded almost 5000 times and has been used in several production applications (that I know of).</p>
+<p>Today I’m please to release an “updated” version of plugin called <a href="http://apex.oracle.com/pls/apex/f?p=45587:800:0::NO:::" target="_blank" rel="noopener">ClariFit Dialog</a> plugin. Like the Simple Modal plugin, the Dialog plugin is a dynamic action and allows you to have a modal or dialog window. It also has a lot of new features (listed below). Going forward if you’re going to use a modal/dialog window plug-in I recommend using the ClariFit Dialog plugin.</p>
+<p>A demo is available on <a href="http://apex.oracle.com/pls/apex/f?p=45587:800:0" target="_blank" rel="noopener">plugins.clarifit.com</a> and it can be downloaded from <a href="http://apex-plugin.com/oracle-apex-plugins/dynamic-action-plugin/clarifit-dialog_152.html" target="_blank" rel="noopener">apex-plugin.com</a>.</p>
+<p><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody><tr><td style="text-align: center;"><a href="http://1.bp.blogspot.com/-AuQ8Zqz0vB0/TtGsh5-MX9I/AAAAAAAAED0/rXO_-mv-A-A/s1600/dialog_plugin_settings.jpg" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-AuQ8Zqz0vB0/TtGsh5-MX9I/AAAAAAAAED0/rXO_-mv-A-A/s1600/dialog_plugin_settings.jpg" alt=""></a></td></tr><tr><td class="tr-caption" style="text-align: center;">ClariFit Dialog Plugin Settings</td></tr></tbody></table>List of features:</p>
 <ul>
 <li>Uses the jQuery UI dialog code and leverages the jQuery UI theme currently incorporated in your APEX application.*   Support for open/close directly in same plugin.</li>
 <li>Option to have either a modal or dialog window.</li>
@@ -348,7 +571,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/clarifit-dialog-plugin/" data-id="cjfait8230070pln9wnq23am1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/clarifit-dialog-plugin/" data-id="cjfcl2we50070furaafjigmi1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/clarifit-dialog-plugin/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -385,19 +608,19 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>Dear Readers,</p>
-<p>It’s been a while (over 4 months) since I’ve posted a technical article on this blog. After presenting at <a href="http://kscope12.com/" target="_blank" rel="external">ODTUG KScope</a> this summer I’ve been really busy working at <a href="http://www.clarifit.com/" target="_blank" rel="external">ClariFit</a> and with other commitments. During the past four months there have been many times where I would have loved to roll up my sleeves and write a few articles but unfortunately other priorities took over.</p>
+<p>It’s been a while (over 4 months) since I’ve posted a technical article on this blog. After presenting at <a href="http://kscope12.com/" target="_blank" rel="noopener">ODTUG KScope</a> this summer I’ve been really busy working at <a href="http://www.clarifit.com/" target="_blank" rel="noopener">ClariFit</a> and with other commitments. During the past four months there have been many times where I would have loved to roll up my sleeves and write a few articles but unfortunately other priorities took over.</p>
 <p>The rest of my 2011 calendar is filling up quickly and I hope to squeeze in a few more articles by the end of the year. Here’s what you can expect for the remainder of 2011:&nbsp;</p>
 <ul>
-<li>Free Ask the <a href="http://www.clarifit.com/1/post/2011/11/the-ask-the-clarifit-experts-webinar-has-been-rescheduled.html" target="_blank" rel="external">ClariFit Experts Webinar</a> on Wednesday December 14th at 1:30 PM EST. <em>Note: it’s still not to late to submit an APEX or PL/SQL question. Check the link for more info on how to submit questions and register.</em></li>
+<li>Free Ask the <a href="http://www.clarifit.com/1/post/2011/11/the-ask-the-clarifit-experts-webinar-has-been-rescheduled.html" target="_blank" rel="noopener">ClariFit Experts Webinar</a> on Wednesday December 14th at 1:30 PM EST. <em>Note: it’s still not to late to submit an APEX or PL/SQL question. Check the link for more info on how to submit questions and register.</em></li>
 <li>Two free plug-ins to be launched this week (actually one will be today!)</li>
-<li>Guest blog post on <a href="http://www.allthingsoracle.com/" target="_blank" rel="external">All Things Oracle</a> about the <a href="http://goo.gl/089zi" target="_blank" rel="external">Expert Oracle Application Express Plugins</a> book.</li>
+<li>Guest blog post on <a href="http://www.allthingsoracle.com/" target="_blank" rel="noopener">All Things Oracle</a> about the <a href="http://goo.gl/089zi" target="_blank" rel="noopener">Expert Oracle Application Express Plugins</a> book.</li>
 <li>Last but not least, (time permitting of course) a few APEX related articles. I have a very large list to write about and really look forward to dig into them.<br>&nbsp;- Martin</li>
 </ul>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/remainder-of-2011/" data-id="cjfait8250074pln92tjff0ly" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/remainder-of-2011/" data-id="cjfcl2we60072furaewhymjaf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/remainder-of-2011/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -433,13 +656,13 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>On December 14th at 1:30 PM EST Chris Hritzuk and I will be taking part in an “Ask the ClariFit Experts” webinar hosted by my company, <a href="http://www.clarifit.com/" target="_blank" rel="external">ClariFit Inc</a>. Leading up to the webinar the development team at ClariFit will be accepting APEX, SQL, and PL/SQL questions by email at <em>AskTheExperts@clarifit.com</em>. The plan is to choose a subset of questions from the list received and provide a live, step-by-step demonstration of the solution during the webinar. We’ll also be leaving some time at the end of the session to field any questions that come up during the webinar.</p>
-<p>To find out more about the webinar, including how to sign up, click here: <a href="http://www.clarifit.com/1/post/2011/11/ask-the-clarifit-experts-webinar.html" target="_blank" rel="external">http://www.clarifit.com/1/post/2011/11/ask-the-clarifit-experts-webinar.html</a><a href="http://www.clarifit.com/1/post/2011/11/ask-the-clarifit-experts-webinar.html" target="_blank" rel="external"></a></p>
+        <p>On December 14th at 1:30 PM EST Chris Hritzuk and I will be taking part in an “Ask the ClariFit Experts” webinar hosted by my company, <a href="http://www.clarifit.com/" target="_blank" rel="noopener">ClariFit Inc</a>. Leading up to the webinar the development team at ClariFit will be accepting APEX, SQL, and PL/SQL questions by email at <em>AskTheExperts@clarifit.com</em>. The plan is to choose a subset of questions from the list received and provide a live, step-by-step demonstration of the solution during the webinar. We’ll also be leaving some time at the end of the session to field any questions that come up during the webinar.</p>
+<p>To find out more about the webinar, including how to sign up, click here: <a href="http://www.clarifit.com/1/post/2011/11/ask-the-clarifit-experts-webinar.html" target="_blank" rel="noopener">http://www.clarifit.com/1/post/2011/11/ask-the-clarifit-experts-webinar.html</a><a href="http://www.clarifit.com/1/post/2011/11/ask-the-clarifit-experts-webinar.html" target="_blank" rel="noopener"></a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/ask-clarifit-experts-webinar/" data-id="cjfait821006wpln9jnwz876j" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/ask-clarifit-experts-webinar/" data-id="cjfcl2we4006yfurapjlrkwh4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/ask-clarifit-experts-webinar/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -474,7 +697,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>For nearly four years I’ve enjoyed giving back to the Oracle APEX community in various ways such as the Oracle Forums, this blog, talks at various conferences, authoring free plug-ins, and webinars to name a few. Now I want to continue to help out in a different fashion by running for the ODTUG Board of Directors. I believe I will be able to help promote and grow the APEX community through the Board, and I would relish the chance represent all APEX developers.</p>
-<p>I’m officially running for the ODTUG Board of Directors and would like your support. If you’re a full (paid) ODTUG member please vote for the Board of Directors here: <a href="http://goo.gl/8xqxs" target="_blank" rel="external">http://goo.gl/8xqxs</a>&nbsp; Below is a copy of my official nomination:</p>
+<p>I’m officially running for the ODTUG Board of Directors and would like your support. If you’re a full (paid) ODTUG member please vote for the Board of Directors here: <a href="http://goo.gl/8xqxs" target="_blank" rel="noopener">http://goo.gl/8xqxs</a>&nbsp; Below is a copy of my official nomination:</p>
 <p><em><strong>Campaign Statement</strong>&nbsp;</em><br><em>I have attended ODTUG Kaleidoscope for several consecutive years and  have been a presenter for the last three. The conference has allowed me  to develop strong relationships with many others in the community, and  the importance of these relationships has proven invaluable. I  continually strive to give back to the community, using my personal time  to answer questions through email, blogs, the Oracle forums, and by  writing technical books. I would like to continue this spirit of giving  back by joining the ODTUG Board of Directors.  As a new board member I will bring a fresh perspective and  out-of-the-box ideas to help promote ODTUG and deliver our message to  the world. I am fortunate enough to have a successful blog with several  thousand unique monthly visitors. It is through this platform, along  with other opportunities such as my consulting firm blog, social  networking, and the multiple annual conferences that I attend from which  I intend to help share the ODTUG mission and values.  The Board plays a pivotal leadership role as both a driving force and a  face of the ODTUG community. I feel that my professional experience as a  leader and mentor will help the Board guide and develop ODTUG for the  future. The Board has responsibility to its most important group - the  members. I will help ensure that the Board serves as both a voice and an  ear for the entire ODTUG community; developers, DBAs, and technical  experts of all things Oracle.  Many thanks for your consideration.&nbsp;</em></p>
 <p><em><strong>Biographical Statement</strong>&nbsp;</em><br><em>Martin Giffy D’Souza is an Oracle ACE and award winning presenter and  speaker. Most recently Martin was honored with the ODTUG Kaleidoscope  2011 Presenter of the Year award. Martin also serves as a Co-founder  &amp; CTO at ClariFit Inc., a consulting firm specializing in Oracle  solutions. Martin’s career has seen him hold a range of positions  within award winning companies and his experience in the technology  industry has been focused on developing database-centric web  applications using the Oracle technology stack. Martin is the author of  the highly recognized blog www.TalkApex.com, and he has co-authored  several APEX books including Expert Oracle Application Express, a  collaboration of some of the most renowned APEX developers in the  industry. He has presented at numerous international conferences such as  ODTUG, APEXposed, and COUG. Martin holds a Computer Engineering degree  from Queen’s University in Ontario, Canada.</em></p>
 <p>I appreciate all the support.</p>
@@ -485,57 +708,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/10/running-for-odtug-board-of-directors/" data-id="cjfait820006upln95yx8iyci" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/10/running-for-odtug-board-of-directors/" data-id="cjfcl2we3006wfurap3djdjtu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/10/running-for-odtug-board-of-directors/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-my-family-solves-computer-problems" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2011/07/how-my-family-solves-computer-problems/" class="article-date">
-  <time datetime="2011-07-13T13:00:00.000Z" itemprop="datePublished">2011-07-13</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2011/07/how-my-family-solves-computer-problems/">How My Family Solves Computer Problems</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>In my talk, <a href="http://www.talkapex.com/2011/07/how-to-be-creative-ii-presentation.html">How to be Create II</a>, at ODTUG Kscope 11 I discussed what sometimes happens when users try to fix problems themselves. This is a video clip from my presentation on how my family tries to resolve computer problems.</p>
-<iframe width="560" height="349" src="http://www.youtube.com/embed/H5mozAx-r6E" frameborder="0" allowfullscreen></iframe>
-
-<p><span style="font-style:italic;">And yes it is a true story. I got those emails from my family…</span></p>
-<p>Thanks to <a href="https://twitter.com/#!/Chris_Hritzuk" target="_blank" rel="external">Chris Hritzuk</a> for recording this.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/07/how-my-family-solves-computer-problems/" data-id="cjfait81z006spln9nn4dbv1i" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2011/07/how-my-family-solves-computer-problems/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
 
     </footer>
   </div>
@@ -582,7 +760,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -619,7 +797,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

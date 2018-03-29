@@ -67,6 +67,64 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-report-with-checkboxes-update" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/09/report-with-checkboxes-update/" class="article-date">
+  <time datetime="2015-09-14T02:40:00.000Z" itemprop="datePublished">2015-09-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/09/report-with-checkboxes-update/">Report with Checkboxes (an update)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Supposed you have a report with checkboxes. Once the user selects all the rows, they can submit the page and the application would process the rows. Sounds pretty simple and straight forward however they’re some additional requirements:</p>
+<ul>
+<li>The report is an Interactive Report</li>
+<li>There may be up to 10,000 records in the report</li>
+<li>When the user “scrolls” through the report (i.e. uses pagination), if they checked off a box it should remain checked the entire time (i.e. if they check an row in the 1st 15 rows, then view rows 16~30, then go back to rows 1~15 it should remain checked). Same applies if a user uses the IR filters.</li>
+</ul>
+<p><em>If you follow this blog and the above sounds familiar, that’s because it is. I <a href="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced.html">wrote about this problem</a> a very long time ago. A lot has changed since 2009 and an update on the original post is long overdue. Here’s the updated (and simplified) solution.</em></p>
+<h3 id="Create-Item-to-Hold-List-of-IDs"><a href="#Create-Item-to-Hold-List-of-IDs" class="headerlink" title="Create Item to Hold List of IDs"></a>Create Item to Hold List of IDs</h3><p>Create a hidden APEX item which will contain a comma delimited list of all the IDs that are to be checked off (in this example it will be <code>P1_EMPNO_LIST</code>). <strong>Be sure to modify the <code>Value Protected</code> attribute to <code>No</code></strong>. This is critical as this item will be updated via AJAX and can not have any hashing/security applied to it.</p>
+<p>If you are loading this from a cross reference table you can use the following query in a Before Header process. This query will load all the employees from the Accounting department.<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">listagg</span>(e.empno, <span class="string">','</span>) <span class="keyword">within</span> <span class="keyword">group</span> (<span class="keyword">order</span> <span class="keyword">by</span> e.empno)</div><div class="line"><span class="keyword">from</span> dept d, emp e</div><div class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">  <span class="keyword">and</span> e.deptno = d.deptno</div><div class="line">  <span class="keyword">and</span> d.dname = <span class="string">'ACCOUNTING'</span></div></pre></td></tr></table></figure></p>
+<h3 id="Create-IR-Report-with-Checkboxes"><a href="#Create-IR-Report-with-Checkboxes" class="headerlink" title="Create IR Report with Checkboxes"></a>Create IR Report with Checkboxes</h3><p>Create an IR with the query below. Note the <code>p_attributes</code> value. This is critical as we need to identify the checkboxes that should be monitored.<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span></div><div class="line">  apex_item.checkbox2(</div><div class="line">    p_idx =&gt; <span class="number">1</span>,</div><div class="line">    p_value =&gt; e.empno ,</div><div class="line">    p_attributes =&gt; <span class="string">'class="empno"'</span>,</div><div class="line">    p_checked_values =&gt; :p1_empno_list,</div><div class="line">    p_checked_values_delimiter =&gt; <span class="string">','</span>) checkbox,</div><div class="line">  e.ename,</div><div class="line">  e.job</div><div class="line"><span class="keyword">from</span> emp e</div></pre></td></tr></table></figure></p>
+<p>In the report attributes set the <code>Page Items to Submit</code> to <code>P1_EMPNO_LIST</code>. Each time the report is refreshed (pagination, filters, sorting, etc) the active list of selected values will be submitted.</p>
+<h3 id="Create-Dynamic-Action-DA"><a href="#Create-Dynamic-Action-DA" class="headerlink" title="Create Dynamic Action (DA"></a>Create Dynamic Action (DA</h3><p>Create a new DA with the attributes in the below image. This DA will append/remove the comma delimited list of IDs in <code>P1_EMPNO_LIST</code>. Note the <code>jQuery Selector</code> value must match what was used in the IR query above.</p>
+<p><a href="http://1.bp.blogspot.com/-xJNvFChTWxU/VfYM4-26OgI/AAAAAAABGdQ/17JvBPLA1NY/s1600/Snip20150913_1.png" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-xJNvFChTWxU/VfYM4-26OgI/AAAAAAABGdQ/17JvBPLA1NY/s320/Snip20150913_1.png" alt=""></a></p>
+<p>Configure a True action as shown below (JS code follows).</p>
+<p><a href="http://1.bp.blogspot.com/-ds8NWT305ks/VfYM5KF861I/AAAAAAABGdc/PrMHN9c60pk/s1600/Snip20150913_3.png" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-ds8NWT305ks/VfYM5KF861I/AAAAAAABGdc/PrMHN9c60pk/s400/Snip20150913_3.png" alt=""></a><br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span></div><div class="line">  <span class="comment">//Checkbox that was changed</span></div><div class="line">  $checkBox = $(<span class="keyword">this</span>.triggeringElement),</div><div class="line">  <span class="comment">//DOM object for APEX Item that holds list.</span></div><div class="line">  apexItemIDList = apex.item(<span class="keyword">this</span>.affectedElements.get(<span class="number">0</span>)),</div><div class="line">  <span class="comment">//Convert comma list into an array or blank array</span></div><div class="line">  <span class="comment">//Note: Not sure about the "?" syntax see: http://www.talkapex.com/2009/07/javascript-if-else.html</span></div><div class="line">  ids = apexItemIDList.getValue().length === <span class="number">0</span> ? [] : apexItemIDList.getValue().split(<span class="string">','</span>),</div><div class="line">  <span class="comment">//Index of current ID. If it's not in array, value will be -1</span></div><div class="line">  idIndex = ids.indexOf($checkBox.val())</div><div class="line">;</div><div class="line"></div><div class="line"><span class="comment">//If box is checked and it doesn't already exist in list</span></div><div class="line"><span class="keyword">if</span> ($checkBox.is(<span class="string">':checked'</span>) &amp;&amp; idIndex &lt; <span class="number">0</span>) &#123;</div><div class="line">  ids.push($checkBox.val());</div><div class="line">&#125;</div><div class="line"><span class="comment">//If box is unchecked and it exists in list</span></div><div class="line"><span class="keyword">else</span> <span class="keyword">if</span> (!$checkBox.is(<span class="string">':checked'</span>) &amp;&amp; idIndex &gt;= <span class="number">0</span>)&#123;</div><div class="line">  ids.splice(idIndex, <span class="number">1</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//Convert array back to comma delimited list</span></div><div class="line">apexItemIDList.setValue(ids.join(<span class="string">','</span>));</div></pre></td></tr></table></figure></p>
+<h3 id="Demo"><a href="#Demo" class="headerlink" title="Demo"></a>Demo</h3><p>That’s all that’s required. Each time a checkbox is checked/unchecked <code>P1_EMPNO_LIST</code> will be updated to reflect these changes. The checkboxes will persist each time the report is refreshed. You can see the checkbox implantation in <a href="https://apex.oracle.com/pls/apex/f?p=16406:1400" target="_blank" rel="noopener">this demo</a>.</p>
+<h3 id="Considerations"><a href="#Considerations" class="headerlink" title="Considerations"></a>Considerations</h3><p>This solution is fairly simple to create an manage however it does have one small caveat. If the list of checked items is very large (more than 4000 characters) you may run into some <code>varchar2</code> issues. In most cases this shouldn’t be an issue but if it is you should test first.<br>To process the list of comma delimited list you can use the <a href="https://docs.oracle.com/cd/E59726_01/doc.50/e39149/apex_util.htm#AEAPI185" target="_blank" rel="noopener"><code>apex_util.string_to_table</code></a> function and loop over the table values. If you want to use the comma delimited list in a query the following example should work (again it does have <code>varchar2</code> size limitations).</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> regexp_substr(:p1_empno_list,<span class="string">'[^,]+'</span>, <span class="number">1</span>, <span class="keyword">level</span>) empno</div><div class="line"><span class="keyword">from</span> dual</div><div class="line"><span class="keyword">connect</span> <span class="keyword">by</span> regexp_substr(:p1_empno_list, <span class="string">'[^,]+'</span>, <span class="number">1</span>, <span class="keyword">level</span>) <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">null</span></div></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2015/09/report-with-checkboxes-update/" data-id="cjfcl2wit00dofuraapej0zdh" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2015/09/report-with-checkboxes-update/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/checkbox/">checkbox</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tabular-form/">tabular-form</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-oracle-developer-choice-awards-1-week" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2015/08/oracle-developer-choice-awards-1-week/" class="article-date">
@@ -89,7 +147,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Oracle has launched its inaugural <a href="https://community.oracle.com/community/database/awards/overview" target="_blank" rel="external">Developer Choice Awards</a>. The deadline to nominate someone has been extended to August 21st so take advantage of this extension and nominate someone you think deserves recognition for the work they do with Oracle!</p>
+        <p>Oracle has launched its inaugural <a href="https://community.oracle.com/community/database/awards/overview" target="_blank" rel="noopener">Developer Choice Awards</a>. The deadline to nominate someone has been extended to August 21st so take advantage of this extension and nominate someone you think deserves recognition for the work they do with Oracle!</p>
 <p>A description of the competition is below and you can find out more by going to the main site.</p>
 <p><em>The Oracle Database Developer Choice Awards celebrate and recognize technical expertise and contributions in the Oracle Database community. As longtime and new users of Oracle Database move to the Cloud and take advantage of this exciting new architecture, community experts will play a critical role in helping them succeed.</em></p>
 <p><em>For 2015, awards will be given out in the following technology areas:</em></p>
@@ -108,7 +166,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/08/oracle-developer-choice-awards-1-week/" data-id="cjfait85r00d5pln9eyl1mzeu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/08/oracle-developer-choice-awards-1-week/" data-id="cjfcl2wip00dffura1y0m3g0v" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/08/oracle-developer-choice-awards-1-week/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -144,8 +202,8 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><em>Note: The location for the Meetup has moved. Please check the <a href="http://www.meetup.com/fr/orclapex-MTL/events/224538959/" target="_blank" rel="external">meetup page</a> for the new location.</em></p>
-<p>For those in Montreal, I’ll be presenting at the local #orclapex meetup this Thursday, August 13, evening from 5-7. All the information can be found on the <a href="http://www.meetup.com/fr/orclapex-MTL/events/224538959/" target="_blank" rel="external">meetup page</a>.</p>
+        <p><em>Note: The location for the Meetup has moved. Please check the <a href="http://www.meetup.com/fr/orclapex-MTL/events/224538959/" target="_blank" rel="noopener">meetup page</a> for the new location.</em></p>
+<p>For those in Montreal, I’ll be presenting at the local #orclapex meetup this Thursday, August 13, evening from 5-7. All the information can be found on the <a href="http://www.meetup.com/fr/orclapex-MTL/events/224538959/" target="_blank" rel="noopener">meetup page</a>.</p>
 <p><strong>Top 10 APEX API</strong></p>
 <p><em>APEX has a lot of excellent APIs. These APIs, for both PL/SQL and JavaScript, can help extend your application and improve your development. This presentation will cover some of the most useful APIs (both documented and undocumented) that are available.</em></p>
 <p>The presentation will be in English however I can take questions in both French and English.</p>
@@ -155,7 +213,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/08/apex-meetup-montreal-this-thursday/" data-id="cjfait85q00d3pln9u6y3l59j" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/08/apex-meetup-montreal-this-thursday/" data-id="cjfcl2win00dbfura9kj7sku2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/08/apex-meetup-montreal-this-thursday/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -196,7 +254,7 @@
 <li><a href="http://www.talkapex.com/2015/07/back-to-basics-html-form.html">Back to Basics</a></li>
 <li><a href="http://www.talkapex.com/2015/07/apex-and-html-form.html">APEX and the HTML Form</a></li>
 <li><a href="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted.html">APEX and the Order Items are Submitted</a></li>
-<li><a href="http://hardlikesoftware.com/weblog/2015/07/30/apex-item-submission/" target="_blank" rel="external">Why does APEX do this? (by John Snyders)</a></li>
+<li><a href="http://hardlikesoftware.com/weblog/2015/07/30/apex-item-submission/" target="_blank" rel="noopener">Why does APEX do this? (by John Snyders)</a></li>
 </ul>
 <p>The goal of this article is to highlight the effects of moving items and regions around on a page. This article will be broken into four sections, a high level recap from the previous two articles, moving an APEX item, moving an APEX item along with its corresponding <code>p_arg_names</code> element, and finally a conclusion. It will reference and build upon the example from the <a href="http://www.talkapex.com/2015/07/apex-and-html-form.html">previous article</a>.</p>
 <h3 id="Recap"><a href="#Recap" class="headerlink" title="Recap"></a>Recap</h3><p>I can’t stress enough how important it is to read the previous two articles. To recap, when APEX submits the page it’ll use the following values to map the HTML elements to their corresponding APEX items.</p>
@@ -222,22 +280,22 @@
 </tbody>
 </table>
 <h3 id="Moving-APEX-items"><a href="#Moving-APEX-items" class="headerlink" title="Moving APEX items"></a>Moving APEX items</h3><p>They’re some times where it is required to move APEX items around the page after it has rendered. This example will highlight what happens when an item (and only the item) is moved.<br>Using the example from the <a href="http://www.talkapex.com/2015/07/apex-and-html-form.html">previous article</a> suppose you move <code>P1_LAST_NAME</code> before <code>P1_FIRST_NAME</code> using jQuery. <pre class="brush: js;">$(‘#P1_LAST_NAME’).insertBefore(‘#P1_FIRST_NAME’);<br></pre><br>The page will look like:</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-6p5BIQ2B7gU/VbMQoEtJ8zI/AAAAAAAAJzY/kTU6xrhMDZE/s1600/Snip20150724_9.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-6p5BIQ2B7gU/VbMQoEtJ8zI/AAAAAAAAJzY/kTU6xrhMDZE/s400/Snip20150724_9.png" alt=""></a></div><br>When the page is submitted, everything still works as expected. <code>P1_FIRST_NAME = Martin</code> and <code>P2_LAST_NAME = D&#39;Souza</code>. In this case, it was safe to the move the item around the page since only the <code>p_t02</code> element was moved. The order of <code>p_arg_names</code> (which APEX uses to map to <code>apex_application_page_items.item_id</code> an <code>p_txx</code>) was not changed.<br><br>### Moving an APEX item along with its corresponding <code>p_arg_names</code> element.<br>Using the previous example, suppose the items were split up into two regions as shown below. To help out, each region has been assigned a static id of <code>region-one</code> and <code>region-two</code> respectively.<br><br><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-zjbK3J1Aztw/VbMfitUB8QI/AAAAAAAAJzo/ZMG1AhJJbN0/s1600/Snip20150724_10.png" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-zjbK3J1Aztw/VbMfitUB8QI/AAAAAAAAJzo/ZMG1AhJJbN0/s320/Snip20150724_10.png" alt=""></a></div><br>Using the following code, Region Two is moved above Region One:<br><br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$(<span class="string">'#region-two'</span>).insertBefore(<span class="string">'#region-one'</span>);</div></pre></td></tr></table></figure><br><br>The screen then looks like:<br><br><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-VfHsSdFSn6c/VbORfzkJa0I/AAAAAAAAJz8/XjeiJy-KkV0/s1600/Snip20150725_11.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-VfHsSdFSn6c/VbORfzkJa0I/AAAAAAAAJz8/XjeiJy-KkV0/s320/Snip20150725_11.png" alt=""></a></div>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-6p5BIQ2B7gU/VbMQoEtJ8zI/AAAAAAAAJzY/kTU6xrhMDZE/s1600/Snip20150724_9.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/-6p5BIQ2B7gU/VbMQoEtJ8zI/AAAAAAAAJzY/kTU6xrhMDZE/s400/Snip20150724_9.png" alt=""></a></div><br>When the page is submitted, everything still works as expected. <code>P1_FIRST_NAME = Martin</code> and <code>P2_LAST_NAME = D&#39;Souza</code>. In this case, it was safe to the move the item around the page since only the <code>p_t02</code> element was moved. The order of <code>p_arg_names</code> (which APEX uses to map to <code>apex_application_page_items.item_id</code> an <code>p_txx</code>) was not changed.<br><br>### Moving an APEX item along with its corresponding <code>p_arg_names</code> element.<br>Using the previous example, suppose the items were split up into two regions as shown below. To help out, each region has been assigned a static id of <code>region-one</code> and <code>region-two</code> respectively.<br><br><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-zjbK3J1Aztw/VbMfitUB8QI/AAAAAAAAJzo/ZMG1AhJJbN0/s1600/Snip20150724_10.png" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-zjbK3J1Aztw/VbMfitUB8QI/AAAAAAAAJzo/ZMG1AhJJbN0/s320/Snip20150724_10.png" alt=""></a></div><br>Using the following code, Region Two is moved above Region One:<br><br><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$(<span class="string">'#region-two'</span>).insertBefore(<span class="string">'#region-one'</span>);</div></pre></td></tr></table></figure><br><br>The screen then looks like:<br><br><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-VfHsSdFSn6c/VbORfzkJa0I/AAAAAAAAJz8/XjeiJy-KkV0/s1600/Snip20150725_11.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/-VfHsSdFSn6c/VbORfzkJa0I/AAAAAAAAJz8/XjeiJy-KkV0/s320/Snip20150725_11.png" alt=""></a></div>
 
 <p>Referring to the <a href="http://www.talkapex.com/2015/07/apex-and-html-form.html">previous article</a> not only has the input element for <code>P1_LAST_NAME</code> moved, but it’s corresponding <code>p_arg_names</code> hidden element was moved and its overall order has changed. Now when the page is submitted the following is sent to the server (note the order):</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">p_arg_names[1] = 32629863123858907 - Maps to APEX item P1_LAST_NAME</div><div class="line">p_arg_names[2] = 32629789701858906 - Maps to APEX item P1_FIRST_NAME</div><div class="line"></div><div class="line">p_t01 = Martin</div><div class="line">p_t02 = D&apos;Souza</div></pre></td></tr></table></figure>
 <p>Just to recap and highlight what is about to happen:</p>
 <p><code>p_arg_names[1] (P1_LAST_NAME)</code> maps to <code>p_t01 (Martin)</code><br><code>p_arg_names[2] (P1_FIRST_NAME)</code> maps to <code>p_t02 (D&#39;Souza)</code></p>
 <p>You can see the mis-match occur below once the page has been submitted. <code>Martin</code> is stored in <code>P1_LAST_NAME</code> and <code>D&#39;Souza</code> is stored in <code>P1_FIRST_NAME</code>.</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-cjcdxvzen40/VbOTYo_FyTI/AAAAAAAAJ0I/AR_ekcSGBQk/s1600/Snip20150725_12.png" target="_blank" rel="external"><img src="http://4.bp.blogspot.com/-cjcdxvzen40/VbOTYo_FyTI/AAAAAAAAJ0I/AR_ekcSGBQk/s320/Snip20150725_12.png" alt=""></a></div>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-cjcdxvzen40/VbOTYo_FyTI/AAAAAAAAJ0I/AR_ekcSGBQk/s1600/Snip20150725_12.png" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-cjcdxvzen40/VbOTYo_FyTI/AAAAAAAAJ0I/AR_ekcSGBQk/s320/Snip20150725_12.png" alt=""></a></div>
 
 <h3 id="Conclusion"><a href="#Conclusion" class="headerlink" title="Conclusion"></a>Conclusion</h3><p>Be very careful when moving APEX items around the page. As a guideline, it’s usually safe to move individual items, provided you’re not moving any <code>p_arg_names</code> hidden elements. If you’re moving a region and/or any <code>p_arg_names</code> elements you may get invalid data assignments if the order of <code>p_arg_names</code> is changed.</p>
-<p>This issue was first discussed a very long time ago between myself and <a href="https://twitter.com/dmcghan" target="_blank" rel="external">Dan McGhan</a> on the Oracle Forums: <a href="https://community.oracle.com/message/3182532" target="_blank" rel="external">https://community.oracle.com/message/3182532</a></p>
+<p>This issue was first discussed a very long time ago between myself and <a href="https://twitter.com/dmcghan" target="_blank" rel="noopener">Dan McGhan</a> on the Oracle Forums: <a href="https://community.oracle.com/message/3182532" target="_blank" rel="noopener">https://community.oracle.com/message/3182532</a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted/" data-id="cjfait85o00czpln9qypy9f51" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted/" data-id="cjfcl2wim00d9furaovwya1xi" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -278,11 +336,11 @@
 <li><a href="http://www.talkapex.com/2015/07/back-to-basics-html-form.html">Back to Basics</a></li>
 <li><a href="http://www.talkapex.com/2015/07/apex-and-html-form.html">APEX and the HTML Form</a></li>
 <li><a href="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted.html">APEX and the Order Items are Submitted</a></li>
-<li><a href="http://hardlikesoftware.com/weblog/2015/07/30/apex-item-submission/" target="_blank" rel="external">Why does APEX do this? (by John Snyders)</a></li>
+<li><a href="http://hardlikesoftware.com/weblog/2015/07/30/apex-item-submission/" target="_blank" rel="noopener">Why does APEX do this? (by John Snyders)</a></li>
 </ul>
 <p>The goal of this article is to highlight how APEX actually processes the data that is sent data from the browser to the server when a submit button is pressed.</p>
 <p>Suppose you have a simple page with two elements: <code>P1_FIRST_NAME</code> and <code>P1_LAST_NAME</code> as shown below:</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s1600/Snip20150724_7.png" target="_blank" rel="external"><img src="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s320/Snip20150724_7.png" alt=""></a></div>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s1600/Snip20150724_7.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/-WDAi-T8zHLA/VbMAclaJXOI/AAAAAAAAJzI/F6CHuKiUQEM/s320/Snip20150724_7.png" alt=""></a></div>
 
 <p>Stripping out a lot code, the underlying HTML code for this page looks like:<br><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">"wwv_flow.accept"</span> <span class="attr">id</span>=<span class="string">"wwvFlowForm"</span> <span class="attr">method</span>=<span class="string">"post"</span> <span class="attr">name</span>=<span class="string">"wwv_flow"</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">"p_arg_names"</span> <span class="attr">type</span>=<span class="string">"hidden"</span> <span class="attr">value</span>=<span class="string">"32629789701858906"</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"P1_FIRST_NAME"</span> <span class="attr">name</span>=<span class="string">"p_t01"</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">value</span>=<span class="string">""</span> /&gt;</span></div><div class="line"></div><div class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">name</span>=<span class="string">"p_arg_names"</span> <span class="attr">type</span>=<span class="string">"hidden"</span> <span class="attr">value</span>=<span class="string">"32629863123858907"</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"P1_LAST_NAME"</span> <span class="attr">name</span>=<span class="string">"p_t02"</span> <span class="attr">type</span>=<span class="string">"text"</span> <span class="attr">value</span>=<span class="string">""</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></div></pre></td></tr></table></figure></p>
 <p>You’ll notice that despite their being four input elements they’re really only three unique sets of names that are used: <code>p_arg_names</code>, <code>p_t01</code>, and <code>p_t02</code>.  When the page is submitted the web server (APEX) will get/processes the following elements:</p>
@@ -296,7 +354,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/07/apex-and-html-form/" data-id="cjfait85p00d1pln9tr5sz5zd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/07/apex-and-html-form/" data-id="cjfcl2wio00ddfuram7u7s0fo" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/07/apex-and-html-form/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -337,13 +395,13 @@
 <li><a href="http://www.talkapex.com/2015/07/back-to-basics-html-form.html">Back to Basics</a></li>
 <li><a href="http://www.talkapex.com/2015/07/apex-and-html-form.html">APEX and the HTML Form</a></li>
 <li><a href="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted.html">APEX and the Order Items are Submitted</a></li>
-<li><a href="http://hardlikesoftware.com/weblog/2015/07/30/apex-item-submission/" target="_blank" rel="external">Why does APEX do this? (by John Snyders)</a></li>
+<li><a href="http://hardlikesoftware.com/weblog/2015/07/30/apex-item-submission/" target="_blank" rel="noopener">Why does APEX do this? (by John Snyders)</a></li>
 </ul>
 <p><em>As the above note suggests, the next few articles will cover how APEX submits and processes input elements in a page. This article is specifically focused on the basics: HTML forms. It’s important to understand how the HTML <code>form</code> tag works and posts input elements. They’re other articles that cover this in much more detail and this article will only cover the high level concepts.</em></p>
 <p>Any web page that submits data to it has the following structure:</p>
 <figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">"submitURL"</span> <span class="attr">method</span>=<span class="string">"post"</span>&gt;</span></div><div class="line">First name: <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"foo"</span> <span class="attr">name</span>=<span class="string">"firstname"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span></div><div class="line">  Last Name: <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"bar"</span> <span class="attr">name</span>=<span class="string">"lastname"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"submit"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></div></pre></td></tr></table></figure>
 <p>This will produce a page that looks like:</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-m6WcfIpetF8/VbL4s2AWHXI/AAAAAAAAJys/-E-lg-jGPK0/s1600/Snip20150724_4.png" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-m6WcfIpetF8/VbL4s2AWHXI/AAAAAAAAJys/-E-lg-jGPK0/s1600/Snip20150724_4.png" alt=""></a></div>When the page is submitted the following is sent to the server:</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-m6WcfIpetF8/VbL4s2AWHXI/AAAAAAAAJys/-E-lg-jGPK0/s1600/Snip20150724_4.png" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-m6WcfIpetF8/VbL4s2AWHXI/AAAAAAAAJys/-E-lg-jGPK0/s1600/Snip20150724_4.png" alt=""></a></div>When the page is submitted the following is sent to the server:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">firstname = Martin</div><div class="line">lastname = D&apos;Souza</div></pre></td></tr></table></figure>
 <p>Despite what most developers think, the element’s IDs (in this case <code>foo</code> and <code>bar</code>) are not submitted to the server. The server never sees/knows about them. Instead it must use the element’s <code>name</code> attribute.</p>
 <p>HTML form behavior has another nice feature that allows for the same name to be used multiple times. Modifying the previous example, the next example will use the name <code>person</code> for both the first and last name elements:<br><figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">"submitURL"</span> <span class="attr">method</span>=<span class="string">"post"</span>&gt;</span></div><div class="line">First name: <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"foo"</span> <span class="attr">name</span>=<span class="string">"person"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span></div><div class="line">Last Name: <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"bar"</span> <span class="attr">name</span>=<span class="string">"person"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"submit"</span> /&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></div></pre></td></tr></table></figure></p>
@@ -360,7 +418,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/07/back-to-basics-html-form/" data-id="cjfait85n00cxpln948o9rcex" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/07/back-to-basics-html-form/" data-id="cjfcl2wil00d7furarermhrzq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/07/back-to-basics-html-form/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -396,7 +454,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>I’m please to announce that starting in July I will be joining <a href="http://insum.ca/" target="_blank" rel="external">Insum Solutions</a> as a Senior Technical Consultant! I’m really excited to be joining their team which specializes in Oracle and APEX solutions.</p>
+        <p>I’m please to announce that starting in July I will be joining <a href="http://insum.ca/" target="_blank" rel="noopener">Insum Solutions</a> as a Senior Technical Consultant! I’m really excited to be joining their team which specializes in Oracle and APEX solutions.</p>
 <p>A bit about Insum:</p>
 <p>“<em>Insum is a highly creative solution center specialized in Oracle Database, developing innovative applications for clients and partners in North America. Founded in 2002, Insum has been assisting customers realize the full benefits of Oracle Database with Application Express since 2005. In fact, Insum is a pioneer with APEX and is today the largest consultancy specialized in Oracle APEX developments in North America. Privately held with offices in Montreal, Canada and South Burlington, USA, Insum has the most complete and experienced staff to serve the needs for complex application development and deployments in a wide range of industries. Come discover our unique APEX center of excellence</em>“</p>
 <p>– Martin</p>
@@ -404,7 +462,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/06/a-new-chapter/" data-id="cjfait85m00cvpln9mz16k9zy" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/06/a-new-chapter/" data-id="cjfcl2wik00d5furaes7so6zg" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/06/a-new-chapter/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -440,14 +498,14 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>One of the popular things these days in the APEX community is to have localized <a href="http://apexmeetups.com/" target="_blank" rel="external">APEX Meetups</a>. These are usually monthly meetings where one, or a few, people give a presentation about APEX. These are a lot more informal than traditional conferences and help the community grow in a given area.</p>
-<p>I recently launched the Calgary APEX Meetup group: <a href="http://www.meetup.com/orclapex-YYC/" target="_blank" rel="external">ORCLAPEX-YYC</a>. If you live in or around Calgary and are interested in getting together once a month to hear more about APEX join this group! The plan is to host our first Meetup in early June and are currently looking for a venue to host us. If you can acquire some space please leave a comment on the <a href="http://www.meetup.com/orclapex-YYC/messages/boards/thread/48970051" target="_blank" rel="external">discussion board</a>.</p>
-<p>We’re looking to keep these events free and are always looking for sponsors to help fund some of the small costs. If you or your organization is interested please leave a comment on the <a href="http://www.meetup.com/orclapex-YYC/messages/boards/thread/48970066" target="_blank" rel="external">discussion board</a>.</p>
+        <p>One of the popular things these days in the APEX community is to have localized <a href="http://apexmeetups.com/" target="_blank" rel="noopener">APEX Meetups</a>. These are usually monthly meetings where one, or a few, people give a presentation about APEX. These are a lot more informal than traditional conferences and help the community grow in a given area.</p>
+<p>I recently launched the Calgary APEX Meetup group: <a href="http://www.meetup.com/orclapex-YYC/" target="_blank" rel="noopener">ORCLAPEX-YYC</a>. If you live in or around Calgary and are interested in getting together once a month to hear more about APEX join this group! The plan is to host our first Meetup in early June and are currently looking for a venue to host us. If you can acquire some space please leave a comment on the <a href="http://www.meetup.com/orclapex-YYC/messages/boards/thread/48970051" target="_blank" rel="noopener">discussion board</a>.</p>
+<p>We’re looking to keep these events free and are always looking for sponsors to help fund some of the small costs. If you or your organization is interested please leave a comment on the <a href="http://www.meetup.com/orclapex-YYC/messages/boards/thread/48970066" target="_blank" rel="noopener">discussion board</a>.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apex-meetups-calgary/" data-id="cjfait85l00ctpln96mkdmqez" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apex-meetups-calgary/" data-id="cjfcl2wih00d1furaglwc3djn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apex-meetups-calgary/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -483,16 +541,16 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>In SQL*Plus you can configure it to automatically run login scripts, typically used to configure your session. These are stored in the files <code>glogin.sql</code> and <code>login.sql</code>. Some examples that you’d find in these files are statements like: <code>set serveroutput on</code>.  You can read more about login scripts <a href="http://www.adp-gmbh.ch/ora/sqlplus/login.html" target="_blank" rel="external">here</a>.</p>
+        <p>In SQL*Plus you can configure it to automatically run login scripts, typically used to configure your session. These are stored in the files <code>glogin.sql</code> and <code>login.sql</code>. Some examples that you’d find in these files are statements like: <code>set serveroutput on</code>.  You can read more about login scripts <a href="http://www.adp-gmbh.ch/ora/sqlplus/login.html" target="_blank" rel="noopener">here</a>.</p>
 <p>SQLcl also handles login scripts, however it may require some additional configuration. The easiest way to leverage this is to create a file called <code>login.sql</code> in your current directory, then call SQLcl from that directory.</p>
-<p>If you’re like me and launch SQLcl from many directories that approach won’t work. Instead, you can create one <code>login.sql</code> file and have it automatically referenced. To do this create <code>login.sql</code> in a folder (in my case it was <code>Documents/Oracle</code>) and then add the following to <code>~/.bashprofile</code>:  <code>export SQLPATH=~/Documents/Oracle/</code>. <em>For those that use <a href="https://github.com/robbyrussell/oh-my-zsh" target="_blank" rel="external">oh-my-zsh</a> modify <code>~/.zshrc</code> instead.</em></p>
+<p>If you’re like me and launch SQLcl from many directories that approach won’t work. Instead, you can create one <code>login.sql</code> file and have it automatically referenced. To do this create <code>login.sql</code> in a folder (in my case it was <code>Documents/Oracle</code>) and then add the following to <code>~/.bashprofile</code>:  <code>export SQLPATH=~/Documents/Oracle/</code>. <em>For those that use <a href="https://github.com/robbyrussell/oh-my-zsh" target="_blank" rel="noopener">oh-my-zsh</a> modify <code>~/.zshrc</code> instead.</em></p>
 <p>Now when you run SQLcl anywhere it will reference your <code>login.sql</code> file.</p>
-<p><em>Thanks to <a href="https://twitter.com/krisrice" target="_blank" rel="external">Kris Rice</a> and <a href="https://twitter.com/thatjeffsmith" target="_blank" rel="external">Jeff Smith</a> for helping with this.</em></p>
+<p><em>Thanks to <a href="https://twitter.com/krisrice" target="_blank" rel="noopener">Kris Rice</a> and <a href="https://twitter.com/thatjeffsmith" target="_blank" rel="noopener">Jeff Smith</a> for helping with this.</em></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/" data-id="cjfait85k00crpln9228ovyv6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/" data-id="cjfcl2wij00d3fura1ov8nwbd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -528,73 +586,28 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Here’s a snippet from a Twitter conversation today between <a href="https://twitter.com/sfonplsql" target="_blank" rel="external">Steven Feuerstein</a> and I around a user that created their own PL/SQL logging platform:</p>
+        <p>Here’s a snippet from a Twitter conversation today between <a href="https://twitter.com/sfonplsql" target="_blank" rel="noopener">Steven Feuerstein</a> and I around a user that created their own PL/SQL logging platform:</p>
 <blockquote>
-<p><div dir="ltr" lang="en">Shameless self-promotion, I know. But it feels so good….I really like to help people.  <a href="http://t.co/WW91NDOnN9" target="_blank" rel="external">http://t.co/WW91NDOnN9</a> <a href="http://t.co/EuigB0cAIO" target="_blank" rel="external">pic.twitter.com/EuigB0cAIO</a></div>— Steven Feuerstein (@sfonplsql) <a href="https://twitter.com/sfonplsql/status/599212316161245184" target="_blank" rel="external">May 15, 2015</a><script async charset="utf-8" src="//platform.twitter.com/widgets.js"></script></p>
-<p><div dir="ltr" lang="en"><a href="https://twitter.com/sfonplsql" target="_blank" rel="external">@sfonplsql</a> Any reason they’re not using Logger? <a href="https://t.co/Q2BViP914Q" target="_blank" rel="external">https://t.co/Q2BViP914Q</a></div>— Martin Giffy D’Souza (@martindsouza) <a href="https://twitter.com/martindsouza/status/599218291849039872" target="_blank" rel="external">May 15, 2015</a><script async charset="utf-8" src="//platform.twitter.com/widgets.js"></script></p>
-<p><div dir="ltr" lang="en"><a href="https://twitter.com/martindsouza" target="_blank" rel="external">@martindsouza</a> You haven’t done a good enough job promoting it? They don’t trust outside code? I don’t use it?</div>— Steven Feuerstein (@sfonplsql) <a href="https://twitter.com/sfonplsql/status/599218493293072385" target="_blank" rel="external">May 15, 2015</a></p>
+<p><div dir="ltr" lang="en">Shameless self-promotion, I know. But it feels so good….I really like to help people.  <a href="http://t.co/WW91NDOnN9" target="_blank" rel="noopener">http://t.co/WW91NDOnN9</a> <a href="http://t.co/EuigB0cAIO" target="_blank" rel="noopener">pic.twitter.com/EuigB0cAIO</a></div>— Steven Feuerstein (@sfonplsql) <a href="https://twitter.com/sfonplsql/status/599212316161245184" target="_blank" rel="noopener">May 15, 2015</a><script async charset="utf-8" src="//platform.twitter.com/widgets.js"></script></p>
+<p><div dir="ltr" lang="en"><a href="https://twitter.com/sfonplsql" target="_blank" rel="noopener">@sfonplsql</a> Any reason they’re not using Logger? <a href="https://t.co/Q2BViP914Q" target="_blank" rel="noopener">https://t.co/Q2BViP914Q</a></div>— Martin Giffy D’Souza (@martindsouza) <a href="https://twitter.com/martindsouza/status/599218291849039872" target="_blank" rel="noopener">May 15, 2015</a><script async charset="utf-8" src="//platform.twitter.com/widgets.js"></script></p>
+<p><div dir="ltr" lang="en"><a href="https://twitter.com/martindsouza" target="_blank" rel="noopener">@martindsouza</a> You haven’t done a good enough job promoting it? They don’t trust outside code? I don’t use it?</div>— Steven Feuerstein (@sfonplsql) <a href="https://twitter.com/sfonplsql/status/599218493293072385" target="_blank" rel="noopener">May 15, 2015</a></p>
 <script async charset="utf-8" src="//platform.twitter.com/widgets.js"></script>
 
 </blockquote>
-<p>Steven is absolutely correct when he says “<em>You haven’t done a good enough job promoting it</em>“ (“it” being <a href="http://www.oraopensource.com/logger/" target="_blank" rel="external">Logger</a>). Despite my best efforts, promoting Logger is something I’ve struggled with and need some help.</p>
-<p>Based on past emails and conversations, I know they’re a lot of developers and organizations using Logger. <strong>If you’re using Logger, either personally or within your organization, I need your help. Please blog about it (and post the link in the comments section below), email me a quote that I can use (martin@clarifit.com), Tweet about it (use <a href="https://twitter.com/hashtag/orcllogger?src=hash" target="_blank" rel="external">#orcllogger</a>), or mention it at the next conference you go to</strong>.</p>
+<p>Steven is absolutely correct when he says “<em>You haven’t done a good enough job promoting it</em>“ (“it” being <a href="http://www.oraopensource.com/logger/" target="_blank" rel="noopener">Logger</a>). Despite my best efforts, promoting Logger is something I’ve struggled with and need some help.</p>
+<p>Based on past emails and conversations, I know they’re a lot of developers and organizations using Logger. <strong>If you’re using Logger, either personally or within your organization, I need your help. Please blog about it (and post the link in the comments section below), email me a quote that I can use (martin@clarifit.com), Tweet about it (use <a href="https://twitter.com/hashtag/orcllogger?src=hash" target="_blank" rel="noopener">#orcllogger</a>), or mention it at the next conference you go to</strong>.</p>
 <p>To those that help promote it, thank you in advance.</p>
 <p>– Martin</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/help-promote-logger/" data-id="cjfait85e00clpln9fekmfs6l" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/help-promote-logger/" data-id="cjfcl2wig00czfural6q2t7v4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/help-promote-logger/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/open-source/">open-source</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-docs-for-ibooks" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/05/apex-docs-for-ibooks/" class="article-date">
-  <time datetime="2015-05-14T12:00:00.000Z" itemprop="datePublished">2015-05-14</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/05/apex-docs-for-ibooks/">APEX Docs for iBooks</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’m not sure if this is new news or not, but you can download the APEX documentation in ePub format which can be loaded into iBooks.</p>
-<p>To download the ebook format go to <a href="http://docs.oracleapex.com/" target="_blank" rel="external">docs.oracleapex.com</a> then click the download button for the appropriate doc and select ePub as the format.</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-EGPeQmttqtA/VVIm9zxqykI/AAAAAAAAHEA/r2QyR59sNI4/s1600/Snip20150512_1.png" target="_blank" rel="external"><img src="http://3.bp.blogspot.com/-EGPeQmttqtA/VVIm9zxqykI/AAAAAAAAHEA/r2QyR59sNI4/s320/Snip20150512_1.png" alt=""></a></div><span id="goog_1339159400"></span><span id="goog_1339159401"></span></p>
-<p>Here’s a screen shot of the APEX API docs in iBooks. I still prefer the online / HTML format but having the docs in iBooks helps when you may not have a internet connection.</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-cPUuObr5AAI/VVInQ5DmGiI/AAAAAAAAHEI/EUcuYrpoNqA/s1600/Snip20150512_2.png" target="_blank" rel="external"><img src="http://1.bp.blogspot.com/-cPUuObr5AAI/VVInQ5DmGiI/AAAAAAAAHEI/EUcuYrpoNqA/s320/Snip20150512_2.png" alt=""></a></div><br>&gt;</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apex-docs-for-ibooks/" data-id="cjfait85f00cnpln9yo9sfsk1" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2015/05/apex-docs-for-ibooks/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
 
     </footer>
   </div>
@@ -641,7 +654,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -678,7 +691,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
