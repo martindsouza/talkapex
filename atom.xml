@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.talkapex.com/"/>
-  <updated>2018-03-29T13:56:47.843Z</updated>
+  <updated>2018-03-29T14:15:36.685Z</updated>
   <id>http://www.talkapex.com/</id>
   
   <author>
@@ -15,6 +15,29 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>How to Save Page Data but Show Errors in APEX</title>
+    <link href="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/"/>
+    <id>http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/</id>
+    <published>2018-03-29T14:15:48.000Z</published>
+    <updated>2018-03-29T14:15:36.685Z</updated>
+    
+    <content type="html"><![CDATA[<p>In most cases error messages are shown on an APEX page when the user submits a form and a validation fails. Sometimes (not often) you may need to manually control the validations rather than using the declarative validations section. To do this you can use the <a href="https://docs.oracle.com/database/apex-5.1/AEAPI/APEX_ERROR.htm#AEAPI2209" target="_blank" rel="noopener"><code>apex_error</code></a> API. The following is an example of how to call the API.</p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">apex_error.add_error(</div><div class="line">  p_message =&gt; 'Custom error from PL/SQL',</div><div class="line">  p_display_location =&gt; apex_error.c_inline_in_notification);</div></pre></td></tr></table></figure><p>This will generate the following on the page:</p><img src="/2018/03/how-to-save-page-data-but-show-errors-in-apex/custom-error.png"><p><code>apex_error.add_error</code> triggers a rollback and in most cases this is a good thing. In some very specific cases you may not want a rollback to occur. The rest of this article covers how to generate errors without a rollback occurring.</p><h2 id="Edge-Case"><a href="#Edge-Case" class="headerlink" title="Edge Case"></a>Edge Case</h2><p>I recently had a rare edge case for a page submit and errors. The page was used to edit batch staging data. The requirements were:</p><ul><li>User submits page</li><li>All the data is saved (in a staging table)<ul><li><em>Since this is staging area, the data must be saved and committed each time regardless of errors </em></li></ul></li><li>Do validations against staged data<ul><li>If errors were found, the page would show them (remember the data still needs to be saved)</li><li>If no errors were found, the staged data would be posted and then branch to another page.</li></ul></li></ul><h2 id="The-Solution"><a href="#The-Solution" class="headerlink" title="The Solution"></a>The Solution</h2><p>Given that <code>apex_error.add_error</code> performs a rollback the simple solution is to save the staged data, perform an explicit <code>commit</code>, and then do custom validations. Unfortunately this was not possible due to additional requirements that I left out of this article.</p><p><em>The following relies on the fact that you know about the <code>apex.message</code> API. If you do not please read <a href="/2018/03/custom-apex-notification-messages/" title="this article">this article</a>.</em></p><p>This is an overview of the final solution:</p><ul><li>On Submit PL/SQL page process that:<ul><li>Saved all the page’s data</li><li>Called a custom validation function that returned a JSON object. If no errors were found this function would return <code>null</code>. The results of this function were stored in the page item <code>P1_ERR_JSON</code>.</li></ul></li><li>Created an <code>onPageLoad</code> Dynamic Action to display errors using the <code>apex.message</code> API</li></ul><p>The following pseudo code summarizes the above description:</p><h3 id="Page-Process"><a href="#Page-Process" class="headerlink" title="Page Process"></a>Page Process</h3><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">-- ...</div><div class="line">-- Save staging data</div><div class="line">-- ...</div><div class="line">-- Validations:</div><div class="line">l_err_json := null;</div><div class="line"></div><div class="line">select sum(salary)</div><div class="line">into l_salary_total</div><div class="line">from my_stage_table;</div><div class="line"></div><div class="line">if l_salary_total &gt; 1000 then</div><div class="line">  -- Produce JSON error like:</div><div class="line">  -- &#123;</div><div class="line">  --   "errMsg": "Total salary must be less than $1000"</div><div class="line">  -- &#125;</div><div class="line">  apex_json.initialize_clob_output;</div><div class="line">  apex_json.open_object;</div><div class="line">  apex_json.write('errMsg', 'Total salary must be less than $1000');</div><div class="line">  apex_json.close_object;</div><div class="line"></div><div class="line">  l_err_json := apex_json.get_clob_output;</div><div class="line">  apex_json.free_output;</div><div class="line">end if;</div><div class="line"></div><div class="line">apex_util.set_session_state('P1_ERR_JSON', l_err_json, false);</div></pre></td></tr></table></figure><h3 id="onPageLoad-Dynamic-Action"><a href="#onPageLoad-Dynamic-Action" class="headerlink" title="onPageLoad Dynamic Action"></a><code>onPageLoad</code> Dynamic Action</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">err = apex.item(<span class="string">'P1_ERR_JSON'</span>).getValue();</div><div class="line"></div><div class="line"><span class="keyword">if</span> (err.length &gt; <span class="number">0</span>) &#123;</div><div class="line">  err = <span class="built_in">JSON</span>.parse(err);</div><div class="line"></div><div class="line">  apex.message.clearErrors();</div><div class="line">  apex.message.showErrors([</div><div class="line">    &#123;</div><div class="line">      <span class="attr">type</span>: apex.message.TYPE.ERROR,</div><div class="line">      <span class="attr">location</span>: [<span class="string">"page"</span>],</div><div class="line">      <span class="attr">message</span>: err.errMsg,</div><div class="line">      <span class="attr">unsafe</span>: <span class="literal">false</span></div><div class="line">    &#125;</div><div class="line">  ]);</div><div class="line">&#125;<span class="comment">// end if</span></div></pre></td></tr></table></figure><p>When an error occurred, the page looked like:</p><img src="/2018/03/how-to-save-page-data-but-show-errors-in-apex/total-error.png"><h2 id="Wrapping-Up"><a href="#Wrapping-Up" class="headerlink" title="Wrapping Up"></a>Wrapping Up</h2><p>This solution is a summary of the final code. You can easily expand it to handle multiple error messages, associate with page items, etc.</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;In most cases error messages are shown on an APEX page when the user submits a form and a validation fails. Sometimes (not often) you may
+      
+    
+    </summary>
+    
+    
+      <category term="apex-5.1" scheme="http://www.talkapex.com/tags/apex-5-1/"/>
+    
+  </entry>
   
   <entry>
     <title>Custom APEX Notification Messages</title>
@@ -397,11 +420,11 @@
     
       <category term="plsql" scheme="http://www.talkapex.com/tags/plsql/"/>
     
-      <category term="apex-5.1" scheme="http://www.talkapex.com/tags/apex-5-1/"/>
-    
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
     
       <category term="sql" scheme="http://www.talkapex.com/tags/sql/"/>
+    
+      <category term="apex-5.1" scheme="http://www.talkapex.com/tags/apex-5-1/"/>
     
   </entry>
   
@@ -424,9 +447,9 @@
     </summary>
     
     
-      <category term="apex-5.1" scheme="http://www.talkapex.com/tags/apex-5-1/"/>
-    
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
+    
+      <category term="apex-5.1" scheme="http://www.talkapex.com/tags/apex-5-1/"/>
     
   </entry>
   
@@ -471,31 +494,6 @@
     
     </summary>
     
-    
-  </entry>
-  
-  <entry>
-    <title>Custom Calendar CSS in APEX</title>
-    <link href="http://www.talkapex.com/2017/02/custom-calendar-css-in-apex/"/>
-    <id>http://www.talkapex.com/2017/02/custom-calendar-css-in-apex/</id>
-    <published>2017-02-19T02:11:20.000Z</published>
-    <updated>2017-02-19T02:25:07.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>The new (<em>not legacy calendar</em>) in APEX 5 comes with a set of default calendar CSS classes to style calendar events. The following screenshot is from the inline help for the calendar <code>CSS Class</code> attribute:</p><img src="/2017/02/custom-calendar-css-in-apex/calendar-help.png"><p>I couldn’t find how to create a custom class in the documents (as the help suggests). Using the pre-defined classes as an example I was able to create a custom class for a new color for my calendar. The following is an example of a custom APEX calendar class:</p><figure class="highlight css"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="selector-class">.fc</span> <span class="selector-class">.fc-event</span><span class="selector-class">.apex-cal-demo</span> &#123;</div><div class="line">  <span class="attribute">background-color</span>: <span class="number">#F0F8FF</span>;</div><div class="line">  <span class="attribute">border-color</span>: <span class="number">#000000</span>;</div><div class="line">  <span class="attribute">color</span>: <span class="number">#FFFFFF</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure><p>In the calendar query this class can now be referenced as <code>apex-cal-demo</code>.</p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;The new (&lt;em&gt;not legacy calendar&lt;/em&gt;) in APEX 5 comes with a set of default calendar CSS classes to style calendar events. The following
-      
-    
-    </summary>
-    
-    
-      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
-    
-      <category term="css" scheme="http://www.talkapex.com/tags/css/"/>
     
   </entry>
   
