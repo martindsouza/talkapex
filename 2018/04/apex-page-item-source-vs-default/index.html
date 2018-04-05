@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>APEX Page Item Source vs Default | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Someone recently asked me about the difference between an APEX page item’s Source  and Default attributes. I’ve always been confused about these options so I decided to further investigate them. This">
+<meta name="keywords" content="apex">
+<meta property="og:type" content="article">
+<meta property="og:title" content="APEX Page Item Source vs Default">
+<meta property="og:url" content="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="Someone recently asked me about the difference between an APEX page item’s Source  and Default attributes. I’ve always been confused about these options so I decided to further investigate them. This">
+<meta property="og:locale" content="default">
+<meta property="og:image" content="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/source-default.png">
+<meta property="og:image" content="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/source-types.png">
+<meta property="og:image" content="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/source-used.png">
+<meta property="og:image" content="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/session-source-diff.png">
+<meta property="og:image" content="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/session-state-temp-change.png">
+<meta property="og:updated_time" content="2018-04-05T02:46:12.023Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="APEX Page Item Source vs Default">
+<meta name="twitter:description" content="Someone recently asked me about the difference between an APEX page item’s Source  and Default attributes. I’ve always been confused about these options so I decided to further investigate them. This">
+<meta name="twitter:image" content="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/source-default.png">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Martin Giffy D&#39;Souza on Oracle APEX</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-apex-page-item-source-vs-default" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/apex-page-item-source-vs-default/" class="article-date">
+  <time datetime="2018-04-05T04:50:45.000Z" itemprop="datePublished">2018-04-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      APEX Page Item Source vs Default
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Someone recently asked me about the difference between an APEX page item’s <code>Source</code>  and <code>Default</code> attributes. I’ve always been confused about these options so I decided to further investigate them. This post will cover the differences between Source and Default along with some additional info.</p>
+<img src="/2018/04/apex-page-item-source-vs-default/source-default.png">
+<h2 id="Order-of-Operations"><a href="#Order-of-Operations" class="headerlink" title="Order of Operations"></a>Order of Operations</h2><p>Page items can be set in different ways and there is an order of operations to which “setting” takes precedence:</p>
+<p>1- <strong>Session State</strong>: What ever is in session state will always trump the page item’s Source or Default settings<em>*</em><br>1- <strong>Source</strong>: Source comes next. For most people this is <code>null</code> or <code>Database Column</code> (if using <code>Automatic Row Fetch</code>)<br>1- <strong>Default</strong>: If the page item is still null then Default will be used. This attribute doesn’t have as many options as Source (just <code>Static Value</code>, <code>PL/SQL Expression</code>, and <code>PL/SQL Function Body</code>)</p>
+<p><em>* The Source attribute has an option to ignore the current session state value.</em></p>
+<h2 id="Session-State-vs-On-Screen"><a href="#Session-State-vs-On-Screen" class="headerlink" title="Session State vs On Screen"></a>Session State vs On Screen</h2><p>Neither Source or Default saves the value to session state<em>*</em>. Instead it is what is shown on screen. If Source or Default is used the value will only be saved to session state once the page is submitted.</p>
+<p><em>* Read below as the value is temporarily used in session state for the remaining duration of the page load.</em></p>
+<h2 id="Additional-Info"><a href="#Additional-Info" class="headerlink" title="Additional Info"></a>Additional Info</h2><h3 id="Is-Default-always-Necessary"><a href="#Is-Default-always-Necessary" class="headerlink" title="Is Default always Necessary?"></a>Is Default always Necessary?</h3><p>I think a lot of the confusion with Source and Default is that in some cases Default is redundant and unnecessary. I think Default is only required when the Source is set to <code>Database Column</code>, <code>Item</code>, or <code>Preference</code>. For the other options (see below) you can wrap the returned value with a <code>nvl</code>.</p>
+<img src="/2018/04/apex-page-item-source-vs-default/source-types.png">
+<h3 id="Source-Used-Attribute"><a href="#Source-Used-Attribute" class="headerlink" title="Source Used Attribute"></a>Source <code>Used</code> Attribute</h3><p>Source has additional attribute that Default does not: <code>Used</code></p>
+<img src="/2018/04/apex-page-item-source-vs-default/source-used.png">
+<p>If the <code>used</code> option is set to <code>Always, replacing any existing value in session state</code> this means that after the page has loaded the value in Session State may have a value that is different than the value that is shown on the screen. The following image shows the result of this situation (i.e. different session state vs on screen value).</p>
+<img src="/2018/04/apex-page-item-source-vs-default/session-source-diff.png">
+<h3 id="Temporary-Change-of-Session-State"><a href="#Temporary-Change-of-Session-State" class="headerlink" title="Temporary Change of Session State"></a>Temporary Change of Session State</h3><p>Suppose that a <code>Before Header</code> computation exists and sets <code>P1_DEMO</code> to a static value: <code>From Computation</code>. This means that during page load, right after the computation is run, the session state value for <code>P1_DEMO</code> is <code>From Computation</code>. </p>
+<p><code>P1_DEMO</code> Source is set to <code>From Source</code> and <code>Always, replacing any existing value in session state</code> is used. After <code>P1_DEMO</code> is “loaded” during the page load computation, the session state of <code>P1_DEMO</code> is <code>From Source</code> for the duration of the page load. After the page is loaded the session state value is <code>From Computation</code>. The following image highlights this. For both the <code>Before</code> and <code>After</code> display only items the Source was set to <code>&amp;P1_DEMO.</code></p>
+<img src="/2018/04/apex-page-item-source-vs-default/session-state-temp-change.png">
+<p>This can cause some wierd behaviors on a page that has AJAX calls. The value in session state changes during the page load process. After the page is loaded it may flip flop and the AJAX call could use the “old” session state value (see screen shot above).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="cjflx7rj300fvea8pokf30uze" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2018/04/docker-as-a-micro-service/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Docker as a Micro Service</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">140</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-8016477-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+  </div>
+</body>
+</html>

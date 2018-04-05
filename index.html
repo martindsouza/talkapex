@@ -67,6 +67,121 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-page-item-source-vs-default" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/apex-page-item-source-vs-default/" class="article-date">
+  <time datetime="2018-04-05T04:50:45.000Z" itemprop="datePublished">2018-04-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/apex-page-item-source-vs-default/">APEX Page Item Source vs Default</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Someone recently asked me about the difference between an APEX page item’s <code>Source</code>  and <code>Default</code> attributes. I’ve always been confused about these options so I decided to further investigate them. This post will cover the differences between Source and Default along with some additional info.</p>
+<img src="/2018/04/apex-page-item-source-vs-default/source-default.png">
+<h2 id="Order-of-Operations"><a href="#Order-of-Operations" class="headerlink" title="Order of Operations"></a>Order of Operations</h2><p>Page items can be set in different ways and there is an order of operations to which “setting” takes precedence:</p>
+<p>1- <strong>Session State</strong>: What ever is in session state will always trump the page item’s Source or Default settings<em>*</em><br>1- <strong>Source</strong>: Source comes next. For most people this is <code>null</code> or <code>Database Column</code> (if using <code>Automatic Row Fetch</code>)<br>1- <strong>Default</strong>: If the page item is still null then Default will be used. This attribute doesn’t have as many options as Source (just <code>Static Value</code>, <code>PL/SQL Expression</code>, and <code>PL/SQL Function Body</code>)</p>
+<p><em>* The Source attribute has an option to ignore the current session state value.</em></p>
+<h2 id="Session-State-vs-On-Screen"><a href="#Session-State-vs-On-Screen" class="headerlink" title="Session State vs On Screen"></a>Session State vs On Screen</h2><p>Neither Source or Default saves the value to session state<em>*</em>. Instead it is what is shown on screen. If Source or Default is used the value will only be saved to session state once the page is submitted.</p>
+<p><em>* Read below as the value is temporarily used in session state for the remaining duration of the page load.</em></p>
+<h2 id="Additional-Info"><a href="#Additional-Info" class="headerlink" title="Additional Info"></a>Additional Info</h2><h3 id="Is-Default-always-Necessary"><a href="#Is-Default-always-Necessary" class="headerlink" title="Is Default always Necessary?"></a>Is Default always Necessary?</h3><p>I think a lot of the confusion with Source and Default is that in some cases Default is redundant and unnecessary. I think Default is only required when the Source is set to <code>Database Column</code>, <code>Item</code>, or <code>Preference</code>. For the other options (see below) you can wrap the returned value with a <code>nvl</code>.</p>
+<img src="/2018/04/apex-page-item-source-vs-default/source-types.png">
+<h3 id="Source-Used-Attribute"><a href="#Source-Used-Attribute" class="headerlink" title="Source Used Attribute"></a>Source <code>Used</code> Attribute</h3><p>Source has additional attribute that Default does not: <code>Used</code></p>
+<img src="/2018/04/apex-page-item-source-vs-default/source-used.png">
+<p>If the <code>used</code> option is set to <code>Always, replacing any existing value in session state</code> this means that after the page has loaded the value in Session State may have a value that is different than the value that is shown on the screen. The following image shows the result of this situation (i.e. different session state vs on screen value).</p>
+<img src="/2018/04/apex-page-item-source-vs-default/session-source-diff.png">
+<h3 id="Temporary-Change-of-Session-State"><a href="#Temporary-Change-of-Session-State" class="headerlink" title="Temporary Change of Session State"></a>Temporary Change of Session State</h3><p>Suppose that a <code>Before Header</code> computation exists and sets <code>P1_DEMO</code> to a static value: <code>From Computation</code>. This means that during page load, right after the computation is run, the session state value for <code>P1_DEMO</code> is <code>From Computation</code>. </p>
+<p><code>P1_DEMO</code> Source is set to <code>From Source</code> and <code>Always, replacing any existing value in session state</code> is used. After <code>P1_DEMO</code> is “loaded” during the page load computation, the session state of <code>P1_DEMO</code> is <code>From Source</code> for the duration of the page load. After the page is loaded the session state value is <code>From Computation</code>. The following image highlights this. For both the <code>Before</code> and <code>After</code> display only items the Source was set to <code>&amp;P1_DEMO.</code></p>
+<img src="/2018/04/apex-page-item-source-vs-default/session-state-temp-change.png">
+<p>This can cause some wierd behaviors on a page that has AJAX calls. The value in session state changes during the page load process. After the page is loaded it may flip flop and the AJAX call could use the “old” session state value (see screen shot above).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="cjflx7rj300fvea8pokf30uze" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-docker-as-a-micro-service" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/docker-as-a-micro-service/" class="article-date">
+  <time datetime="2018-04-05T04:41:37.000Z" itemprop="datePublished">2018-04-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/docker-as-a-micro-service/">Docker as a Micro Service</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Things can get worse if the software has additional dependencies (Java for example) especially when you need to have two versions of the same tool for different apps.</p>
+<p>Docker solves this problem by keeping everything you need for a specific task in one container. The added bonus is that you’ll probably be able to find a Docker container for just about anything you want and it’s OS independent on <a href="https://hub.docker.com/" target="_blank" rel="noopener">Docker Hub</a>.</p>
+<p>At <a href="https://www.insum.ca/hackathon-opportunity-work-with-new-technology/" target="_blank" rel="noopener">Insum’s 2018 Hackathon</a> we developed skills for <a href="https://alexa.amazon.com" target="_blank" rel="noopener">Amazon Alexa</a>. To help the teams I published a <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Docker image</a> that has both the <a href="https://aws.amazon.com/cli/" target="_blank" rel="noopener">AWS CLI</a> and <a href="https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html" target="_blank" rel="noopener">Alexa Skills Kit (ASK) CLI</a>. </p>
+<p>Most of the demos I’ve seen for containers that are used for CLI tools looked like this:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">docker run -it \</div><div class="line">  ...</div><div class="line">  doccker_prefs</div><div class="line">  my_tool.sh -some -parameters</div></pre></td></tr></table></figure>
+<p>Though these containers are helpful it’s not really useful for end users (i.e. developers) since the command can be tough to remember and the containers may exist after running the tool (i.e. you may need to manually delete them.</p>
+<p>When building the <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Amazon ASK CLI container</a> I wanted to avoid these issues to make it as easy as possible for developers to use. I did the following tricks:</p>
+<h2 id="alias-the-docker-run-command"><a href="#alias-the-docker-run-command" class="headerlink" title="alias the docker run command"></a><code>alias</code> the <code>docker run</code> command</h2><p>Instead of having to remember the long <code>docker run</code> command with all the parameters I used an <code>alias</code> command to bundle it all together. Mine looked like this:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">alias</span> alexa=<span class="string">"docker run -it --rm \</span></div><div class="line">  -v ~/alexa-demo/ask-config:/home/node/.ask \</div><div class="line">  -v ~/alexa-demo/aws-config:/home/node/.aws \</div><div class="line">  -v ~/alexa-demo/app:/home/node/app \</div><div class="line">  martindsouza/amazon-ask-cli:latest</div></pre></td></tr></table></figure>
+<p>A few key things to note from the above snippet:</p>
+<ul>
+<li><code>alias</code>: This means that anytime I type in <code>alexa</code> in bash it will run everything in the quotes.<ul>
+<li><em>Windows users: <code>alias</code> doesn’t exist in DOS or PowerShell. I’m not aware of any alternatives. If you know of any easy ones please leave a comment and I’ll update this post</em></li>
+</ul>
+</li>
+<li><code>--rm</code> option: Deletes (self destruct) the container after the command is run. This means is that when I run <code>alexa ask init</code> (where <code>ask init</code> is the CLI tool) it’ll <code>run</code> the container, execute <code>ask</code> (with parameter <code>init</code>), then remove the container once <code>ask</code> is done.</li>
+</ul>
+<p>Using the <code>alias</code> and <code>--rm</code> techniques you can easily have all the CLI tools you want without cluttering up your base machine. Of course there may be some minor performance impacts by Dockerizing them. Personally I didn’t notice any slowdowns and will start using this technique for all my future CLI tools.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="cjflx7rj400fyea8p38bxo5cs" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/04/docker-as-a-micro-service/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-docker-image-for-ords-standalone" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/04/docker-image-for-ords-standalone/" class="article-date">
@@ -105,7 +220,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="cjfhkzy2l00ee9vrapt9bucou" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="cjflx7rj200ftea8pv8p6mnkx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -180,7 +295,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="cjfhkzy2m00eg9vrag1mc3rhd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="cjflx7rj100frea8pbde56wiz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -231,7 +346,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="cjfhkzy2j00eb9vratwvm6uxm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="cjflx7rj000foea8p0bohrfxi" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/custom-apex-notification-messages/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -302,7 +417,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="cjfhkzy2i00e99vra1pt27pvc" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="cjflx7riz00fmea8p1h2lfjxj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -347,7 +462,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="cjfhkzy3800fu9vrapy784nfv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="cjflx7riu00fiea8p1iz9wf6d" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -394,7 +509,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="cjfhkzy3900fw9vradpscvczx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="cjflx7riy00fkea8p8ph74w70" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -454,7 +569,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="cjfhkzy3700fs9vrax8e98y3z" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="cjflx7rit00ffea8paaeasv88" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -505,135 +620,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/reset-authorization-cache/" data-id="cjfhkzy3600fq9vraxz6t0og3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/reset-authorization-cache/" data-id="cjflx7ris00fdea8pd200w9f2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/reset-authorization-cache/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/security/">security</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-listagg-for-ir-column-break-report" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/10/listagg-for-ir-column-break-report/" class="article-date">
-  <time datetime="2017-10-27T12:01:52.000Z" itemprop="datePublished">2017-10-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/10/listagg-for-ir-column-break-report/">Listagg for IR Column Break Report</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>If you’ve used Interactive Reports (IR) in APEX for a while you may find a need to display a delimited list of values next to a <code>sum</code> row. The following screenshot shows this problem. Suppose you wanted to have a comma delimited list of names for each job such as <code>FORD,SCOTT</code> in the aggregation (sum) row.</p>
-<img src="/2017/10/listagg-for-ir-column-break-report/report-problem.png">
-<p>In SQL this is easy to do using the <a href="https://docs.oracle.com/database/122/SQLRF/LISTAGG.htm#SQLRF30030" target="_blank" rel="noopener"><code>listagg</code></a> function. unfortunately <code>listagg</code> isn’t available as an IR aggregation option (<code>Actions &gt; Data &gt; Aggregate</code>). I recently needed to do this for an IR. The rest of this post will cover setup along with the JavaScript (JS) solution.</p>
-<h2 id="Setup"><a href="#Setup" class="headerlink" title="Setup"></a>Setup</h2><ol>
-<li>Create an Interactive Report: <code>select ename, sal from emp</code></li>
-<li>On the IR go to <code>Actions &gt; Format &gt; Control Break</code> and Select <code>Job</code> as the column (shown below) <br> <img src="/2017/10/listagg-for-ir-column-break-report/control-break.png"><br></li>
-<li>On the IR go to <code>Actions &gt; Data &gt; Aggregate</code> and select <code>Function: Sum</code> and <code>Column: Sal</code> as shown below. <br><img src="/2017/10/listagg-for-ir-column-break-report/aggregation-sum.png"></li>
-</ol>
-<p>The resulting report should look like the first screenshot at the begging of this article.</p>
-<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>The JavaScript below will add in the necessary <code>listagg</code> for the <code>Ename</code> column for the IR.</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//Set to the displayed header name</span></div><div class="line"><span class="keyword">var</span> headerName = <span class="string">'Ename'</span>;</div><div class="line"></div><div class="line"><span class="keyword">var</span> headerNum; <span class="comment">//ID for TH header object</span></div><div class="line"></div><div class="line"><span class="comment">// Find the header to listagg</span></div><div class="line">$(<span class="string">'a.a-IRR-headerLink'</span>).each(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">  <span class="keyword">var</span> $<span class="keyword">this</span> = $(<span class="keyword">this</span>)</div><div class="line">  <span class="keyword">if</span>($<span class="keyword">this</span>.text() == headerName)&#123;</div><div class="line">    headerNum = $<span class="keyword">this</span>.closest(<span class="string">'th.a-IRR-header'</span>).attr(<span class="string">'id'</span>);</div><div class="line">  &#125;</div><div class="line">&#125;);</div><div class="line"></div><div class="line">$(<span class="string">'.a-IRR-aggregate-value'</span>).each(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">  <span class="keyword">var</span> $aggRowTr = $(<span class="keyword">this</span>).first().closest(<span class="string">'tr'</span>);</div><div class="line">  <span class="keyword">var</span> $prevRow = <span class="literal">null</span>;</div><div class="line">  <span class="keyword">var</span> listaggHtml = <span class="string">''</span>;</div><div class="line"></div><div class="line">  <span class="comment">// Loop over all the rows until next next column break</span></div><div class="line">  <span class="keyword">while</span> (<span class="literal">true</span>)&#123;</div><div class="line">    $prevRow = !$prevRow ? $aggRowTr.prev(<span class="string">'tr'</span>) : $prevRow.prev(<span class="string">'tr'</span>);</div><div class="line"></div><div class="line">    <span class="keyword">if</span> ($prevRow.children(<span class="string">'th'</span>).length &gt; <span class="number">0</span>)&#123;</div><div class="line">      <span class="comment">// If TH is detected it's the end of the IR column break</span></div><div class="line">      <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span>&#123;</div><div class="line">      listaggHtml = $prevRow.children(<span class="string">`td[headers*="<span class="subst">$&#123;headerNum&#125;</span>"]`</span>).text() + <span class="string">','</span> + listaggHtml;</div><div class="line">    &#125;</div><div class="line">  &#125;<span class="comment">//for</span></div><div class="line"></div><div class="line">  <span class="comment">// Regex is to remove trailing comma</span></div><div class="line">  $aggRowTr.children(<span class="string">`td[headers*="<span class="subst">$&#123;headerNum&#125;</span>"]`</span>).html(listaggHtml.replace(<span class="regexp">/,$/gi</span>, <span class="string">''</span>));</div><div class="line"></div><div class="line">&#125;); <span class="comment">// ('.a-IRR-aggregate-value').each</span></div></pre></td></tr></table></figure>
-<p>After running the JS code the report will look like:</p>
-<img src="/2017/10/listagg-for-ir-column-break-report/report-solution.png">
-<p>A few comments about this solution:</p>
-<ul>
-<li>This code was for a personal report and thus the JS hasn’t been optimized or properly tested on all browsers</li>
-<li>Depending on your needs you may want to move it to a Dynamic Action</li>
-<li>If you have time you may want to convert this to an APEX plugin. If so please share on <a href="https://apex.world/ords/f?p=100:700" target="_blank" rel="noopener">APEX.world plugins</a></li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/" data-id="cjfhkzy3400fl9vrabvyi2jzv" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-top-oracle-sql-developer-data-modeler-settings" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/10/top-oracle-sql-developer-data-modeler-settings/" class="article-date">
-  <time datetime="2017-10-23T06:00:00.000Z" itemprop="datePublished">2017-10-23</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/10/top-oracle-sql-developer-data-modeler-settings/">Top Oracle SQL Developer Data Modeler Settings</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’ve started to use SQL Developer Data Modeler](<a href="http://www.oracle.com/technetwork/developer-tools/datamodeler/overview/index.html)(SDDM" target="_blank" rel="noopener">http://www.oracle.com/technetwork/developer-tools/datamodeler/overview/index.html)(SDDM</a>) a lot for a project and realized that pretty much everything is configurable. The problem is that there’s no single area to search all the different settings and even the settings’ search boxes don’t filter for all the options. To get around this (and for my own references) I’ve included some settings that I found very useful. <em>I’ll try to keep this post up to date as I continue to explore SDDM.</em></p>
-<p><strong>Notes</strong></p>
-<ul>
-<li><a href="https://twitter.com/thatjeffsmith" target="_blank" rel="noopener">Jeff Smith</a> has <a href="http://www.thatjeffsmith.com" target="_blank" rel="noopener">blogged</a> about a lot of the different settings. For a more extensive list check out his <a href="http://www.thatjeffsmith.com" target="_blank" rel="noopener">blog</a>.</li>
-<li>When <em>Preferences</em> is mentioned it’s <code>Tools &gt; Preferences</code> in Windows and <code>Oracle Data Modeler &gt; Preferences</code> in Mac.</li>
-<li>I did not include any scripting (design rules, transformations, or DDL transformations) in this list. I’ll write a separate article on that.</li>
-</ul>
-<h2 id="Adding-PROMPT-Statements-in-DDL"><a href="#Adding-PROMPT-Statements-in-DDL" class="headerlink" title="Adding PROMPT Statements in DDL"></a>Adding <code>PROMPT</code> Statements in DDL</h2><p>SDDM can generate DDL statements for you either by clicking the DDL button (1) or synchronizing the model with a schema (2):</p>
-<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_7.png"></p>
-<p>It’s always helpful to have <code>prompt</code> statements before each DDL change to help debug where an issue occurred. To do so open <code>Preferences</code> and check  <code>Include PROMPT Command (for Oracle only)</code>:</p>
-<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_6.png"></p>
-<p>All DDL will then include a <code>prompt</code> statement like:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">PROMPT CREATING TABLE 'MY_TABLE';</div><div class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> MY_TABLE ...</div></pre></td></tr></table></figure>
-<h2 id="12c-Identity-Column-or-Auto-Generate-Sequences"><a href="#12c-Identity-Column-or-Auto-Generate-Sequences" class="headerlink" title="12c Identity Column or Auto Generate Sequences"></a>12c Identity Column or Auto Generate Sequences</h2><p>Depending on your database version you may want to either have sequences automatically generated for you or not. In my case I was using a 12c instance and was going to use <a href="https://oracle-base.com/articles/12c/identity-columns-in-oracle-12cr1" target="_blank" rel="noopener">Identity Columns</a> for primary key IDs. I didn’t want sequences for each table to be automatically generated. To toggle this feature open Preferences and change the options in the image below.</p>
-<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_8.png"></p>
-<p>More on the Identity Column settings <a href="http://www.thatjeffsmith.com/archive/2014/01/defining-12c-identity-columns-in-oracle-sql-developer-data-modeler/" target="_blank" rel="noopener">here</a></p>
-<h2 id="DDL-Format-Lowercase-and-Tabs"><a href="#DDL-Format-Lowercase-and-Tabs" class="headerlink" title="DDL Format - Lowercase and Tabs"></a>DDL Format - Lowercase and Tabs</h2><p>If you’re really picky on the format of the DDL that is generated you can modify some of the settings in <code>Preferences &gt; Format</code>:</p>
-<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_9.png"></p>
-<h2 id="Naming-Standard-Templates"><a href="#Naming-Standard-Templates" class="headerlink" title="Naming Standard Templates"></a>Naming Standard Templates</h2><p>When adding primary keys (PK) and various other constraints a default name is always generated. You can determine how this name is generated by modifying the design’s properties settings:</p>
-<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_10.png"></p>
-<p>More information on different variables can be found <a href="https://kentgraziano.com/2015/12/29/better-data-modeling-discovering-foreign-keys-fk-in-sqldevmodeler-sddm/" target="_blank" rel="noopener">here</a></p>
-<h2 id="Short-Table-Names"><a href="#Short-Table-Names" class="headerlink" title="Short Table Names"></a>Short Table Names</h2><p>In most DB instances all object names are limited to 30 characters (this is changed in 12c but most organizations still haven’t enabled 128 characters). When using naming standards this can cause some issues because just referencing <code>&lt;table_name&gt;</code> may not work as its already 30 characters. Note <code>&lt;table_name&gt;</code> isn’t a real variable in SDDM.</p>
-<p>You can define a short name (SDDM calls it an <code>Abbreviation</code>) for each table via the table properties. Setting the <code>Abbreviation</code> is also very helpful when generating DDL statements or constraints from scripts.</p>
-<p><img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170722_12.png"></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/" data-id="cjfhkzy3200fg9vra9yviovj5" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a></li></ul>
 
     </footer>
   </div>
@@ -680,7 +672,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">140</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -717,7 +709,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

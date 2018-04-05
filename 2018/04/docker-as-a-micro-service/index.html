@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Docker as a Micro Service | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Things can get worse if the software has additional dependencies (Ja">
+<meta name="keywords" content="docker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker as a Micro Service">
+<meta property="og:url" content="http://www.talkapex.com/2018/04/docker-as-a-micro-service/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Things can get worse if the software has additional dependencies (Ja">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2018-04-05T02:46:48.159Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docker as a Micro Service">
+<meta name="twitter:description" content="One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Things can get worse if the software has additional dependencies (Ja">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Martin Giffy D&#39;Souza on Oracle APEX</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-docker-as-a-micro-service" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/docker-as-a-micro-service/" class="article-date">
+  <time datetime="2018-04-05T04:41:37.000Z" itemprop="datePublished">2018-04-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Docker as a Micro Service
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Things can get worse if the software has additional dependencies (Java for example) especially when you need to have two versions of the same tool for different apps.</p>
+<p>Docker solves this problem by keeping everything you need for a specific task in one container. The added bonus is that you’ll probably be able to find a Docker container for just about anything you want and it’s OS independent on <a href="https://hub.docker.com/" target="_blank" rel="noopener">Docker Hub</a>.</p>
+<p>At <a href="https://www.insum.ca/hackathon-opportunity-work-with-new-technology/" target="_blank" rel="noopener">Insum’s 2018 Hackathon</a> we developed skills for <a href="https://alexa.amazon.com" target="_blank" rel="noopener">Amazon Alexa</a>. To help the teams I published a <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Docker image</a> that has both the <a href="https://aws.amazon.com/cli/" target="_blank" rel="noopener">AWS CLI</a> and <a href="https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html" target="_blank" rel="noopener">Alexa Skills Kit (ASK) CLI</a>. </p>
+<p>Most of the demos I’ve seen for containers that are used for CLI tools looked like this:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">docker run -it \</div><div class="line">  ...</div><div class="line">  doccker_prefs</div><div class="line">  my_tool.sh -some -parameters</div></pre></td></tr></table></figure>
+<p>Though these containers are helpful it’s not really useful for end users (i.e. developers) since the command can be tough to remember and the containers may exist after running the tool (i.e. you may need to manually delete them.</p>
+<p>When building the <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Amazon ASK CLI container</a> I wanted to avoid these issues to make it as easy as possible for developers to use. I did the following tricks:</p>
+<h2 id="alias-the-docker-run-command"><a href="#alias-the-docker-run-command" class="headerlink" title="alias the docker run command"></a><code>alias</code> the <code>docker run</code> command</h2><p>Instead of having to remember the long <code>docker run</code> command with all the parameters I used an <code>alias</code> command to bundle it all together. Mine looked like this:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">alias</span> alexa=<span class="string">"docker run -it --rm \</span></div><div class="line">  -v ~/alexa-demo/ask-config:/home/node/.ask \</div><div class="line">  -v ~/alexa-demo/aws-config:/home/node/.aws \</div><div class="line">  -v ~/alexa-demo/app:/home/node/app \</div><div class="line">  martindsouza/amazon-ask-cli:latest</div></pre></td></tr></table></figure>
+<p>A few key things to note from the above snippet:</p>
+<ul>
+<li><code>alias</code>: This means that anytime I type in <code>alexa</code> in bash it will run everything in the quotes.<ul>
+<li><em>Windows users: <code>alias</code> doesn’t exist in DOS or PowerShell. I’m not aware of any alternatives. If you know of any easy ones please leave a comment and I’ll update this post</em></li>
+</ul>
+</li>
+<li><code>--rm</code> option: Deletes (self destruct) the container after the command is run. This means is that when I run <code>alexa ask init</code> (where <code>ask init</code> is the CLI tool) it’ll <code>run</code> the container, execute <code>ask</code> (with parameter <code>init</code>), then remove the container once <code>ask</code> is done.</li>
+</ul>
+<p>Using the <code>alias</code> and <code>--rm</code> techniques you can easily have all the CLI tools you want without cluttering up your base machine. Of course there may be some minor performance impacts by Dockerizing them. Personally I didn’t notice any slowdowns and will start using this technique for all my future CLI tools.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="cjflx7rj400fyea8p38bxo5cs" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/04/docker-as-a-micro-service/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2018/04/apex-page-item-source-vs-default/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          APEX Page Item Source vs Default
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2018/04/docker-image-for-ords-standalone/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Docker Image for ORDS Standalone</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="OraOpenSource.com" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">140</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'http://www.talkapex.com/2018/04/docker-as-a-micro-service/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-8016477-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+  </div>
+</body>
+</html>

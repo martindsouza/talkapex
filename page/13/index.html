@@ -67,6 +67,105 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-decoding-decode-data-types" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/12/decoding-decode-data-types/" class="article-date">
+  <time datetime="2012-12-27T16:06:00.000Z" itemprop="datePublished">2012-12-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/12/decoding-decode-data-types/">Decoding Decode Data Types</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <div class="MsoNormal">I ran into a strange issue in APEX a while ago which was due to a decode statement not returning the data type that I expected. Here’s a sample of what the query looked like:</div><div class="MsoNormal"><br></div><div class="MsoNormal"><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">create or replace view mdsouza_temp as</span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">select</span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">&nbsp; decode(job, ‘PRESIDENT’, null, 0) col_decode,</span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">&nbsp; case when job = ‘PRESIDENT’ then null else 0 end col_case</span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">from emp;</span></div><div class="MsoNormal"><br></div><div class="MsoNormal">At first glance you would expect both columns to be the same. If you query the view they look like they return the same values but they don’t (this is what caught me). Upon further investigation the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">COL_DECODE</span>column actually returns a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">VARCHAR2</span> and not a number:</div><div class="MsoNormal"><br></div><div class="MsoNormal"><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">desc mdsouza_temp;</span><br><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">Name<span style="mso-spacerun: yes;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>Null Type<span style="mso-spacerun: yes;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>&nbsp;</span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">———- —- ———–</span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">COL_DECODE<span style="mso-spacerun: yes;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><strong>VARCHAR2(1)</strong></span></div><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">COL_CASE<span style="mso-spacerun: yes;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>NUMBER</span><span style="mso-spacerun: yes;"><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">&nbsp;&nbsp;</span>&nbsp;&nbsp;&nbsp; </span><br><div class="MsoNormal"><br></div><div class="MsoNormal">It turns out that if you have a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NULL</span> as the first result (not the last, default, value) the <span style="font-family: inherit;">returned value/data type</span> will be a VARCHAR2 and not the data type of the other values as shown in the following example:</div><div class="MsoNormal"><br></div><div class="MsoNormal"><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">create or replace view mdsouza_temp as</span></div><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">select </span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;"><span style="mso-spacerun: yes;">&nbsp; </span>decode(job, ‘MANAGER’, 1, ‘PRESIDENT’, null, 0) col_decode,</span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">from emp;</span><br><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">desc mdsouza_temp;</span><br><br><div class="MsoNormal"><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">Name<span style="mso-spacerun: yes;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>Null Type<span style="mso-spacerun: yes;">&nbsp;&nbsp; </span></span></div><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">———- —- —— </span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">COL_DECODE<span style="mso-spacerun: yes;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>NUMBER</span><br><br><div class="MsoNormal">If you do have to have <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NULL</span> as the first result in the set you need to explicitly convert the result to the appropriate data type:</div><div class="MsoNormal"><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">create or replace view mdsouza_temp as</span></div><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">select </span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;"><span style="mso-spacerun: yes;">&nbsp; </span>to_number(decode(job, ‘PRESIDENT’, null, 0)) col_decode</span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">from emp;</span><br><div class="MsoNormal"><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">desc mdsouza_temp;</span><br><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">Name<span style="mso-spacerun: yes;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>Null Type<span style="mso-spacerun: yes;">&nbsp;&nbsp; </span></span></div><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">———- —- —— </span><br><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">COL_DECODE<span style="mso-spacerun: yes;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span>NUMBER</span><span style="mso-tab-count: 1;"><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">&nbsp;</span>&nbsp;&nbsp;</span><br><div class="MsoNormal"><br></div><div class="MsoNormal"><span style="mso-tab-count: 1;">This is not a bug, and is covered in the <a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions049.htm#SQLRF00631" target="_blank" rel="noopener">Oracle documentation on DECODE</a> “<em>Oracle automatically converts the return value to the same data type as the first result.</em>“ </span></div>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/12/decoding-decode-data-types/" data-id="cjflx7rf8008pea8pp666h1q7" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/12/decoding-decode-data-types/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-session-state-protection-in-detail" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/11/session-state-protection-in-detail/" class="article-date">
+  <time datetime="2012-11-20T03:48:00.000Z" itemprop="datePublished">2012-11-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/11/session-state-protection-in-detail/">Session State Protection in Detail</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Session State Protection (SSP) can be confusing for new APEX developers and also difficult for senior APEX developers trying to explain it. This article will cover SSP in detail.</p>
+<p><strong>What is SSP?&nbsp;</strong></p>
+<p>SSP is used to prevent URL tampering. URL tampering is when a malicious user modifies URL parameters to access data that they may not have access to. For example if you have a Master Detail setup for the EMP table (i.e  a report with edit links to a form) each link will look something like this: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;"><a href="http://fcapex42.clarifit.com:8894/apex/f?p=211:11:14916146169058::::**P11_EMPNO:7698**" target="_blank" rel="noopener">http://fcapex42.clarifit.com:8894/apex/f?p=211:11:14916146169058::::**P11_EMPNO:7698**</a></span>. If you restricted the report to employees in your current department you can easily change the EMPNO id and change it to another employee in another department. Even though the intention of the application was to “restrict” users to only edit people within their own department a malicious or curious user could start editing all the employees.</p>
+<p>SSP prevents URL tampering by applying a checksum to the end of the URL. The new URL looks something like: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;"><a href="http://fcapex42" target="_blank" rel="noopener">http://fcapex42</a></span><span style="font-family: &quot;Courier New&quot;,Courier,monospace;"><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">.clarifit.com</span>:8894/apex/f?p=211:11:14916146169058::::P11_EMPNO:7698&amp;<strong>cs=3358AAB32787C2A2B294CE934D50FD0C3</strong></span>. If a user now tries to modify the EMPNO id they will get an error in APEX as the URL won’t have the correct checksum.</p>
+<p><strong>Applying SSP</strong></p>
+<p>To add SSP at the page level (technically called Page Access Protection at the page level) edit the page and scroll down to the Security section. Select Arguments Must Have Checksum for the Page Access Protection option.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-02VsYYqkLjQ/UKr7NFcz3AI/AAAAAAAAERY/hHHHakbXrC8/s1600/page_access_protection.png" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-02VsYYqkLjQ/UKr7NFcz3AI/AAAAAAAAERY/hHHHakbXrC8/s320/page_access_protection.png" alt=""></a></div>Once that is added you can modify the page items you want SSP to be applied to. Edit a page item and scroll down to the Security section. Select an option for Session State Protection (note: click on the help link to find the differences between the various options; I usually use Checksum Required - Session Level).</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-mNipLR_CfpI/UKr7NRtGssI/AAAAAAAAERc/xy1eDMPKQJA/s1600/session_state_protection.png" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-mNipLR_CfpI/UKr7NRtGssI/AAAAAAAAERc/xy1eDMPKQJA/s400/session_state_protection.png" alt=""></a></div><br>To modify a page and all its page items at the same time go to Shared Components &gt; Session State Protection &gt; Page Item and click on a page link.</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-9alTXvzvgck/UKr7Nrt1KxI/AAAAAAAAERo/ZRhi4oKVgOg/s1600/secure_page_and_page_items.png" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/-9alTXvzvgck/UKr7Nrt1KxI/AAAAAAAAERo/ZRhi4oKVgOg/s400/secure_page_and_page_items.png" alt=""></a></div><br><strong>Two Layered Approach: Page vs Page Items</strong></p>
+<p>The easiest way to think of SSP in APEX is that it’s a two layered approach. First you must define which pages (not page items) require a checksum applied to it when passing in URL parameters. The second part is to define which page items require a checksum when set from the URL. You can’t do the later with out the former (i.e. if you just define a set of page items to have SSP it won’t work) but you can have pages with SSP without any page items with SSP.</p>
+<p>The two layered approach is where most people get confused. If you apply SSP at the page level, shouldn’t all items be protected? At first glance the answer is “yes”. But the actual answer is no. The following example highlights why both “layers” are required.</p>
+<p>Suppose we only apply Page Access Protection for the EMP form page (let’s say P11). If I clicked on a link to edit an employee it would add the checksum. Initially it looks as if everything is ok. Now suppose we have another page, P20, that doesn’t have Page Access Protection enabled. We could actually set P11_EMPNO from P20. The URL would look like this: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;"><a href="http://fcapex42" target="_blank" rel="noopener">http://fcapex42</a></span><span style="font-family: &quot;Courier New&quot;,Courier,monospace;"><span style="font-family: &quot;Courier New&quot;,Courier,monospace;">.clarifit.com</span>:8894/apex/f?p=211:<strong>20</strong>:14916146169058::::<strong>P11_EMPNO</strong>:7839</span>  Most people forget that you can set page items from any page, i.e. you’re not restricted to only setting items for the current page that you’re accessing.</p>
+<p>You could also set any of the page items via an AJAX call (since none of them have SSP applied to them). Either way, just applying page access protection isn’t enough.</p>
+<p><strong>When Not to Apply SSP</strong></p>
+<p>If you haven’t implemented SSP in your application you should really look at doing so. Before you apply it to all items it’s important to note that any items that can be set via an AJAX call can not have SSP enabled for them. The most usual case of this is cascading LOVs (select a department, then a list of employees gets refreshed with all the employees that belong to the selected department).</p>
+<p>The reason why you can’t have SSP item items that are set via AJAX is that AJAX uses JavaScript to build the URL. Since JavaScript code is downloaded and runs on the end user’s machine it is not deemed to be secure. So if you had your checksum code in a JavaScript file a malicious user to easily reverse engineer it and apply checksums for any item they wanted to.</p>
+<p><strong>Conclusion</strong></p>
+<p>SSP is a great feature to quickly help secure your application. It’s important to remember that SSP only prevents URL tampering. Nothing more, nothing less. It’s a common mistake by developers, and managers alike, that just applying SSP means that they’ve locked down and secured an application. It’s just one of many steps to help protect your application.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/11/session-state-protection-in-detail/" data-id="cjflx7rf5008nea8p7bjudwo6" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/11/session-state-protection-in-detail/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apexposed-down-under" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/10/apexposed-down-under/" class="article-date">
@@ -98,7 +197,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/10/apexposed-down-under/" data-id="cjfhkzxzn008n9vra1woj7p3d" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/10/apexposed-down-under/" data-id="cjflx7rf4008lea8pbntqo3fj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/10/apexposed-down-under/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -149,7 +248,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/09/plsql-exceptions-propagation-during/" data-id="cjfhkzxzm008l9vrafvs53jwl" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/09/plsql-exceptions-propagation-during/" data-id="cjflx7rf3008jea8psoq0qs3x" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/09/plsql-exceptions-propagation-during/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -195,7 +294,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/apexadministratorrole/" data-id="cjfhkzxzl008j9vratt8v2fdz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/apexadministratorrole/" data-id="cjflx7rf2008hea8pcnqlq10c" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/apexadministratorrole/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -264,7 +363,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/how-to-sendupload-clob-from-browser-to/" data-id="cjfhkzxzi008c9vraahfib6i7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/how-to-sendupload-clob-from-browser-to/" data-id="cjflx7rf0008cea8ppu9kljz1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/how-to-sendupload-clob-from-browser-to/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -325,7 +424,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/" data-id="cjfhkzxzk008g9vra39wnwa7f" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/" data-id="cjflx7rf1008fea8pv7xq0sl0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -412,7 +511,7 @@ END IF;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/" data-id="cjfhkzxzj008e9vrajdh3ugzm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/" data-id="cjflx7rey008aea8p3gl1l7du" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -499,7 +598,7 @@ END IF;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="cjfhkzxzi008a9vra94kwwv40" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="cjflx7rex0088ea8pcrzzxd5y" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -619,121 +718,12 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cjfhkzxzh00889vrazz13e3eu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cjflx7rew0086ea8pn4vnzy58" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-create-apex-session-in-plsql" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/08/how-to-create-apex-session-in-plsql/" class="article-date">
-  <time datetime="2012-08-15T14:38:00.000Z" itemprop="datePublished">2012-08-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/08/how-to-create-apex-session-in-plsql/">How to Create an APEX Session in PL/SQL</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Debugging a function or procedure which references APEX items using the V/NV functions or trying to debug APEX collections can be frustrating when the only way to set, and view, the values is to actually do it through the application. Thankfully, there’s a way to create an APEX session from a PL/SQL session to test out your code.</p>
-<p>They’re various examples on the <a href="https://forums.oracle.com/forums/forum.jspa?forumID=137" target="_blank" rel="noopener">APEX forums</a> on how to create an APEX session in PL/SQL. Here’s one version of it.</p>
-<p><pre class="brush: sql;">CREATE OR REPLACE PROCEDURE sp_create_apex_session(<br>  p_app_id IN apex_applications.application_id%TYPE,<br>  p_app_user IN apex_workspace_activity_log.apex_user%TYPE,<br>  p_app_page_id IN apex_application_pages.page_id%TYPE DEFAULT 1)<br>AS<br>  l_workspace_id apex_applications.workspace_id%TYPE;<br>  l_cgivar_name  owa.vc_arr;<br>  l_cgivar_val   owa.vc_arr;<br>BEGIN</pre></p>
-<p>  htp.init;</p>
-<p>  l_cgivar_name(1) := ‘REQUEST_PROTOCOL’;<br>  l_cgivar_val(1) := ‘HTTP’;</p>
-<p>  owa.init_cgi_env(<br>    num_params =&gt; 1,<br>    param_name =&gt; l_cgivar_name,<br>    param_val =&gt; l_cgivar_val );</p>
-<p>  SELECT workspace_id<br>  INTO l_workspace_id<br>  FROM apex_applications<br>  WHERE application_id = p_app_id;</p>
-<p>  wwv_flow_api.set_security_group_id(l_workspace_id);</p>
-<p>  apex_application.g_instance := 1;<br>  apex_application.g_flow_id := p_app_id;<br>  apex_application.g_flow_step_id := p_app_page_id;</p>
-<p>  apex_custom_auth.post_login(<br>    p_uname =&gt; p_app_user,<br>    p_session_id =&gt; null, – could use APEX_CUSTOM_AUTH.GET_NEXT_SESSION_ID<br>    p_app_page =&gt; apex_application.g_flow_id||’:’||p_app_page_id);<br>END;To create an APEX session (in PL/SQL) to mimic some tests I can do the following:  </p>
-<p><pre class="brush: sql;">SQL&gt; BEGIN<br>  2    sp_create_apex_session(<br>  3      p_app_id =&gt; 106,<br>  4      p_app_user =&gt; ‘MARTIN’,<br>  5      p_app_page_id =&gt; 10);<br>  6  END;<br>  7  /</pre></p>
-<p>PL/SQL procedure successfully completed.<br>View some APEX session state variables:</p>
-<p><pre class="brush: sql;">SQL&gt; SELECT v(‘APP_USER’) app_user, v(‘APP_SESSION’) app_session,<br>  2    v(‘APP_PAGE_ID’) page_id, v(‘P1_X’) p1_x<br>  3  FROM dual;</pre></p>
-<p>APP_USER   APP_SESSION     PAGE_ID    P1_X</p>
-<hr>
-<p>MARTIN     374363229560201 10</p>
-<p>SQL&gt; – Set P1_X<br>SQL&gt; exec apex_util.set_session_state(‘P1_X’, ‘abc’);</p>
-<p>PL/SQL procedure successfully completed.</p>
-<p>SQL&gt; SELECT v(‘APP_USER’) app_user, v(‘APP_SESSION’) app_session,<br>  2    v(‘APP_PAGE_ID’) page_id, v(‘P1_X’) p1_x<br>  3  FROM dual;</p>
-<p>APP_USER   APP_SESSION     PAGE_ID    P1_X</p>
-<hr>
-<p>MARTIN     374363229560201 10         abc</p>
-<p>SQL&gt; – Clear APEX Session State<br>SQL&gt; exec APEX_UTIL.CLEAR_APP_CACHE(p_app_id =&gt; 106);</p>
-<p>PL/SQL procedure successfully completed.You can also create and view collections using the APEX_COLLECTION APIs and the APEX_COLLECTION view.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="cjfhkzxzg00869vra9kwq7fy8" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-odtug-apexposed-2012" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/07/odtug-apexposed-2012/" class="article-date">
-  <time datetime="2012-07-30T13:14:00.000Z" itemprop="datePublished">2012-07-30</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/07/odtug-apexposed-2012/">ODTUG APEXposed 2012</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-t3VS4FaGTPA/UBYgsLzW0YI/AAAAAAAAENw/wWEdjTUUsag/s1600/2012_APEXposed.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-t3VS4FaGTPA/UBYgsLzW0YI/AAAAAAAAENw/wWEdjTUUsag/s400/2012_APEXposed.jpg" alt=""></a></div><br>ODTUG is hosting it’s APEX focused APEXposed conference in Montreal this fall from September 11-12. The <a href="http://odtugapextraining.com/presenters.html" target="_blank" rel="noopener">speaker list</a> is loaded with experts from around the <u>world</u> who will present on a wide variety of APEX and SQL Developer topics. The list includes 3 Oracle Product Managers (APEX / SQL Developer), 6 ACE and ACE Directors, and some other excellent presenters. To put some perspective on this list of presenters, there’s only 14 ACE/ACE Directors in Canada and 375 world wide. Having 6 ACE/ACEDs coming to Montreal is a great opportunity to learn from them.</p>
-<p>On a personal note, I’ll be giving two talks on <a href="http://odtugapextraining.com/presentations.html#dsouzaapex" target="_blank" rel="noopener">APEX + HTML5</a>, and <a href="http://odtugapextraining.com/presentations.html#dsouzaplugins" target="_blank" rel="noopener">APEX Plugins</a>. I gave the HTML 5 presentation this summer at Kscope 12 but I’ll be adding some new parts to it. The plugins presentation will go over how to create a plugin from scratch to help you and your team build your own APEX plugins.</p>
-<p>For more information and to register go to <a href="http://odtugapextraining.com/" target="_blank" rel="noopener">http://odtugapextraining.com</a>. If you register before August 15th you can take advantage of the early bird rate for only $399! This is a steal for the amount of information that you’ll learn and the opportunity to ask the experts any of your APEX questions. To make things even more compelling if you use the code <em>CLARIFIT</em> you will save an additional $50 off your registration cost.</p>
-<p>For those that are coming from out of town (Toronto, Ottawa, Quebec City, Southern US, etc) ODTUG has secured a preferred rate at Le St.Martin. For more information go to <a href="http://odtugapextraining.com/Location.html" target="_blank" rel="noopener">http://odtugapextraining.com/Location.html</a> and scroll to the bottom.</p>
-<p>I really hope that the Oracle community in Canada takes advantage of this opportunity. I’m not sure how often we’ll get such an amazing list of presenters and presentations in our own back yard. See you there!</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="cjfhkzxzf00849vranne642g5" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/07/odtug-apexposed-2012/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
 
     </footer>
   </div>
@@ -780,7 +770,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">139</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">140</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -817,7 +807,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

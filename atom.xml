@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.talkapex.com/"/>
-  <updated>2018-04-02T01:53:57.675Z</updated>
+  <updated>2018-04-05T02:46:12.023Z</updated>
   <id>http://www.talkapex.com/</id>
   
   <author>
@@ -15,6 +15,52 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>APEX Page Item Source vs Default</title>
+    <link href="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/"/>
+    <id>http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/</id>
+    <published>2018-04-05T04:50:45.000Z</published>
+    <updated>2018-04-05T02:46:12.023Z</updated>
+    
+    <content type="html"><![CDATA[<p>Someone recently asked me about the difference between an APEX page item’s <code>Source</code>  and <code>Default</code> attributes. I’ve always been confused about these options so I decided to further investigate them. This post will cover the differences between Source and Default along with some additional info.</p><img src="/2018/04/apex-page-item-source-vs-default/source-default.png"><h2 id="Order-of-Operations"><a href="#Order-of-Operations" class="headerlink" title="Order of Operations"></a>Order of Operations</h2><p>Page items can be set in different ways and there is an order of operations to which “setting” takes precedence:</p><p>1- <strong>Session State</strong>: What ever is in session state will always trump the page item’s Source or Default settings<em>*</em><br>1- <strong>Source</strong>: Source comes next. For most people this is <code>null</code> or <code>Database Column</code> (if using <code>Automatic Row Fetch</code>)<br>1- <strong>Default</strong>: If the page item is still null then Default will be used. This attribute doesn’t have as many options as Source (just <code>Static Value</code>, <code>PL/SQL Expression</code>, and <code>PL/SQL Function Body</code>)</p><p><em>* The Source attribute has an option to ignore the current session state value.</em></p><h2 id="Session-State-vs-On-Screen"><a href="#Session-State-vs-On-Screen" class="headerlink" title="Session State vs On Screen"></a>Session State vs On Screen</h2><p>Neither Source or Default saves the value to session state<em>*</em>. Instead it is what is shown on screen. If Source or Default is used the value will only be saved to session state once the page is submitted.</p><p><em>* Read below as the value is temporarily used in session state for the remaining duration of the page load.</em></p><h2 id="Additional-Info"><a href="#Additional-Info" class="headerlink" title="Additional Info"></a>Additional Info</h2><h3 id="Is-Default-always-Necessary"><a href="#Is-Default-always-Necessary" class="headerlink" title="Is Default always Necessary?"></a>Is Default always Necessary?</h3><p>I think a lot of the confusion with Source and Default is that in some cases Default is redundant and unnecessary. I think Default is only required when the Source is set to <code>Database Column</code>, <code>Item</code>, or <code>Preference</code>. For the other options (see below) you can wrap the returned value with a <code>nvl</code>.</p><img src="/2018/04/apex-page-item-source-vs-default/source-types.png"><h3 id="Source-Used-Attribute"><a href="#Source-Used-Attribute" class="headerlink" title="Source Used Attribute"></a>Source <code>Used</code> Attribute</h3><p>Source has additional attribute that Default does not: <code>Used</code></p><img src="/2018/04/apex-page-item-source-vs-default/source-used.png"><p>If the <code>used</code> option is set to <code>Always, replacing any existing value in session state</code> this means that after the page has loaded the value in Session State may have a value that is different than the value that is shown on the screen. The following image shows the result of this situation (i.e. different session state vs on screen value).</p><img src="/2018/04/apex-page-item-source-vs-default/session-source-diff.png"><h3 id="Temporary-Change-of-Session-State"><a href="#Temporary-Change-of-Session-State" class="headerlink" title="Temporary Change of Session State"></a>Temporary Change of Session State</h3><p>Suppose that a <code>Before Header</code> computation exists and sets <code>P1_DEMO</code> to a static value: <code>From Computation</code>. This means that during page load, right after the computation is run, the session state value for <code>P1_DEMO</code> is <code>From Computation</code>. </p><p><code>P1_DEMO</code> Source is set to <code>From Source</code> and <code>Always, replacing any existing value in session state</code> is used. After <code>P1_DEMO</code> is “loaded” during the page load computation, the session state of <code>P1_DEMO</code> is <code>From Source</code> for the duration of the page load. After the page is loaded the session state value is <code>From Computation</code>. The following image highlights this. For both the <code>Before</code> and <code>After</code> display only items the Source was set to <code>&amp;P1_DEMO.</code></p><img src="/2018/04/apex-page-item-source-vs-default/session-state-temp-change.png"><p>This can cause some wierd behaviors on a page that has AJAX calls. The value in session state changes during the page load process. After the page is loaded it may flip flop and the AJAX call could use the “old” session state value (see screen shot above).</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;Someone recently asked me about the difference between an APEX page item’s &lt;code&gt;Source&lt;/code&gt;  and &lt;code&gt;Default&lt;/code&gt; attributes. I’ve
+      
+    
+    </summary>
+    
+    
+      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Docker as a Micro Service</title>
+    <link href="http://www.talkapex.com/2018/04/docker-as-a-micro-service/"/>
+    <id>http://www.talkapex.com/2018/04/docker-as-a-micro-service/</id>
+    <published>2018-04-05T04:41:37.000Z</published>
+    <updated>2018-04-05T02:46:48.159Z</updated>
+    
+    <content type="html"><![CDATA[<p>One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Things can get worse if the software has additional dependencies (Java for example) especially when you need to have two versions of the same tool for different apps.</p><p>Docker solves this problem by keeping everything you need for a specific task in one container. The added bonus is that you’ll probably be able to find a Docker container for just about anything you want and it’s OS independent on <a href="https://hub.docker.com/" target="_blank" rel="noopener">Docker Hub</a>.</p><p>At <a href="https://www.insum.ca/hackathon-opportunity-work-with-new-technology/" target="_blank" rel="noopener">Insum’s 2018 Hackathon</a> we developed skills for <a href="https://alexa.amazon.com" target="_blank" rel="noopener">Amazon Alexa</a>. To help the teams I published a <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Docker image</a> that has both the <a href="https://aws.amazon.com/cli/" target="_blank" rel="noopener">AWS CLI</a> and <a href="https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html" target="_blank" rel="noopener">Alexa Skills Kit (ASK) CLI</a>. </p><p>Most of the demos I’ve seen for containers that are used for CLI tools looked like this:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">docker run -it \</div><div class="line">  ...</div><div class="line">  doccker_prefs</div><div class="line">  my_tool.sh -some -parameters</div></pre></td></tr></table></figure><p>Though these containers are helpful it’s not really useful for end users (i.e. developers) since the command can be tough to remember and the containers may exist after running the tool (i.e. you may need to manually delete them.</p><p>When building the <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Amazon ASK CLI container</a> I wanted to avoid these issues to make it as easy as possible for developers to use. I did the following tricks:</p><h2 id="alias-the-docker-run-command"><a href="#alias-the-docker-run-command" class="headerlink" title="alias the docker run command"></a><code>alias</code> the <code>docker run</code> command</h2><p>Instead of having to remember the long <code>docker run</code> command with all the parameters I used an <code>alias</code> command to bundle it all together. Mine looked like this:</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">alias</span> alexa=<span class="string">"docker run -it --rm \</span></div><div class="line">  -v ~/alexa-demo/ask-config:/home/node/.ask \</div><div class="line">  -v ~/alexa-demo/aws-config:/home/node/.aws \</div><div class="line">  -v ~/alexa-demo/app:/home/node/app \</div><div class="line">  martindsouza/amazon-ask-cli:latest</div></pre></td></tr></table></figure><p>A few key things to note from the above snippet:</p><ul><li><code>alias</code>: This means that anytime I type in <code>alexa</code> in bash it will run everything in the quotes.<ul><li><em>Windows users: <code>alias</code> doesn’t exist in DOS or PowerShell. I’m not aware of any alternatives. If you know of any easy ones please leave a comment and I’ll update this post</em></li></ul></li><li><code>--rm</code> option: Deletes (self destruct) the container after the command is run. This means is that when I run <code>alexa ask init</code> (where <code>ask init</code> is the CLI tool) it’ll <code>run</code> the container, execute <code>ask</code> (with parameter <code>init</code>), then remove the container once <code>ask</code> is done.</li></ul><p>Using the <code>alias</code> and <code>--rm</code> techniques you can easily have all the CLI tools you want without cluttering up your base machine. Of course there may be some minor performance impacts by Dockerizing them. Personally I didn’t notice any slowdowns and will start using this technique for all my future CLI tools.</p>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Thing
+      
+    
+    </summary>
+    
+    
+      <category term="docker" scheme="http://www.talkapex.com/tags/docker/"/>
+    
+  </entry>
   
   <entry>
     <title>Docker Image for ORDS Standalone</title>
@@ -155,9 +201,9 @@
     
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
     
-      <category term="docker" scheme="http://www.talkapex.com/tags/docker/"/>
-    
       <category term="12c" scheme="http://www.talkapex.com/tags/12c/"/>
+    
+      <category term="docker" scheme="http://www.talkapex.com/tags/docker/"/>
     
   </entry>
   
@@ -450,54 +496,6 @@
       <category term="sql" scheme="http://www.talkapex.com/tags/sql/"/>
     
       <category term="apex-5.1" scheme="http://www.talkapex.com/tags/apex-5-1/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>APEX 5.1 Validations and Session State</title>
-    <link href="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/"/>
-    <id>http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/</id>
-    <published>2017-04-30T10:24:06.000Z</published>
-    <updated>2017-04-30T11:40:03.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>Starting in APEX 5.1, pages are submitted via AJAX by default instead of the traditional post and refresh. I recorded a short video for <a href="www.insum.ca">Insum</a> a while back on this and suggest that you <a href="https://www.youtube.com/watch?v=yF58mPBLxX0" target="_blank" rel="noopener">watch it</a> before continuning.</p><p>Last week <a href="https://twitter.com/vincentmorneau" target="_blank" rel="noopener">Vincent Morneau</a> and I had a discussion that lead to the following question: What happens when an <code>After Submit</code> computation or process changes a page item’s value in session state and a validation fails? The short answer is that the value in session state is modified but not reflected on the page afterwards. I created the following test case to demonstrate this behavior:</p><p>On Page 2 (P2) I have an text item called <code>P2_NAME</code>. I then have an <code>After Submit</code> computation that always sets the value to <code>Set from Computation</code> and a validation that always fails as shown below.</p><p><img src="/2017/04/apex-5-1-validations-and-session-state/page-processing.png"></p><p>If I enter <code>martin</code> as a value in <code>P2_NAME</code> and submit the page I’ll get an error message, yet the session state value is now <code>Set from Computation</code>. The following animation shows this.</p><p><img src="/2017/04/apex-5-1-validations-and-session-state/ajax-page-submission.gif"></p><h2 id="What-does-this-mean"><a href="#What-does-this-mean" class="headerlink" title="What does this mean?"></a>What does this mean?</h2><p>Before analyzing this behavior it’s important to understand when commits occur in APEX. After each computation or process an implicit <code>commit</code> may occur. <a href="https://twitter.com/dmcghan" target="_blank" rel="noopener">Dan McGhan</a> wrote an excellent <a href="http://www.danielmcghan.us/2012/08/implicit-commits-in-apex.html" target="_blank" rel="noopener">blog post</a> about this several years ago that I highly suggest reading it.</p><p>I can’t speak for the APEX development team but it appears they had a few options when introducing the new AJAX submission functionality: </p><ol><li>Change the behavior of when commits occur to not commit until afer all validations pass</li><li>Upon a failed validation modify the page with the updated session state values</li><li>Do neither</li></ol><p>The first two options may actually introduce more problems and complexity and also ruin backwards compatibility with older applications. I think the third option is the best one as most applications don’t do computations or process after submitting but before validations. If developers pass in current page item values into AJAX Dyanmic Actions or cascading LOVs it will make the new AJAX page submission a non issue.</p><h3 id="Why-might-this-be-a-problem"><a href="#Why-might-this-be-a-problem" class="headerlink" title="Why might this be a problem?"></a>Why might this be a problem?</h3><p>Modifying the session state and not reflecting the change on the page may cause some undesired UI bugs when dealing with AJAX functions (Dynamic Actions, cascading LOVs, etc) that reference page items. I dont’ think there are many situations where this will actually cause issues and most of this can be mitigated by passing in the reference page items when calling an AJAX function.</p><h3 id="What-to-do-about-it"><a href="#What-to-do-about-it" class="headerlink" title="What to do about it?"></a>What to do about it?</h3><p>This is one thing that I think develoeprs will just need to be aware of and analyze their code to see if there may be any impacts. The following query will identify pages where computations or processes exist before validations.</p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">distinct</span></div><div class="line">  pv.application_id,</div><div class="line">  pv.page_id,</div><div class="line">  pv.page_name</div><div class="line"><span class="keyword">from</span> apex_application_page_val pv</div><div class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">  <span class="keyword">and</span> pv.application_id = :app_id</div><div class="line">  <span class="keyword">and</span> <span class="keyword">exists</span> (</div><div class="line">    <span class="keyword">select</span> <span class="number">1</span></div><div class="line">    <span class="keyword">from</span> apex_application_page_proc pp</div><div class="line">    <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">      <span class="keyword">and</span> pp.application_id = pv.application_id</div><div class="line">      <span class="keyword">and</span> pp.page_id = pv.page_id</div><div class="line">      <span class="keyword">and</span> pp.process_point_code = <span class="string">'ON_SUBMIT_BEFORE_COMPUTATION'</span></div><div class="line">    <span class="keyword">union</span></div><div class="line">    <span class="keyword">select</span> <span class="number">1</span></div><div class="line">    <span class="keyword">from</span> apex_application_page_comp pc</div><div class="line">    <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">      <span class="keyword">and</span> pc.application_id = pv.application_id</div><div class="line">      <span class="keyword">and</span> pc.page_id = pv.page_id</div><div class="line">      <span class="keyword">and</span> pc.computation_point = <span class="string">'After Submit'</span>   </div><div class="line">  )</div></pre></td></tr></table></figure>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;Starting in APEX 5.1, pages are submitted via AJAX by default instead of the traditional post and refresh. I recorded a short video for &lt;
-      
-    
-    </summary>
-    
-    
-      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
-    
-      <category term="apex-5.1" scheme="http://www.talkapex.com/tags/apex-5-1/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Partial Rollbacks</title>
-    <link href="http://www.talkapex.com/2017/04/partial-rollbacks/"/>
-    <id>http://www.talkapex.com/2017/04/partial-rollbacks/</id>
-    <published>2017-04-27T10:28:41.000Z</published>
-    <updated>2017-04-27T15:11:00.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>The ability to rollback transactionsin PL/SQL is very helpful when something goes wrong and you want to <em>undo</em> what was just done. At a very high level, most code that use <code>rollback</code> look like the following:</p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">begin</span></div><div class="line">  ...</div><div class="line"><span class="keyword">exception</span></div><div class="line">  <span class="keyword">when</span> others <span class="keyword">then</span></div><div class="line">    <span class="keyword">rollback</span>;</div><div class="line">    raise;</div><div class="line"><span class="keyword">end</span>;</div></pre></td></tr></table></figure><p>The above code makes sense as the <code>rollback</code> occurs when an error happens. (<em>Note for APEX users, an implicit <code>rollback</code> occurs in processes if an exception occurs</em>) The caveat is that it rollsback the entire transaction (i.e. from the start). What if the code is part of a larger block of code and you only want to <code>rollback</code> to the previous step? The following pseudo code is an example:</p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">begin</span></div><div class="line">  do_step_1;</div><div class="line">  do_step_2;</div><div class="line">  <span class="comment">-- Step 3 may error out and if it does, still want to preserve the work of steps 1 and 2.</span></div><div class="line">  do_step_3;</div><div class="line">  do_step_4;</div><div class="line"><span class="keyword">end</span>;</div></pre></td></tr></table></figure><p>In <code>do_step_3</code> if a generic <code>rollback</code> was used in the exception block it would undo any chnages that were done in step’s 1 and 2 which is not the desired outcome. Thankfully PL/SQL rollback functionality supports this by using <code>savepoint</code>. If we want <code>do_step_3</code> to work as intented this is what it should look like:</p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">procedure</span> do_step_3 <span class="keyword">as</span></div><div class="line"><span class="keyword">begin</span></div><div class="line">  <span class="keyword">savepoint</span> start_step_3;</div><div class="line"></div><div class="line">  ...</div><div class="line"></div><div class="line">exception</div><div class="line">  when some_expected_error then</div><div class="line">    <span class="comment">-- This will rollback all changes to the start of do_step_3</span></div><div class="line">    <span class="keyword">rollback</span> <span class="keyword">to</span> <span class="keyword">savepoint</span> start_step_3;</div><div class="line">    <span class="comment">-- no raise as this was an expected error</span></div><div class="line">  when others then</div><div class="line">    raise;</div><div class="line"><span class="keyword">end</span> do_step_3;</div></pre></td></tr></table></figure><p>A few things to note about <code>savepoint</code>s:</p><ul><li>The <code>rollback to savepoint x</code> doesn’t need to be called in the <code>exception</code> block. I’ve used it in other places as well. Ex: <code>if &lt;&gt; then rollback to savepoint...</code></li><li>Try not to litter your code with <code>savepoint</code>s. It can get very confusing and tough to debug if you have a lot of them. The business logic will really determine when you need to use them.</li><li>In the past ten years I’ve only needed to use them a handful of times. It’s not a common feature that you’ll need to use but good to know when you need it.</li></ul><p>Oracle documentation for <code>savepoint</code> can be found <a href="http://docs.oracle.com/database/122/SQLRF/SAVEPOINT.htm#SQLRF01701" target="_blank" rel="noopener">here</a>.</p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;The ability to rollback transactionsin PL/SQL is very helpful when something goes wrong and you want to &lt;em&gt;undo&lt;/em&gt; what was just done.
-      
-    
-    </summary>
-    
-    
-      <category term="plsql" scheme="http://www.talkapex.com/tags/plsql/"/>
     
   </entry>
   
