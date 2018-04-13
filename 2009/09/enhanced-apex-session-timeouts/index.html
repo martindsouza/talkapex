@@ -17,7 +17,7 @@
 <meta property="og:image" content="http://3.bp.blogspot.com/_33EF80fk9sM/SrZjlS8xbPI/AAAAAAAADq0/GlyvVtBhr2Y/s400/ac_session_timeout.PNG">
 <meta property="og:image" content="http://2.bp.blogspot.com/_33EF80fk9sM/SrZkYgKz7_I/AAAAAAAADrM/U8se-ZIHyIw/s400/apex_session_extend.PNG">
 <meta property="og:image" content="http://2.bp.blogspot.com/_33EF80fk9sM/SrZj0SLARDI/AAAAAAAADrE/0ywt1wBNUNA/s400/apex_session_ended.PNG">
-<meta property="og:updated_time" content="2017-01-07T15:38:36.000Z">
+<meta property="og:updated_time" content="2018-04-13T11:22:46.069Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Enhanced APEX Session Timeouts">
 <meta name="twitter:description" content="APEX has built in logic to set the lifetime of a session. To configure this option go to Shared Components / Edit Security Attributes / Maximum Session Idle Time in Seconds and set the time in seconds">
@@ -97,18 +97,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>APEX has built in logic to set the lifetime of a session. <span style="font-style:italic;">To configure this option go to Shared Components / Edit Security Attributes / Maximum Session Idle Time in Seconds and set the time in seconds</span></p>
-<p>This essentially terminates the user’s session in the database and the next time they submit the page they’ll be redirected to the login screen. <span style="font-weight:bold;font-style:italic">The user will only know that they are logged out once they submit the page</span>. If you have an Interactive Report (IR), or use Partial Page Refresh (PPR) the users won’t know they’re logged out. Instead it will look as though the report is still trying to load.</p>
+        <p>APEX has built in logic to set the lifetime of a session. <em>To configure this option go to Shared Components / Edit Security Attributes / Maximum Session Idle Time in Seconds and set the time in seconds.</em></p>
+<p>This essentially terminates the user’s session in the database and the next time they submit the page they’ll be redirected to the login screen. <strong><em>The user will only know that they are logged out once they submit the page</em></strong>. If you have an Interactive Report (IR), or use Partial Page Refresh (PPR) the users won’t know they’re logged out. Instead it will look as though the report is still trying to load.</p>
 <p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SrZjdKYpklI/AAAAAAAADqs/GPxkwVTc1Ow/s1600-h/apex_session_timeout_ir_ex.PNG" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SrZjdKYpklI/AAAAAAAADqs/GPxkwVTc1Ow/s400/apex_session_timeout_ir_ex.PNG" alt=""></a><br>Another situation that may happen is that the user is filling out a long form on your page, their session timesout, then they click “submit”. They’ll be redirected to the login page and they’ll lose all the information that they entered.</p>
 <p>What if a user wants to extend their session? i.e. they haven’t done anything to the page but would like a warning message before we automatically log them out? Or they are entering a log form and don’t want to be logged out? I got this idea from the <a href="http://www.aircanada.com/" target="_blank" rel="noopener">Air Canada</a> web site when I was booking tickets. I really liked the fact that they let me know that they were to end my session, and gave me the option to extend my session.</p>
 <p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/SrZjlS8xbPI/AAAAAAAADq0/GlyvVtBhr2Y/s1600-h/ac_session_timeout.PNG" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/SrZjlS8xbPI/AAAAAAAADq0/GlyvVtBhr2Y/s400/ac_session_timeout.PNG" alt=""></a><br>The following solution will allow you to use APEX’s session timeout and resolve the issues listed above. You can view the demo here: <a href="http://apex.oracle.com/pls/otn/f?p=20195:2600" target="_blank" rel="noopener">http://apex.oracle.com/pls/otn/f?p=20195:2600</a></p>
-<p><span style="font-style:italic">Please note that since the demo page is set to public you can refresh after the session is supposed to have timedout and it will still work. If you set the Idle Session in APEX, this will work for pages that require authentication</span></p>
+<p><em>Please note that since the demo page is set to public you can refresh after the session is supposed to have timedout and it will still work. If you set the Idle Session in APEX, this will work for pages that require authentication.</em></p>
 <p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SrZkYgKz7_I/AAAAAAAADrM/U8se-ZIHyIw/s1600-h/apex_session_extend.PNG" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SrZkYgKz7_I/AAAAAAAADrM/U8se-ZIHyIw/s400/apex_session_extend.PNG" alt=""></a><br><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SrZj0SLARDI/AAAAAAAADrE/0ywt1wBNUNA/s1600-h/apex_session_ended.PNG" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SrZj0SLARDI/AAAAAAAADrE/0ywt1wBNUNA/s400/apex_session_ended.PNG" alt=""></a><br>Here’s a high level overview of what this solution does:</p>
 <ul>
 <li>Start a timer (pingApexSession) that will constantly “ping” (therefore refresh) your APEX session every X seconds.</li>
 <li>Start a timer (idleTimer) to detect movement on the page.</li>
 <li>If the idleTimer times out, give the user the option to extend session</li>
-<li>If the user does not extend their session, terminate their session<br><span style="font-style:italic">I haven’t put this code into a production application yet. As I mention below, I plan to make a jQuery plugin for this, so if you please send me any feedback that would be useful fur the plugin.</span></li>
+<li>If the user does not extend their session, terminate their session<br><em>I haven’t put this code into a production application yet. As I mention below, I plan to make a jQuery plugin for this, so if you please send me any feedback that would be useful fur the plugin.</em></li>
 </ul>
 <p>This solution uses <a href="http://jquery.com" target="_blank" rel="noopener">jQuery</a> and the following plugins:</p>
 <ul>
@@ -117,250 +117,58 @@
 <li><a href="http://tylermuth.wordpress.com/2009/08/19/japex-a-jquery-plugin-for-apex/" target="_blank" rel="noopener">jApex</a></li>
 <li><a href="http://keith-wood.name/countdown.html" target="_blank" rel="noopener">jQuery Countdown</a></li>
 </ul>
-<p><span style="font-weight:bold">- Create Application Process: AP_NULL</span></p>
-<ul>
+<h2 id="Create-Application-Process-AP-NULL"><a href="#Create-Application-Process-AP-NULL" class="headerlink" title="Create Application Process: AP_NULL"></a>Create Application Process: AP_NULL</h2><ul>
 <li>Process Point: On Demand</li>
 <li>Name: AP_NULL</li>
 <li>Type: PL/SQL Anonymous Block</li>
 <li>Process Text: NULL;</li>
 </ul>
-<p><span style="font-weight:bold">- Create Application Process: AP_LOGOUT</span></p>
-<ul>
+<h2 id="Create-Application-Process-AP-LOGOUT"><a href="#Create-Application-Process-AP-LOGOUT" class="headerlink" title="Create Application Process: AP_LOGOUT"></a>Create Application Process: AP_LOGOUT</h2><ul>
 <li>Process Point: On Demand</li>
 <li>Name: AP_LOGOUT</li>
 <li>Type: PL/SQL Anonymous Block</li>
-<li>Process Text:<pre class="brush: sql">
-BEGIN
-apex_custom_auth.LOGOUT (p_this_app                   => :app_id,
-                         p_next_app_page_sess         => :app_id || ':1');
-END;
-</pre>
-
-</li>
+<li>Process Text:</li>
 </ul>
-<p><span style="font-weight:bold">- Create Region: “Extend Session” on Page 0</span></p>
-<ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">begin</span></div><div class="line">  apex_custom_auth.logout(</div><div class="line">    p_this_app =&gt; :app_id,</div><div class="line">    p_next_app_page_sess =&gt; :app_id || <span class="string">':1'</span>);</div><div class="line"><span class="keyword">end</span>;</div></pre></td></tr></table></figure>
+<h2 id="Create-Region-“Extend-Session”-on-Page-0"><a href="#Create-Region-“Extend-Session”-on-Page-0" class="headerlink" title="Create Region: “Extend Session” on Page 0"></a>Create Region: “Extend Session” on Page 0</h2><ul>
 <li>Title: Extend Session</li>
 <li>Type: HTML Text</li>
 <li>Static ID: P0_REG_EXTEND_SESSION</li>
 <li>Region Attributes: style=”display:none”</li>
-<li>Region Source: Your session will timeout in: &lt;span id=”timeoutCountdownDisplay” style=”font-weight:bold”&gt;&lt;/span&gt;<br><span style="font-style:italic">You can put whatever message you want. Just make sure the span tags exist for the countdown timer</span></li>
+<li>Region Source: <code>Your session will timeout in: &lt;span id=&quot;timeoutCountdownDisplay&quot; style=&quot;font-weight:bold&quot;&gt;&lt;/span&gt;</code><br><em>You can put whatever message you want. Just make sure the span tags exist for the countdown timer.</em></li>
 </ul>
-<p><span style="font-weight:bold">- Create Button: “Extend Session” on Page 0</span></p>
-<ul>
+<h2 id="Create-Button-“Extend-Session”-on-Page-0"><a href="#Create-Button-“Extend-Session”-on-Page-0" class="headerlink" title="Create Button: “Extend Session” on Page 0"></a>Create Button: “Extend Session” on Page 0</h2><ul>
 <li>Button Name: EXTEND_SESSION</li>
 <li>Text Label: Extend Session</li>
 <li>Display in Region: Extend Session</li>
 <li>Target is a: URL</li>
 <li>URL Target: javascript:gTimeout.timers.killSession.liveFn();</li>
 </ul>
-<p><span style="font-weight:bold">- Create Region: “Session Timedout” on Page 0</span></p>
-<ul>
+<h2 id="Create-Region-“Session-Timedout”-on-Page-0"><a href="#Create-Region-“Session-Timedout”-on-Page-0" class="headerlink" title="Create Region: “Session Timedout” on Page 0"></a>Create Region: “Session Timedout” on Page 0</h2><ul>
 <li>Title: Session Ended</li>
 <li>Type: HTML Text</li>
-<li>Static ID: P0_REG_SESSION_ENDED</li>
-<li>Region Attributes: style=”display:none”</li>
+<li>Static ID: <code>P0_REG_SESSION_ENDED</code></li>
+<li>Region Attributes: <code>style=&quot;display:none&quot;</code></li>
 <li>Region Source: Your session has ended. Please login.</li>
 </ul>
-<p><span style="font-weight:bold">- Create Button: “Login” on Page 0</span></p>
-<ul>
+<h2 id="Create-Button-“Login”-on-Page-0"><a href="#Create-Button-“Login”-on-Page-0" class="headerlink" title="Create Button: “Login” on Page 0"></a>Create Button: “Login” on Page 0</h2><ul>
 <li>Button Name: LOGIN</li>
 <li>Text Label: Login</li>
 <li>Display in Region: Session Ended</li>
 <li>Target is a: Page in this Application</li>
 <li>Page: 1</li>
 </ul>
-<p><span style="font-weight:bold">- Create Region: “JavaScript - Session Timeout” on Page 0</span></p>
-<ul>
+<h2 id="Create-Region-“JavaScript-Session-Timeout”-on-Page-0"><a href="#Create-Region-“JavaScript-Session-Timeout”-on-Page-0" class="headerlink" title="Create Region: “JavaScript - Session Timeout” on Page 0"></a>Create Region: “JavaScript - Session Timeout” on Page 0</h2><ul>
 <li>Title: JavaScript - Session Timeout</li>
 <li>Type: HTML Text</li>
 <li>Template: No Template</li>
 <li>Region Source:</li>
 </ul>
-<pre class="brush: html">
-<script src="#APP_IMAGES#jquery-1.3.2.min.js" type="text/javascript"></script>
-<script src="#APP_IMAGES#jquery.simplemodal-1.3.min.js" type="text/javascript"></script>
-<script src="#APP_IMAGES#idle-timer-0.7.080609.js" type="text/javascript"></script>
-<script src="#APP_IMAGES#jquery.jApex.0.9.2.js" type="text/javascript"></script>
-<script src="#APP_IMAGES#jquery.countdown-1.5.3.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-  //*** Insert script from below ***/
-  //Removed for display purposes
-</script>
-</pre>
-<span style="font-style:italic">You'll need to upload the JS files beforehand. Please see the list above to obtain the files</span>
-
-Here's the script to put into the region above. I separated them for display purposes.
-
-<span style="font-style:italic">I probably should have created this as a jQuery plugin. I may convert it later on</span>
-<pre class="brush: js">
-var gTimeout = {
-  //debug
-  debug: false, //Set to True to turn on debugging
-  debugFn: function(pMsg) {
-    if (gTimeout.debug){
-      console.log(pMsg);
-    }
-  }, //debug
-  modalRegions: {
-    //Region that contains the "Extend Session" information
-    extendSession: {
-      id: 'P0_REG_EXTEND_SESSION',
-      backgroundColor: '#CCC',
-      opacity: 70,
-      openFn: function() {
-        gTimeout.debugFn('gTimeout.modalRegions.extendSession.openFn');
-        // Start display timeout counter
-        $('#timeoutCountdownDisplay').countdown('destroy');
-        $('#timeoutCountdownDisplay').countdown({
-          until: '+' + (gTimeout.timers.killSession.time / 1000),
-          compact: true,
-          format: 'M:S'
-        });
-        // Load modal box to give user option to extend session
-        $('#' + gTimeout.modalRegions.extendSession.id).modal({
-          overlayCss: {backgroundColor: this.backgroundColor},
-          opacity: this.opacity
-        });
-        return;
-      }, //openFn
-      closeFn: function(){
-        gTimeout.debugFn('gTimeout.modalRegions.extendSession.closeFn');
-        $.modal.close();
-        return;
-      }//closeFn
-    },
-    //Region that will be displayed if the user does not extend thier session
-    sessionEnded: {
-      id: 'P0_REG_SESSION_ENDED',
-      backgroundColor: 'black',
-      opacity: 70,
-      openFn: function() {
-        gTimeout.debugFn('gTimeout.modalRegions.sessionEnded.openFn');
-        // Close Extend Sessios modal window
-        gTimeout.modalRegions.extendSession.closeFn();
-        // Open Logout modal window
-        $('#' + gTimeout.modalRegions.sessionEnded.id).modal({
-          overlayCss: {backgroundColor: this.backgroundColor},
-          opacity: this.opacity
-        });
-        return;
-      }// openFn
-    }//sessionEnded
-  },//modalRegions
-  timers: {
-    //Ping APEX Session timer will update the database session timer
-    pingApexSession: {
-      id: -1,
-      time: 5000, //Time to keep database session alive. This should be really close to the APEX idle time
-      loadFn: function(){
-        gTimeout.debugFn('gTimeout.timers.pingApexSession.loadFn:');
-        this.id = setTimeout('gTimeout.timers.pingApexSession.fn();', this.time);
-        return;
-      },
-      unloadFn: function(){
-        gTimeout.debugFn('gTimeout.timers.pingApexSession.unloadFn:');
-        clearTimeout(this.id);
-        this.id = -1;
-        return;
-      },//unloadFn
-      fn: function(){
-        gTimeout.debugFn('gTimeout.timers.pingApexSession.fn: Extending APEX Session');
-        jQuery.jApex.ajax({
-          appProcess: 'AP_NULL',
-          success: function(){},
-          async: true
-        });
-        gTimeout.timers.pingApexSession.loadFn();
-        return;
-      }//fn
-    },//pingApexSessions
-    //Kill current session. This is called when the user gets the option to extend their session
-    killSession: {
-      id: -1,
-      time: 5000, // Time to kill the APEX session once launched. Should only be run when extend session popup box is loaded
-      loadFn: function(){
-        gTimeout.debugFn('gTimeout.timers.killSession.loadFn:');
-        this.id = setTimeout('gTimeout.timers.killSession.killFn();', this.time);
-        return;
-      },
-      unloadFn: function(){
-        gTimeout.debugFn('gTimeout.timers.killSession.unloadFn: ');
-        clearTimeout(this.id);
-        this.id = -1;
-        gTimeout.modalRegions.extendSession.closeFn(); // Close extendSession Modal
-        return;
-      },
-      killFn: function(){
-        gTimeout.debugFn('gTimeout.timers.killSession.killFn: Killing APEX Session');
-        // Open Logout modal window
-        gTimeout.modalRegions.sessionEnded.openFn();
-        // Stop ping Apex session
-        gTimeout.timers.pingApexSession.unloadFn();
-        // Logout APEX session
-        jQuery.jApex.ajax({
-          appProcess: 'AP_LOGOUT',
-          success: function(){},
-          async: true
-        });
-        return;
-      },
-      // Prevents the session from being killed. We should be in a about to kill state now
-      liveFn: function(){
-        gTimeout.debugFn('gTimeout.timers.killSession.liveFn: ');
-        //Check that we're about to be killed
-        if (this.id == -1){
-          alert('Session is not marked to be killed');
-          return;
-        }
-
-        // Stop the kill timer
-        this.unloadFn();
-        return;
-      }//liveFn
-    },//killSession
-    // Timer for user movement time
-    idle:{
-      time: 5000, // Time to load the "Extend Session" popup box
-      loadFn: function(){
-        gTimeout.debugFn('gTimeout.timers.idle.loadFn:');
-        $.idleTimer(this.time);
-        $(document).bind("idle.idleTimer", function(){gTimeout.timers.idle.idleFn();});
-        // Trigger countdown timer
-        return;
-      },
-      idleFn: function(){
-        gTimeout.debugFn('gTimeout.timers.idle.idleFn:');
-        // Load modal box to give user option to extend session
-        gTimeout.modalRegions.extendSession.openFn();
-        // Only load if we're not in a kill state
-        if (gTimeout.timers.killSession.id == -1){
-          gTimeout.timers.killSession.loadFn();
-        }
-        return;
-      } //idle Fn     
-    } // idle
-  },//timers
-  loadFn: function() {
-    gTimeout.timers.pingApexSession.loadFn(); // Keep database sessions alive
-    gTimeout.timers.idle.loadFn(); // Turn on user idle timer
-    return;
-  }//loadFn
-
-};//gTimeout
-
-$(document).ready(function(){
-  // Set Parameters
-  gTimeout.timers.pingApexSession.time = 5 * 1000; // Refresh APEX session every 5 seconds. This should be really close to your apex session timeout values
-  gTimeout.timers.idle.time = 10 * 1000; // 10 seconds of inactivity will trigger this window
-  gTimeout.timers.killSession.time = 10 * 1000; // Once the warning message pops up, user has 10 seconds to extend their session
-  // Configure Modal windows (not required)
-  gTimeout.modalRegions.extendSession.backgroundColor = '#CCC';
-
-  gTimeout.loadFn();
-});
-</pre>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"#APP_IMAGES#jquery-1.3.2.min.js"</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"#APP_IMAGES#jquery.simplemodal-1.3.min.js"</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"#APP_IMAGES#idle-timer-0.7.080609.js"</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"#APP_IMAGES#jquery.jApex.0.9.2.js"</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></div><div class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">"#APP_IMAGES#jquery.countdown-1.5.3.js"</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span><span class="undefined"></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></div><div class="line"></div><div class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">"text/javascript"</span>&gt;</span><span class="undefined"></span></div><div class="line">  //*** Insert script from below ***/</div><div class="line">  //Removed for display purposes</div><div class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></div></pre></td></tr></table></figure>
+<p><em>You’ll need to upload the JS files beforehand. Please see the list above to obtain the files.</em></p>
+<p>Here’s the script to put into the region above. I separated them for display purposes.</p>
+<p>I probably should have created this as a jQuery plugin. I may convert it later on.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">var</span> gTimeout = &#123;</div><div class="line">  <span class="comment">//debug</span></div><div class="line">  debug: <span class="literal">false</span>, <span class="comment">//Set to True to turn on debugging</span></div><div class="line">  debugFn: <span class="function"><span class="keyword">function</span>(<span class="params">pMsg</span>) </span>&#123;</div><div class="line">    <span class="keyword">if</span> (gTimeout.debug)&#123;</div><div class="line">      <span class="built_in">console</span>.log(pMsg);</div><div class="line">    &#125;</div><div class="line">  &#125;, <span class="comment">//debug</span></div><div class="line">  modalRegions: &#123;</div><div class="line">    <span class="comment">//Region that contains the "Extend Session" information</span></div><div class="line">    extendSession: &#123;</div><div class="line">      <span class="attr">id</span>: <span class="string">'P0_REG_EXTEND_SESSION'</span>,</div><div class="line">      <span class="attr">backgroundColor</span>: <span class="string">'#CCC'</span>,</div><div class="line">      <span class="attr">opacity</span>: <span class="number">70</span>,</div><div class="line">      <span class="attr">openFn</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.modalRegions.extendSession.openFn'</span>);</div><div class="line">        <span class="comment">// Start display timeout counter</span></div><div class="line">        $(<span class="string">'#timeoutCountdownDisplay'</span>).countdown(<span class="string">'destroy'</span>);</div><div class="line">        $(<span class="string">'#timeoutCountdownDisplay'</span>).countdown(&#123;</div><div class="line">          <span class="attr">until</span>: <span class="string">'+'</span> + (gTimeout.timers.killSession.time / <span class="number">1000</span>),</div><div class="line">          <span class="attr">compact</span>: <span class="literal">true</span>,</div><div class="line">          <span class="attr">format</span>: <span class="string">'M:S'</span></div><div class="line">        &#125;);</div><div class="line">        <span class="comment">// Load modal box to give user option to extend session</span></div><div class="line">        $(<span class="string">'#'</span> + gTimeout.modalRegions.extendSession.id).modal(&#123;</div><div class="line">          <span class="attr">overlayCss</span>: &#123;<span class="attr">backgroundColor</span>: <span class="keyword">this</span>.backgroundColor&#125;,</div><div class="line">          <span class="attr">opacity</span>: <span class="keyword">this</span>.opacity</div><div class="line">        &#125;);</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;, <span class="comment">//openFn</span></div><div class="line">      closeFn: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.modalRegions.extendSession.closeFn'</span>);</div><div class="line">        $.modal.close();</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;<span class="comment">//closeFn</span></div><div class="line">    &#125;,</div><div class="line">    <span class="comment">//Region that will be displayed if the user does not extend thier session</span></div><div class="line">    sessionEnded: &#123;</div><div class="line">      <span class="attr">id</span>: <span class="string">'P0_REG_SESSION_ENDED'</span>,</div><div class="line">      <span class="attr">backgroundColor</span>: <span class="string">'black'</span>,</div><div class="line">      <span class="attr">opacity</span>: <span class="number">70</span>,</div><div class="line">      <span class="attr">openFn</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.modalRegions.sessionEnded.openFn'</span>);</div><div class="line">        <span class="comment">// Close Extend Sessios modal window</span></div><div class="line">        gTimeout.modalRegions.extendSession.closeFn();</div><div class="line">        <span class="comment">// Open Logout modal window</span></div><div class="line">        $(<span class="string">'#'</span> + gTimeout.modalRegions.sessionEnded.id).modal(&#123;</div><div class="line">          <span class="attr">overlayCss</span>: &#123;<span class="attr">backgroundColor</span>: <span class="keyword">this</span>.backgroundColor&#125;,</div><div class="line">          <span class="attr">opacity</span>: <span class="keyword">this</span>.opacity</div><div class="line">        &#125;);</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;<span class="comment">// openFn</span></div><div class="line">    &#125;<span class="comment">//sessionEnded</span></div><div class="line">  &#125;,<span class="comment">//modalRegions</span></div><div class="line">  timers: &#123;</div><div class="line">    <span class="comment">//Ping APEX Session timer will update the database session timer</span></div><div class="line">    pingApexSession: &#123;</div><div class="line">      <span class="attr">id</span>: <span class="number">-1</span>,</div><div class="line">      <span class="attr">time</span>: <span class="number">5000</span>, <span class="comment">//Time to keep database session alive. This should be really close to the APEX idle time</span></div><div class="line">      loadFn: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.timers.pingApexSession.loadFn:'</span>);</div><div class="line">        <span class="keyword">this</span>.id = setTimeout(<span class="string">'gTimeout.timers.pingApexSession.fn();'</span>, <span class="keyword">this</span>.time);</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;,</div><div class="line">      <span class="attr">unloadFn</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.timers.pingApexSession.unloadFn:'</span>);</div><div class="line">        clearTimeout(<span class="keyword">this</span>.id);</div><div class="line">        <span class="keyword">this</span>.id = <span class="number">-1</span>;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;,<span class="comment">//unloadFn</span></div><div class="line">      fn: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.timers.pingApexSession.fn: Extending APEX Session'</span>);</div><div class="line">        jQuery.jApex.ajax(&#123;</div><div class="line">          <span class="attr">appProcess</span>: <span class="string">'AP_NULL'</span>,</div><div class="line">          <span class="attr">success</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;&#125;,</div><div class="line">          <span class="attr">async</span>: <span class="literal">true</span></div><div class="line">        &#125;);</div><div class="line">        gTimeout.timers.pingApexSession.loadFn();</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;<span class="comment">//fn</span></div><div class="line">    &#125;,<span class="comment">//pingApexSessions</span></div><div class="line">    <span class="comment">//Kill current session. This is called when the user gets the option to extend their session</span></div><div class="line">    killSession: &#123;</div><div class="line">      <span class="attr">id</span>: <span class="number">-1</span>,</div><div class="line">      <span class="attr">time</span>: <span class="number">5000</span>, <span class="comment">// Time to kill the APEX session once launched. Should only be run when extend session popup box is loaded</span></div><div class="line">      loadFn: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.timers.killSession.loadFn:'</span>);</div><div class="line">        <span class="keyword">this</span>.id = setTimeout(<span class="string">'gTimeout.timers.killSession.killFn();'</span>, <span class="keyword">this</span>.time);</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;,</div><div class="line">      <span class="attr">unloadFn</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.timers.killSession.unloadFn: '</span>);</div><div class="line">        clearTimeout(<span class="keyword">this</span>.id);</div><div class="line">        <span class="keyword">this</span>.id = <span class="number">-1</span>;</div><div class="line">        gTimeout.modalRegions.extendSession.closeFn(); <span class="comment">// Close extendSession Modal</span></div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;,</div><div class="line">      <span class="attr">killFn</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.timers.killSession.killFn: Killing APEX Session'</span>);</div><div class="line">        <span class="comment">// Open Logout modal window</span></div><div class="line">        gTimeout.modalRegions.sessionEnded.openFn();</div><div class="line">        <span class="comment">// Stop ping Apex session</span></div><div class="line">        gTimeout.timers.pingApexSession.unloadFn();</div><div class="line">        <span class="comment">// Logout APEX session</span></div><div class="line">        jQuery.jApex.ajax(&#123;</div><div class="line">          <span class="attr">appProcess</span>: <span class="string">'AP_LOGOUT'</span>,</div><div class="line">          <span class="attr">success</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;&#125;,</div><div class="line">          <span class="attr">async</span>: <span class="literal">true</span></div><div class="line">        &#125;);</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;,</div><div class="line">      <span class="comment">// Prevents the session from being killed. We should be in a about to kill state now</span></div><div class="line">      liveFn: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.timers.killSession.liveFn: '</span>);</div><div class="line">        <span class="comment">//Check that we're about to be killed</span></div><div class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.id == <span class="number">-1</span>)&#123;</div><div class="line">          alert(<span class="string">'Session is not marked to be killed'</span>);</div><div class="line">          <span class="keyword">return</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">// Stop the kill timer</span></div><div class="line">        <span class="keyword">this</span>.unloadFn();</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;<span class="comment">//liveFn</span></div><div class="line">    &#125;,<span class="comment">//killSession</span></div><div class="line">    <span class="comment">// Timer for user movement time</span></div><div class="line">    idle:&#123;</div><div class="line">      <span class="attr">time</span>: <span class="number">5000</span>, <span class="comment">// Time to load the "Extend Session" popup box</span></div><div class="line">      loadFn: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.timers.idle.loadFn:'</span>);</div><div class="line">        $.idleTimer(<span class="keyword">this</span>.time);</div><div class="line">        $(<span class="built_in">document</span>).bind(<span class="string">"idle.idleTimer"</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;gTimeout.timers.idle.idleFn();&#125;);</div><div class="line">        <span class="comment">// Trigger countdown timer</span></div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125;,</div><div class="line">      <span class="attr">idleFn</span>: <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">        gTimeout.debugFn(<span class="string">'gTimeout.timers.idle.idleFn:'</span>);</div><div class="line">        <span class="comment">// Load modal box to give user option to extend session</span></div><div class="line">        gTimeout.modalRegions.extendSession.openFn();</div><div class="line">        <span class="comment">// Only load if we're not in a kill state</span></div><div class="line">        <span class="keyword">if</span> (gTimeout.timers.killSession.id == <span class="number">-1</span>)&#123;</div><div class="line">          gTimeout.timers.killSession.loadFn();</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">return</span>;</div><div class="line">      &#125; <span class="comment">//idle Fn     </span></div><div class="line">    &#125; <span class="comment">// idle</span></div><div class="line">  &#125;,<span class="comment">//timers</span></div><div class="line">  loadFn: <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</div><div class="line">    gTimeout.timers.pingApexSession.loadFn(); <span class="comment">// Keep database sessions alive</span></div><div class="line">    gTimeout.timers.idle.loadFn(); <span class="comment">// Turn on user idle timer</span></div><div class="line">    <span class="keyword">return</span>;</div><div class="line">  &#125;<span class="comment">//loadFn</span></div><div class="line"></div><div class="line">&#125;;<span class="comment">//gTimeout</span></div><div class="line"></div><div class="line">$(<span class="built_in">document</span>).ready(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</div><div class="line">  <span class="comment">// Set Parameters</span></div><div class="line">  gTimeout.timers.pingApexSession.time = <span class="number">5</span> * <span class="number">1000</span>; <span class="comment">// Refresh APEX session every 5 seconds. This should be really close to your apex session timeout values</span></div><div class="line">  gTimeout.timers.idle.time = <span class="number">10</span> * <span class="number">1000</span>; <span class="comment">// 10 seconds of inactivity will trigger this window</span></div><div class="line">  gTimeout.timers.killSession.time = <span class="number">10</span> * <span class="number">1000</span>; <span class="comment">// Once the warning message pops up, user has 10 seconds to extend their session</span></div><div class="line">  <span class="comment">// Configure Modal windows (not required)</span></div><div class="line">  gTimeout.modalRegions.extendSession.backgroundColor = <span class="string">'#CCC'</span>;</div><div class="line"></div><div class="line">  gTimeout.loadFn();</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
 
       
     </div>
