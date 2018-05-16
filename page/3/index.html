@@ -67,6 +67,57 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-query-csv-data-using-apex-5-1-apis" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/04/query-csv-data-using-apex-5-1-apis/" class="article-date">
+  <time datetime="2017-04-30T11:42:48.000Z" itemprop="datePublished">2017-04-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/04/query-csv-data-using-apex-5-1-apis/">Query CSV data using APEX 5.1 APIs</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When I first started using Oracle many years ago one of the most frustrating things was the amount of code and complexity required to parse/query CSV data (or any delimited data). As time passed I was able to leverage new features and techniques to help but they all had their issues. APEX 5.1 introduced a new API that may help simplify a lot of the headaches. The following example highlights this.</p>
+<p>Suppose I had the following CSV data:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">First Name, Last Name, Dept</div><div class="line">Martin, DSouza, IT</div><div class="line">John, Doe, Sales</div><div class="line">Sally, Smith, Sales</div></pre></td></tr></table></figure>
+<p>The first thing to do is break each of the rows of text into rows of a query. This can be done using the new APEX 5.1 <a href="https://docs.oracle.com/database/apex-5.1/AEAPI/SPLIT-Function-Signature-1.htm#AEAPI-GUID-3BE7FF37-E54F-4503-91B8-94F374E243E6" target="_blank" rel="noopener"><code>apex_string.split</code></a> API</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> *</div><div class="line"><span class="keyword">from</span> <span class="keyword">table</span>(apex_string.split(:<span class="keyword">data</span>,<span class="keyword">chr</span>(<span class="number">10</span>)))</div><div class="line">;</div><div class="line"></div><div class="line"><span class="comment">-- Results in</span></div><div class="line">COLUMN_VALUE                                </div><div class="line"><span class="comment">------------------------------</span></div><div class="line">First Name, Last Name, Dept</div><div class="line">Martin, DSouza, IT</div><div class="line">john, doe, Sales</div><div class="line">Sally, Smith, Sales</div></pre></td></tr></table></figure>
+<p>Where <code>:data</code> is the CSV data above. <em>Note I’m using a Mac and the EOL character is a <code>LF</code> (<code>chr(10)</code>). Windows users use <code>CR + LF</code> (<code>chr(13) || chr(10)</code>). More info on this <a href="https://en.wikipedia.org/wiki/Newline" target="_blank" rel="noopener">here</a></em></p>
+<p>Now that each line of data is on it’s own row we need to create columns. This can be done using regular expressions:</p>
+<p><em>Update: originally I used </em><code>regexp_substr(column_value, &#39;[^,]+&#39;, 1, 1)</code> <em>as the regexp which caused issues with <code>null</code> values (ex <code>abc,,def</code>). I’ve since updated the code samples to handle nulls.</em></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span></div><div class="line">  <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">1</span>), <span class="string">','</span>) fname,</div><div class="line">  <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">2</span>), <span class="string">','</span>) lname,</div><div class="line">  <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">3</span>), <span class="string">','</span>) dept</div><div class="line"><span class="keyword">from</span> <span class="keyword">table</span>(apex_string.split(:<span class="keyword">data</span>,<span class="keyword">chr</span>(<span class="number">10</span>)))</div><div class="line">;</div><div class="line"></div><div class="line"><span class="comment">-- Results in</span></div><div class="line">FNAME        LNAME       DEPT  </div><div class="line">First Name   Last Name	 Dept               </div><div class="line">Martin	     DSouza      IT                       </div><div class="line">john         doe         Sales</div><div class="line">Sally        Smith       Sales</div></pre></td></tr></table></figure>
+<p>To remove the header row change the query to:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> fname, lname, dept</div><div class="line"><span class="keyword">from</span> </div><div class="line">  (</div><div class="line">    <span class="keyword">select</span> </div><div class="line">      <span class="keyword">rownum</span> rn,</div><div class="line">      <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">1</span>), <span class="string">','</span>) fname,</div><div class="line">      <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">2</span>), <span class="string">','</span>) lname,</div><div class="line">      <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">3</span>), <span class="string">','</span>) dept</div><div class="line">    <span class="keyword">from</span> <span class="keyword">table</span>(apex_string.split(:<span class="keyword">data</span>,<span class="keyword">chr</span>(<span class="number">10</span>)))</div><div class="line">  )</div><div class="line"><span class="keyword">where</span> rn &gt; <span class="number">1</span></div></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/" data-id="cjh8mrd3k00fbbgrav9m0l4ej" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-5-1/">apex-5.1</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apex-5-1-validations-and-session-state" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2017/04/apex-5-1-validations-and-session-state/" class="article-date">
@@ -110,7 +161,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/" data-id="cjflx7rie00emea8pfwpbbszj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/" data-id="cjh8mrd3i00f6bgrafeh89zjm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -163,7 +214,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/partial-rollbacks/" data-id="cjflx7rid00ekea8pj56x94r7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/04/partial-rollbacks/" data-id="cjh8mrd3h00f4bgraqtwfdnly" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/04/partial-rollbacks/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -206,7 +257,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/02/heug-alliance-2017/" data-id="cjflx7ric00eiea8ph45jqg1d" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/02/heug-alliance-2017/" data-id="cjh8mrd3g00f1bgragonez4zs" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/02/heug-alliance-2017/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -249,7 +300,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/02/custom-calendar-css-in-apex/" data-id="cjflx7rib00egea8prhjtoyuw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/02/custom-calendar-css-in-apex/" data-id="cjh8mrd3f00ezbgradiz5vodh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/02/custom-calendar-css-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -294,7 +345,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/02/how-to-run-remote-sql-scripts-in-sqlcl/" data-id="cjflx7ria00eeea8pel7slpqh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/02/how-to-run-remote-sql-scripts-in-sqlcl/" data-id="cjh8mrd3e00ewbgrao90d11pi" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/02/how-to-run-remote-sql-scripts-in-sqlcl/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -340,7 +391,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/01/using-pivot-for-aggregations/" data-id="cjflx7ri900ebea8pjvwlbs2y" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/01/using-pivot-for-aggregations/" data-id="cjh8mrd3d00eubgraikut6pad" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/01/using-pivot-for-aggregations/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -384,7 +435,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/01/how-to-reference-package-variables-in-sql/" data-id="cjflx7ri800e9ea8plxutkh9v" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/01/how-to-reference-package-variables-in-sql/" data-id="cjh8mrd3b00erbgra3vw8tmal" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/01/how-to-reference-package-variables-in-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -428,7 +479,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/01/how-to-reference-javsscript-and-css-files-for-entire-application/" data-id="cjflx7ri600e7ea8plyuozmsk" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/01/how-to-reference-javsscript-and-css-files-for-entire-application/" data-id="cjh8mrd3a00epbgrarc5a4c25" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/01/how-to-reference-javsscript-and-css-files-for-entire-application/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -483,58 +534,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2016/12/new-blog-platform-based-on-markdown-and-git/" data-id="cjflx7ri500e5ea8pgcvg1kvg" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2016/12/new-blog-platform-based-on-markdown-and-git/" data-id="cjh8mrd2400c3bgralezzyyql" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2016/12/new-blog-platform-based-on-markdown-and-git/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-oow-2016-meetup" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2016/08/apex-oow-2016-meetup/" class="article-date">
-  <time datetime="2016-08-24T12:01:00.000Z" itemprop="datePublished">2016-08-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/08/apex-oow-2016-meetup/">APEX OOW 2016 Meetup</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Each year the Oracle APEX community gets together at Oracle Open World (OOW) to have a few beers and catch up. This is a great informal event and its your chance to network with a lot of people in the APEX community and meet some of the gurus and members of the core APEX development team.</p>
-<p>We’ll be having the annual APEX OOW Meetup at <a href="http://www.johnnyfoleys.com/" target="_blank" rel="noopener">Johnny Foleys</a> on Tuesday September 20th at 7:30 onwards. Please let us know if you’re coming by signing up on the <a href="http://www.meetup.com/ODTUGers/events/233289975/?a=socialmedia" target="_blank" rel="noopener">Meetup for this event</a>.</p>
-<p>If it’s your first time attending, we’re in the basement and there will be dueling piano’s. Show up early as it gets packed pretty!</p>
-<p><div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-UHWSfgZa2yI/UiDIg1Wv3VI/AAAAAAAAEcw/knXK1Qn6AvY/s1600/johnnyfoleys.jpg" target="_blank" rel="noopener"><img src="https://3.bp.blogspot.com/-UHWSfgZa2yI/UiDIg1Wv3VI/AAAAAAAAEcw/knXK1Qn6AvY/s1600/johnnyfoleys.jpg" alt=""></a></div><br><a href="http://goo.gl/zgbr9m" target="_blank" rel="noopener">243 O’Farrell Street</a><br><a href="http://goo.gl/zgbr9m" target="_blank" rel="noopener">San Francisco, CA 94102</a></p>
-<p>Looking forward to seeing everyone there!</p>
-<p>Martin</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2016/08/apex-oow-2016-meetup/" data-id="cjflx7ri400e3ea8p3kglvb4q" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2016/08/apex-oow-2016-meetup/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oow/">oow</a></li></ul>
 
     </footer>
   </div>
@@ -581,7 +586,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">140</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">141</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -618,7 +623,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

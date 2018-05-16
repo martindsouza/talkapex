@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://www.talkapex.com/"/>
-  <updated>2018-04-07T10:57:42.544Z</updated>
+  <updated>2018-05-16T04:52:42.210Z</updated>
   <id>http://www.talkapex.com/</id>
   
   <author>
@@ -17,11 +17,37 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>One Thing You Need To Do Before Calling apex_web_service.make_rest_request</title>
+    <link href="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/"/>
+    <id>http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/</id>
+    <published>2018-05-16T04:36:15.000Z</published>
+    <updated>2018-05-16T04:52:42.210Z</updated>
+    
+    <content type="html"><![CDATA[<p>Can you spot the bug in the following code? (<em>Hint: it compiles and no run-time errors</em>)</p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">-- ...</div><div class="line">l_json := apex_web_service.make_rest_request(</div><div class="line">  p_url =&gt; 'http://someurl.com/data',</div><div class="line">  p_http_method =&gt; 'GET'</div><div class="line">);</div><div class="line">-- ...</div></pre></td></tr></table></figure><p>It’s not so obvious until I expose the code that preceded it. So let’s try this again (with more information). Can you spot the bug in the following code?</p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">-- ...</div><div class="line">apex_web_service.g_request_headers(1).name := 'Authorization';</div><div class="line">apex_web_service.g_request_headers(1).value := 'Bearer token123';</div><div class="line">l_json := apex_web_service.make_rest_request(</div><div class="line">  p_url =&gt; 'http://a-differnt-url.com/data',</div><div class="line">  p_http_method =&gt; 'GET'</div><div class="line">);</div><div class="line"></div><div class="line">l_json := apex_web_service.make_rest_request(</div><div class="line">  p_url =&gt; 'http://someurl.com/data',</div><div class="line">  p_http_method =&gt; 'GET'</div><div class="line">);</div><div class="line">-- ...</div></pre></td></tr></table></figure><p>The issue with the second call to <code>apex_web_service.make_rest_request</code> is that it will use the request headers that were set for the first call (to <code>a-differnt-url.com</code>). If the second web service (<code>someurl.com</code>) doesn’t want/need/expect that header it can cause some unintended issues and may result in an invalid RESTful call.</p><p>To get around this simply clear the request headers each time before setting them / calling <code>apex_web_service.make_rest_request</code>. You can do this by calling <code>apex_web_service.g_request_headers.delete();</code> The following code is the correct way to run the previous example:</p><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">-- ...</div><div class="line">apex_web_service.g_request_headers.delete();</div><div class="line">apex_web_service.g_request_headers(1).name := 'Authorization';</div><div class="line">apex_web_service.g_request_headers(1).value := 'Bearer token123';</div><div class="line">l_json := apex_web_service.make_rest_request(</div><div class="line">  p_url =&gt; 'http://a-differnt-url.com/data',</div><div class="line">  p_http_method =&gt; 'GET'</div><div class="line">);</div><div class="line"></div><div class="line">apex_web_service.g_request_headers.delete();</div><div class="line">l_json := apex_web_service.make_rest_request(</div><div class="line">  p_url =&gt; 'http://someurl.com/data',</div><div class="line">  p_http_method =&gt; 'GET'</div><div class="line">);</div><div class="line">-- ...</div></pre></td></tr></table></figure>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;p&gt;Can you spot the bug in the following code? (&lt;em&gt;Hint: it compiles and no run-time errors&lt;/em&gt;)&lt;/p&gt;
+&lt;figure class=&quot;highlight&quot;&gt;&lt;table&gt;&lt;tr&gt;
+      
+    
+    </summary>
+    
+    
+      <category term="plsql" scheme="http://www.talkapex.com/tags/plsql/"/>
+    
+      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
+    
+  </entry>
+  
+  <entry>
     <title>APEX Page Item Source vs Default</title>
     <link href="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/"/>
     <id>http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/</id>
     <published>2018-04-05T04:50:45.000Z</published>
-    <updated>2018-04-07T10:57:42.544Z</updated>
+    <updated>2018-04-07T10:58:32.000Z</updated>
     
     <content type="html"><![CDATA[<p>Someone recently asked me about the difference between an APEX page item’s <code>Source</code>  and <code>Default</code> attributes. I’ve always been confused about these options so I decided to further investigate them. This post will cover the differences between Source and Default along with some additional info.</p><img src="/2018/04/apex-page-item-source-vs-default/source-default.png"><h2 id="Order-of-Operations"><a href="#Order-of-Operations" class="headerlink" title="Order of Operations"></a>Order of Operations</h2><p>Page items can be set in different ways and there is an order of operations to which “setting” takes precedence:</p><ol><li><strong>Session State</strong>: What ever is in session state will always trump the page item’s Source or Default settings<em>*</em></li><li><strong>Source</strong>: Source comes next. For most people this is <code>null</code> or <code>Database Column</code> (if using <code>Automatic Row Fetch</code>)</li><li><strong>Default</strong>: If the page item is still null then Default will be used. This attribute doesn’t have as many options as Source (just <code>Static Value</code>, <code>PL/SQL Expression</code>, and <code>PL/SQL Function Body</code>)</li></ol><p><em>* The Source attribute has an option to ignore the current session state value.</em></p><h2 id="Session-State-vs-On-Screen"><a href="#Session-State-vs-On-Screen" class="headerlink" title="Session State vs On Screen"></a>Session State vs On Screen</h2><p>Neither Source or Default saves the value to session state<em>*</em>. Instead it is what is shown on screen. If Source or Default is used the value will only be saved to session state once the page is submitted.</p><p><em>* Read below as the value is temporarily used in session state for the remaining duration of the page load.</em></p><h2 id="Additional-Info"><a href="#Additional-Info" class="headerlink" title="Additional Info"></a>Additional Info</h2><h3 id="Is-Default-always-Necessary"><a href="#Is-Default-always-Necessary" class="headerlink" title="Is Default always Necessary?"></a>Is Default always Necessary?</h3><p>I think a lot of the confusion with Source and Default is that in some cases Default is redundant and unnecessary. I think Default is only required when the Source is set to <code>Database Column</code>, <code>Item</code>, or <code>Preference</code>. For the other options (see below) you can wrap the returned value with a <code>nvl</code>.</p><img src="/2018/04/apex-page-item-source-vs-default/source-types.png"><h3 id="Source-Used-Attribute"><a href="#Source-Used-Attribute" class="headerlink" title="Source Used Attribute"></a>Source <code>Used</code> Attribute</h3><p>Source has additional attribute that Default does not: <code>Used</code></p><img src="/2018/04/apex-page-item-source-vs-default/source-used.png"><p>If the <code>used</code> option is set to <code>Always, replacing any existing value in session state</code> this means that after the page has loaded the value in Session State may have a value that is different than the value that is shown on the screen. The following image shows the result of this situation (i.e. different session state vs on screen value).</p><img src="/2018/04/apex-page-item-source-vs-default/session-source-diff.png"><h3 id="Temporary-Change-of-Session-State"><a href="#Temporary-Change-of-Session-State" class="headerlink" title="Temporary Change of Session State"></a>Temporary Change of Session State</h3><p>Suppose that a <code>Before Header</code> computation exists and sets <code>P1_DEMO</code> to a static value: <code>From Computation</code>. This means that during page load, right after the computation is run, the session state value for <code>P1_DEMO</code> is <code>From Computation</code>. </p><p><code>P1_DEMO</code> Source is set to <code>From Source</code> and <code>Always, replacing any existing value in session state</code> is used. After <code>P1_DEMO</code> is “loaded” during the page load computation, the session state of <code>P1_DEMO</code> is <code>From Source</code> for the duration of the page load. After the page is loaded the session state value is <code>From Computation</code>. The following image highlights this. For both the <code>Before</code> and <code>After</code> display only items the Source was set to <code>&amp;P1_DEMO.</code></p><img src="/2018/04/apex-page-item-source-vs-default/session-state-temp-change.png"><p>This can cause some wierd behaviors on a page that has AJAX calls. The value in session state changes during the page load process. After the page is loaded it may flip flop and the AJAX call could use the “old” session state value (see screen shot above).</p>]]></content>
     
@@ -201,9 +227,9 @@
     
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
     
-      <category term="12c" scheme="http://www.talkapex.com/tags/12c/"/>
-    
       <category term="docker" scheme="http://www.talkapex.com/tags/docker/"/>
+    
+      <category term="12c" scheme="http://www.talkapex.com/tags/12c/"/>
     
   </entry>
   
@@ -467,35 +493,6 @@
     
     
       <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Query CSV data using APEX 5.1 APIs</title>
-    <link href="http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/"/>
-    <id>http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/</id>
-    <published>2017-04-30T11:42:48.000Z</published>
-    <updated>2017-05-02T22:38:40.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>When I first started using Oracle many years ago one of the most frustrating things was the amount of code and complexity required to parse/query CSV data (or any delimited data). As time passed I was able to leverage new features and techniques to help but they all had their issues. APEX 5.1 introduced a new API that may help simplify a lot of the headaches. The following example highlights this.</p><p>Suppose I had the following CSV data:</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">First Name, Last Name, Dept</div><div class="line">Martin, DSouza, IT</div><div class="line">John, Doe, Sales</div><div class="line">Sally, Smith, Sales</div></pre></td></tr></table></figure><p>The first thing to do is break each of the rows of text into rows of a query. This can be done using the new APEX 5.1 <a href="https://docs.oracle.com/database/apex-5.1/AEAPI/SPLIT-Function-Signature-1.htm#AEAPI-GUID-3BE7FF37-E54F-4503-91B8-94F374E243E6" target="_blank" rel="noopener"><code>apex_string.split</code></a> API</p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> *</div><div class="line"><span class="keyword">from</span> <span class="keyword">table</span>(apex_string.split(:<span class="keyword">data</span>,<span class="keyword">chr</span>(<span class="number">10</span>)))</div><div class="line">;</div><div class="line"></div><div class="line"><span class="comment">-- Results in</span></div><div class="line">COLUMN_VALUE                                </div><div class="line"><span class="comment">------------------------------</span></div><div class="line">First Name, Last Name, Dept</div><div class="line">Martin, DSouza, IT</div><div class="line">john, doe, Sales</div><div class="line">Sally, Smith, Sales</div></pre></td></tr></table></figure><p>Where <code>:data</code> is the CSV data above. <em>Note I’m using a Mac and the EOL character is a <code>LF</code> (<code>chr(10)</code>). Windows users use <code>CR + LF</code> (<code>chr(13) || chr(10)</code>). More info on this <a href="https://en.wikipedia.org/wiki/Newline" target="_blank" rel="noopener">here</a></em></p><p>Now that each line of data is on it’s own row we need to create columns. This can be done using regular expressions:</p><p><em>Update: originally I used </em><code>regexp_substr(column_value, &#39;[^,]+&#39;, 1, 1)</code> <em>as the regexp which caused issues with <code>null</code> values (ex <code>abc,,def</code>). I’ve since updated the code samples to handle nulls.</em></p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span></div><div class="line">  <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">1</span>), <span class="string">','</span>) fname,</div><div class="line">  <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">2</span>), <span class="string">','</span>) lname,</div><div class="line">  <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">3</span>), <span class="string">','</span>) dept</div><div class="line"><span class="keyword">from</span> <span class="keyword">table</span>(apex_string.split(:<span class="keyword">data</span>,<span class="keyword">chr</span>(<span class="number">10</span>)))</div><div class="line">;</div><div class="line"></div><div class="line"><span class="comment">-- Results in</span></div><div class="line">FNAME        LNAME       DEPT  </div><div class="line">First Name   Last Name Dept               </div><div class="line">Martin     DSouza      IT                       </div><div class="line">john         doe         Sales</div><div class="line">Sally        Smith       Sales</div></pre></td></tr></table></figure><p>To remove the header row change the query to:</p><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> fname, lname, dept</div><div class="line"><span class="keyword">from</span> </div><div class="line">  (</div><div class="line">    <span class="keyword">select</span> </div><div class="line">      <span class="keyword">rownum</span> rn,</div><div class="line">      <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">1</span>), <span class="string">','</span>) fname,</div><div class="line">      <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">2</span>), <span class="string">','</span>) lname,</div><div class="line">      <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">3</span>), <span class="string">','</span>) dept</div><div class="line">    <span class="keyword">from</span> <span class="keyword">table</span>(apex_string.split(:<span class="keyword">data</span>,<span class="keyword">chr</span>(<span class="number">10</span>)))</div><div class="line">  )</div><div class="line"><span class="keyword">where</span> rn &gt; <span class="number">1</span></div></pre></td></tr></table></figure>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;When I first started using Oracle many years ago one of the most frustrating things was the amount of code and complexity required to par
-      
-    
-    </summary>
-    
-    
-      <category term="plsql" scheme="http://www.talkapex.com/tags/plsql/"/>
-    
-      <category term="apex" scheme="http://www.talkapex.com/tags/apex/"/>
-    
-      <category term="sql" scheme="http://www.talkapex.com/tags/sql/"/>
-    
-      <category term="apex-5.1" scheme="http://www.talkapex.com/tags/apex-5-1/"/>
     
   </entry>
   

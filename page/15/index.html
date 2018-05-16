@@ -67,6 +67,134 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-command-line-backups-for-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/04/command-line-backups-for-apex/" class="article-date">
+  <time datetime="2012-04-28T23:25:00.000Z" itemprop="datePublished">2012-04-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/04/command-line-backups-for-apex/">Command Line Backups for APEX Applications</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><span style="color: red;"><strong>Update 21-Apr-2015: </strong>This script will no longer be supported. Instead please use the new script (for Mac/Linux) available on <a href="https://github.com/OraOpenSource/apexbackup" target="_blank" rel="noopener">Github</a>. New article:&nbsp;<a href="http://www.talkapex.com/2015/04/apex-backup-script.html">http://www.talkapex.com/2015/04/apex-backup-script.html</a></span></p>
+<p>One thing developers like to do is keep local backup copies of their development work. Sometimes they’ll copy files and suffix them with <em>.bak</em> or they’ll store them in a version control repository. With APEX you don’t copy a file to back it up. Either you have to copy the application (within the workspace) or export the application and save it locally. For one-off backups this can be ok, but as you develop with more and more applications in larger environments it can be tedious work and will slow down your development time.</p>
+<p>Thankfully APEX has a tool, that comes as part of the install zip file, which allows for command line exports. It’s one of the lesser known tools that is extremely useful.</p>
+<p>Below is a simplified copy of a batch file which will automatically backup all the APEX applications on a given database using the APEX backup tool. I usually recommend that organizations run such a script on their development environments to store hourly backups of their development environments. The example is a very simple example which should be modified to tag the backup with the date/time or zip and store the backups in version control. I’ve also appended an extra script which lists all the APEX applications, workspaces, and IDs and stores this information as part of the backup in a <em>.html</em> file.</p>
+<p>To use the script, create the files listed below in the same directory and make the appropriate modifications in _apex<em>backup.bat</em></p>
+<p><strong>apex_backup.bat</strong><br><em>Backups all the applications in the database</em></p>
+<pre class="brush: bash;">REM ***** START MODIFICATIONS ******
+
+REM ***** Parameters ******
+REM Oracle information
+REM To find SID name: select * from v$instance;
+set oracleSID=XE
+set oracleSystemPass=oracle
+set oraclePort=1526
+set oracleHost=localhost
+REM Root directory where oracle\apex\*class files are stored
+REM These is a sub directory from the extracted APEX install zip file
+set apexExportJavaDir=C:\temp\apex_4.1.1_en\apex\utilities
+REM File that contains names of applications and workspaces
+set apexHtmlFileName=apex_info.html
+REM Directory where backups will be stored
+set backupLocation=C:\temp\apexbackup
+
+REM ****** PATHS *********
+REM Note: You may not need to explicitly define these as they may already be set in OS.
+set ORACLE_HOME=C:\oracle\product\11.2.0\client_1
+set CLASSPATH=%CLASSPATH%;.\;%ORACLE_HOME%\jdbc\lib\ojdbc5.jar;%apexExportJavaDir%
+set PATH=%PATH%;.\;C:\Program Files (x86)\Java\jre6\bin
+
+REM ***** END MODIFICATIONS ******
+
+REM ****** Other *********
+set startRunLocation=%CD%
+
+REM ****** Directory Setup ******
+REM Create temp bacpkup location
+mkdir %backupLocation%
+
+REM ****** APEX BACKUP *******
+REM Go to backup location to run backups in
+cd %backupLocation%
+
+REM Export all applications
+java oracle.apex.APEXExport -db %oracleHost%:%oraclePort%:%oracleSID% -user system -password %oracleSystemPass% -instance
+
+REM Export all Workspaces
+java oracle.apex.APEXExport -db %oracleHost%:%oraclePort%:%oracleSID% -user system -password %oracleSystemPass% -expWorkspace
+
+REM Generate listing of Workspaces and Applications
+sqlplus system/%oracleSystemPass%@%oracleHost%:%oraclePort%/%oracleSID% @%startRunLocation%\apex_backup_info.sql %apexHtmlFileName%
+
+REM Back to start location
+cd %startRunLocation%
+</pre>**apex_backup_info.sql**
+_Stores all the application names, workspaces, and IDs_
+<pre class="brush: sql;">-- Parameters
+-- 1 = File Name
+
+-- http://forums.devshed.com/oracle-development-96/sql-plus-column-width-format-185085.html
+-- http://download.oracle.com/docs/cd/B10501_01/server.920/a90842/ch13.htm#1012748
+SET NUMFORMAT 9999999999999999999999999999999999999
+SET MARKUP HTML ON SPOOL ON HEAD "<title>APEX Export</title>"
+
+SET ECHO OFF
+SPOOL &amp;1
+
+-- Current Date
+select to_char(sysdate, 'DD-MON-YYYY HH24:MI:SS') current_date
+from dual;
+
+-- Applications
+SELECT application_id, workspace, application_name, owner
+FROM apex_applications
+WHERE workspace != 'INTERNAL'
+ORDER BY application_id;
+
+-- Workspaces
+SELECT workspace_id, workspace
+FROM apex_workspaces
+WHERE workspace != 'INTERNAL'
+ORDER BY workspace_id;
+
+SPOOL OFF
+SET MARKUP HTML OFF
+SET ECHO ON  
+
+EXIT;
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/04/command-line-backups-for-apex/" data-id="cjh8mrczs007nbgranz6kdkya" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/04/command-line-backups-for-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-presenting-at-calgary-oracle-user-group" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/04/presenting-at-calgary-oracle-user-group/" class="article-date">
@@ -103,7 +231,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group/" data-id="cjflx7reh007kea8pi6revxu1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group/" data-id="cjh8mrczr007lbgrawcwk0uzl" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -149,7 +277,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/" data-id="cjflx7ref007iea8pdknbzlxd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/" data-id="cjh8mrczq007jbgra05y5lb8b" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -204,7 +332,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/q-function-inside-q-function/" data-id="cjflx7ree007gea8pkofdo75x" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/03/q-function-inside-q-function/" data-id="cjh8mrczp007hbgra13ga9nw3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/03/q-function-inside-q-function/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -251,7 +379,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading/" data-id="cjflx7ree007eea8p8xhehxfj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading/" data-id="cjh8mrczn007dbgra6y91txj7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -474,7 +602,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/" data-id="cjflx7red007cea8pg0hae6t4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/" data-id="cjh8mrczn007fbgra0ovgbibd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -523,7 +651,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/" data-id="cjflx7rec007aea8pf7frnbsa" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/" data-id="cjh8mrczm007bbgra8w06jjs3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -567,7 +695,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/" data-id="cjflx7reb0078ea8phlkt8sx0" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/" data-id="cjh8mrczl0079bgraykmiaso5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -616,7 +744,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/" data-id="cjflx7rea0076ea8pvdrsj9mf" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/" data-id="cjh8mrczk0077bgra6vzzmi5b" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -670,61 +798,12 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/" data-id="cjflx7re90074ea8pwghzc6t5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/" data-id="cjh8mrczk0075bgrafgfi3e2g" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/">apex-plugin</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-min-and-max-dates-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2011/11/min-and-max-dates-in-apex/" class="article-date">
-  <time datetime="2011-11-30T20:20:00.000Z" itemprop="datePublished">2011-11-30</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2011/11/min-and-max-dates-in-apex/">Min and Max Dates in APEX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>APEX 4.0 introduced native support for the <a href="http://jqueryui.com/demos/datepicker/" target="_blank" rel="noopener">jQuery UI Date Picker</a>. When you create a date item in APEX you now have the option to set a Minimum and Maximum date as shown below. The catch is that those dates restrictions are defined when the page is rendered and aren’t updated in real time. This is an issue if you want those constraints to dynamically change based on user input.</p>
-<p><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody><tr><td style="text-align: center;"><a href="http://2.bp.blogspot.com/--ly8YwuJPOU/Ts62l3lym0I/AAAAAAAAEDU/0H3Yl9uyeXI/s1600/date_picker_settings.jpg" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/--ly8YwuJPOU/Ts62l3lym0I/AAAAAAAAEDU/0H3Yl9uyeXI/s320/date_picker_settings.jpg" alt=""></a></td></tr><tr><td class="tr-caption" style="text-align: center;">Date Picker Settings</td></tr></tbody></table><br>In some cases you’ll need the min and max dates to change dynamically. A classic example is when you book a plane ticket and set your departure and return dates. When you select a departure date then select a return date, the return date can’t be before the departure date. Dates before the departure date are usually greyed out. Using APEX you could try to implement this example by doing the following:</p>
-<ul>
-<li>Create a Date Item, P1_DEPT_DATE. Set the <em>Maxium Date</em> to be &amp;P1_RETURN_DATE.</li>
-<li>Create a Date Item, P1_RETURN_DATE. Set the <em>Mininum Date</em> to be &amp;P1_DEPT_DATE.</li>
-</ul>
-<p>Run the page and select a date for the Departure Date (in this example 24-Nov-11). Next, select a Return Date. You’ll notice that the calendar picker does not prevent you from selecting a return date before 24-Nov-2011.</p>
-<p><table align="center" cellpadding="0" cellspacing="0" class="tr-caption-container" style="margin-left: auto; margin-right: auto; text-align: center;"><tbody><tr><td style="text-align: center;"><a href="http://4.bp.blogspot.com/-KQduHbQfqZo/Ts63sHZ2sNI/AAAAAAAAEDc/u_BtVED6DAA/s1600/date_picker_restrictions.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-KQduHbQfqZo/Ts63sHZ2sNI/AAAAAAAAEDc/u_BtVED6DAA/s320/date_picker_restrictions.jpg" alt=""></a></td></tr><tr><td class="tr-caption" style="text-align: center;"><br></td></tr></tbody></table><br><em>Note: If you submit the page now it’ll raise an exception since the Min and Max attributes requires the date to be in YYYYMMDDHH24MI format.&nbsp;</em></p>
-<p>So how do you have the min and max date restrictions change based on the user input? Excellent question. My <a href="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in.html">next post</a> introduces a plugin that resolves this issue.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/" data-id="cjflx7re70072ea8poy9xj2l8" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
 
     </footer>
   </div>
@@ -771,7 +850,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">140</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">141</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -808,7 +887,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
