@@ -67,6 +67,56 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-exporting-apex-application-in-sqlcl-with-build-status-override" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" class="article-date">
+  <time datetime="2018-07-28T14:09:02.000Z" itemprop="datePublished">2018-07-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/">Exporting APEX Application in SQLcl with Build Status Override</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="https://www.oracle.com/technetwork/developer-tools/sqlcl/overview/index.html" target="_blank" rel="noopener">SQLcl</a> has a great feature to easily export an APEX application.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">&gt; sqlcl giffy/giffy@localhost:32122/orclpdb1810.localdomain</div><div class="line"></div><div class="line">SQLcl: Release 18.2 Production on Sat Jul 28 08:12:13 2018</div><div class="line"></div><div class="line">Copyright (c) 1982, 2018, Oracle.  All rights reserved.</div><div class="line"></div><div class="line">Last Successful login time: Sat Jul 28 2018 08:12:20 -04:00</div><div class="line"></div><div class="line">Connected to:</div><div class="line">Oracle Database 12c Enterprise Edition Release 12.2.0.1.0 - 64bit Production</div><div class="line"></div><div class="line">SQL&gt; apex <span class="built_in">export</span> 100</div><div class="line">Exporting application 100  Completed at Sat Jul 28 08:13:14 EDT 2018</div><div class="line"></div><div class="line">SQL&gt;</div></pre></td></tr></table></figure>
+<p>This will produce a file in the current directory called <code>f100.sql</code>.</p>
+<p>I was recently asked how to export an application using SQLcl and set the <code>Build Status Override</code> option. This is available when manually exporting the application as shown below. This option is usually set to <code>Run Application Only</code> in production environments to prevent others from modifying the application.</p>
+<img src="/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/Snip20180728_32.png">
+<p>There is no option <em>(that I know of)</em> to set the <code>Build Status Override</code> option when doing an SQLcl export. After doing a diff between manual exports with the different settings for <code>Build Status Override</code> the only change is the parameter <code>p_build_status=&gt; &#39;RUN_ONLY&#39;</code>:</p>
+<img src="/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/Snip20180728_28.png">
+<p>If you want to create an application export for a run only environment (i.e. production) just run the following bash commands after the export:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">APEX_APP_ID=100</div><div class="line">sed -i.bu <span class="string">"s/wwv_flow_api.create_flow(/wwv_flow_api.create_flow(p_build_status=&gt; 'RUN_ONLY',/g"</span> f<span class="variable">$APEX_APP_ID</span>.sql</div><div class="line"></div><div class="line">mv f<span class="string">"<span class="variable">$APEX_APP_ID</span>"</span>.sql.bu f<span class="string">"<span class="variable">$APEX_APP_ID</span>"</span>_run_and_build.sql</div><div class="line">mv f<span class="string">"<span class="variable">$APEX_APP_ID</span>"</span>.sql f<span class="string">"<span class="variable">$APEX_APP_ID</span>"</span>_run_only.sql</div></pre></td></tr></table></figure>
+<p>This will produce two files:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&gt; ls -1 f*.sql</div><div class="line"></div><div class="line">f100_run_and_build.sql</div><div class="line">f100_run_only.sql</div></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" data-id="cjk5frtph00eayjn9dqq5rh2r" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sqlcl/">sqlcl</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" class="article-date">
@@ -100,7 +150,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" data-id="cjh8mrd3900embgra0t71ams2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" data-id="cjk5frtpg00e7yjn9qnyu6gia" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -161,7 +211,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="cjh8mrd3700ehbgra7e1d5iti" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="cjk5frtpe00e2yjn953k5htyt" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -219,7 +269,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="cjh8mrd3800ekbgrajho6y9ac" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="cjk5frtpf00e5yjn95nhbrwyx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/docker-as-a-micro-service/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -271,7 +321,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="cjh8mrd3700efbgrab4p4gy5m" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="cjk5frtpd00e0yjn9xv6k4pja" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -346,7 +396,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="cjh8mrd3600edbgraqz6xgakt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="cjk5frtpa00dvyjn97y9knkzp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -397,7 +447,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="cjh8mrd3500eabgrakrf30dpx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="cjk5frtpc00dyyjn9qgjsu64j" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/custom-apex-notification-messages/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -468,7 +518,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="cjh8mrd3300e8bgrakv86rl0u" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="cjk5frtp900dtyjn97cm8mj1m" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -513,7 +563,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="cjh8mrd3v00fzbgra32akdmei" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="cjk5frtpy00flyjn95ehsdeek" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -560,72 +610,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="cjh8mrd3w00g1bgraghwpk88r" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="cjk5frtpy00fnyjn9eps7eq8y" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/12c/">12c</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-convert-dec-to-any-base-in-sql" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/11/how-to-convert-dec-to-any-base-in-sql/" class="article-date">
-  <time datetime="2017-11-07T03:26:15.000Z" itemprop="datePublished">2017-11-06</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/11/how-to-convert-dec-to-any-base-in-sql/">How to Convert Dec to Any Base in SQL</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>If you want to convert decimal (base 10) to to hexadecimal (base 16) in SQL you can do so easily with the built in <code>to_char</code> functionality:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">select</span> <span class="keyword">trim</span>(to_char(<span class="number">300</span>, <span class="string">'XXXXX'</span>)) dec2hex</div><div class="line"><span class="keyword">from</span> dual;</div><div class="line"></div><div class="line">DEC2HEX</div><div class="line">12C</div></pre></td></tr></table></figure>
-<p>What if you wanted to convert a decimal number to base 20 or any other base? This question recently came up when I was looking to add a <a href="https://github.com/OraOpenSource/oos-utils/issues/173" target="_blank" rel="noopener">transactional number generator</a> for <a href="https://github.com/OraOpenSource/oos-utils" target="_blank" rel="noopener">OOS Utils</a>. The goal of the ticket is to convert a sequence number into a human readable number (ex: invoice number). It can easily be solved using PL/SQL (solution below) but I wanted to see if I could do it in SQL as it presents an interesting problem.</p>
-<h2 id="The-Formula"><a href="#The-Formula" class="headerlink" title="The Formula"></a>The Formula</h2><p>For some, this section will go down memory lane to your college / university years where you had to convert dec to hex by hand. It’s important to understand the formula to convert dec to hex (or any base),</p>
-<p>Using the first example, this is how to convert <code>300</code> to <code>12C</code> “by hand”: <em>Note <code>Q</code> = Quotient, <code>R</code> = Remainder</em></p>
-<ul>
-<li><code>300/16 = Q: 18, R: 12 (hex: C)</code></li>
-<li><code>18/16 = Q:1, R: 2 (hex: 2)</code></li>
-<li><code>1/16 = Q: 0, R: 1 (hex: 1)</code></li>
-</ul>
-<p>The steps above produce the hexadecimal number <code>12C</code>. More importantly, each value is dependent on the calculation of the previous line. This isn’t easy to do in SQL.</p>
-<h2 id="PL-SQL-Function"><a href="#PL-SQL-Function" class="headerlink" title="PL/SQL Function"></a>PL/SQL Function</h2><p>The following function will convert dec to hex in PL/SQL:</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">create or replace function dec2hex (</div><div class="line">  p_num in integer)</div><div class="line">  return varchar2</div><div class="line">as</div><div class="line">  l_return varchar2(255);</div><div class="line">  l_quotient integer;</div><div class="line">  l_remainder integer;</div><div class="line">  c_base constant pls_integer := 16;</div><div class="line">begin</div><div class="line"></div><div class="line">  l_quotient := p_num;</div><div class="line"></div><div class="line">  while l_quotient &gt; 0 loop</div><div class="line">    l_remainder := mod(l_quotient, c_base);</div><div class="line">    l_quotient := trunc(l_quotient / c_base);</div><div class="line"></div><div class="line">    -- A=10, B=11, ... F=15</div><div class="line">    l_return := substr('0123456789ABCDEF', l_remainder+1, 1) || l_return;</div><div class="line">  end loop;</div><div class="line"></div><div class="line">  return l_return;</div><div class="line">end dec2hex;</div><div class="line">/</div></pre></td></tr></table></figure>
-<p>As you can see PL/SQL uses the quotient from the previous loop to calculate the current loop’s remainder.</p>
-<h2 id="SQL-Solution"><a href="#SQL-Solution" class="headerlink" title="SQL Solution"></a>SQL Solution</h2><p>In SQL, finding the value of the previous row is easy using an analytic function such as <a href="https://docs.oracle.com/database/122/SQLRF/Analytic-Functions.htm#SQLRF06174" target="_blank" rel="noopener"><code>lag</code></a>. If you’ve never used analytic functions before, <a href="https://twitter.com/connor_mc_d" target="_blank" rel="noopener">Connor McDonald</a> has a great <a href="https://www.youtube.com/watch?v=xvZ4SmKtazs" target="_blank" rel="noopener">series on youtube</a> about them.</p>
-<p>Using the previous row’s calculated value for the current row is more difficult and can’t be done using analytic functions. This is where the <a href="https://docs.oracle.com/database/122/SQLRF/SELECT.htm#GUID-CFA006CA-6FF1-4972-821E-6996142A51C6__I2171160" target="_blank" rel="noopener">model clause</a> comes in. It’s one of the lesser known features in Oracle SQL but very powerful in the right circumstances.</p>
-<p>The query below will do dec to hex (or any other “base X”) conversion. For demo purposes I have left the <code>select ... from my_data</code> portion uncommented to highlight the model clause. To do a full translation uncomment the last few lines.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div></pre></td><td class="code"><pre><div class="line">var x number;</div><div class="line">var base number;</div><div class="line"></div><div class="line">:x := 300;</div><div class="line">:base := 16;</div><div class="line"></div><div class="line"></div><div class="line">with</div><div class="line">  <span class="comment">-- Find how many loops we'll need to convert dec to basex</span></div><div class="line">  lvls as (</div><div class="line">    <span class="keyword">select</span> <span class="keyword">level</span> lvl</div><div class="line">    <span class="keyword">from</span> dual</div><div class="line">    <span class="comment">-- The &lt;= logic will return the number of characters required for conversion</span></div><div class="line">    <span class="keyword">connect</span> <span class="keyword">by</span> <span class="keyword">level</span> &lt;= <span class="keyword">ceil</span>(<span class="keyword">log</span>(:base, :x)) + <span class="keyword">decode</span>(<span class="keyword">log</span>(:base, :x), <span class="keyword">ceil</span>(<span class="keyword">log</span>(:base, :x)), <span class="number">1</span>,<span class="number">0</span>)</div><div class="line">  ),</div><div class="line">  <span class="comment">-- Alphabet 0..Z</span></div><div class="line">  <span class="comment">-- Where 0-9, A=10, B=11 ....</span></div><div class="line">  alphabet <span class="keyword">as</span> (</div><div class="line">    <span class="keyword">select</span></div><div class="line">      <span class="keyword">level</span><span class="number">-1</span> <span class="keyword">num</span>,</div><div class="line">      <span class="keyword">case</span></div><div class="line">        <span class="keyword">when</span> <span class="keyword">level</span><span class="number">-1</span> &lt; <span class="number">10</span> <span class="keyword">then</span> to_char(<span class="keyword">level</span><span class="number">-1</span>)</div><div class="line">        <span class="keyword">else</span> <span class="keyword">chr</span>( <span class="keyword">ascii</span>(<span class="string">'A'</span>)+<span class="keyword">level</span><span class="number">-1</span><span class="number">-10</span>)</div><div class="line">      <span class="keyword">end</span> letter</div><div class="line">    <span class="keyword">from</span> dual</div><div class="line">    <span class="keyword">connect</span> <span class="keyword">by</span> <span class="keyword">level</span> &lt;= :base</div><div class="line">  ),</div><div class="line">  <span class="comment">-- Returns rows for all the Quotient and Remainder in dec value</span></div><div class="line">  my_data <span class="keyword">as</span> (</div><div class="line">    <span class="keyword">select</span></div><div class="line">      lvl,</div><div class="line">      quotient,</div><div class="line">      <span class="keyword">remainder</span></div><div class="line">    <span class="keyword">from</span> lvls</div><div class="line">    <span class="keyword">model</span></div><div class="line">      <span class="keyword">return</span> all <span class="keyword">rows</span></div><div class="line">      <span class="keyword">dimension</span> <span class="keyword">by</span> (lvl)</div><div class="line">      <span class="keyword">measures</span>( <span class="number">0</span> <span class="keyword">remainder</span>, <span class="number">0</span> quotient)</div><div class="line">      <span class="keyword">rules</span> (</div><div class="line">        <span class="comment">-- Order matters here. I.e. R must come after Q so R can "see" Q</span></div><div class="line">        <span class="comment">-- cv docs: https://docs.oracle.com/database/122/SQLRF/Model-Functions.htm#SQLRF51210</span></div><div class="line">        quotient[lvl] = trunc(nvl(quotient[cv(lvl)<span class="number">-1</span>], :x) / :base),</div><div class="line">        <span class="keyword">remainder</span>[lvl] = <span class="keyword">mod</span>(nvl(quotient[cv(lvl)<span class="number">-1</span>], :x), :base)</div><div class="line">      )</div><div class="line">  )</div><div class="line"><span class="comment">-- For demo purposes</span></div><div class="line"><span class="keyword">select</span> md.*, a.letter</div><div class="line"><span class="keyword">from</span> my_data md, alphabet a</div><div class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></div><div class="line">  <span class="keyword">and</span> md.remainder = a.num</div><div class="line"><span class="keyword">order</span> <span class="keyword">by</span> md.lvl</div><div class="line"><span class="comment">-- Uncomment below for dec2hex conversion</span></div><div class="line"><span class="comment">--select</span></div><div class="line"><span class="comment">--  listagg(a.letter, '') within group (order by md.lvl desc) basex</span></div><div class="line"><span class="comment">--from my_data md, alphabet a</span></div><div class="line"><span class="comment">--where 1=1</span></div><div class="line"><span class="comment">--  and md.remainder = a.num</span></div><div class="line">;</div><div class="line"></div><div class="line">LVL   QUOTIENT   REMAINDER LETTER</div><div class="line">  1         18          12 C</div><div class="line">  2          1           2 2</div><div class="line">  3          0           1 1</div></pre></td></tr></table></figure>
-<h2 id="Final-Thoughts"><a href="#Final-Thoughts" class="headerlink" title="Final Thoughts"></a>Final Thoughts</h2><p>The model clause is extremely powerful when used to solve problems it was intended for. The toughest thing to do is learn and understand how it works with all it’s options/function. If it’s any help, I’m still learning more about the model clause and by no means an expert.</p>
-<p>If you do some interesting things with a model clause please blog about it and send me a message as I can list future posts in this article.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="cjh8mrd3u00fxbgrajwlz4rss" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
 
     </footer>
   </div>
@@ -672,7 +662,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">141</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">142</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -709,7 +699,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
