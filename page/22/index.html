@@ -92,26 +92,26 @@
         <p>When developing with PL/SQL you may store public variables in the package specification. This has many uses, none of which I will get into for this post. The only catch in Oracle is that you can not easily reference these values in SQL statements outside of PL/SQL. The following example demonstrates this:</p>
 <ul>
 <li><p>Create Package Spec with Variable</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">PACKAGE</span> pkg_var</div><div class="line"><span class="keyword">AS</span></div><div class="line">  c_my_var   <span class="keyword">CONSTANT</span> VARCHAR2 (<span class="number">5</span>) := <span class="string">'hello'</span>;</div><div class="line"><span class="keyword">END</span> pkg_var;</div></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">PACKAGE</span> pkg_var</span><br><span class="line"><span class="keyword">AS</span></span><br><span class="line">  c_my_var   <span class="keyword">CONSTANT</span> VARCHAR2 (<span class="number">5</span>) := <span class="string">'hello'</span>;</span><br><span class="line"><span class="keyword">END</span> pkg_var;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>Reference the variable in a SQL statement in SQL*Plus</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">SQL&gt; SELECT pkg_var.c_my_var x</div><div class="line">  2    FROM DUAL;</div><div class="line">SELECT pkg_var.c_my_var x</div><div class="line">       *</div><div class="line">ERROR at line 1:</div><div class="line">ORA-06553: PLS-221: 'C_MY_VAR' is not a procedure or is undefined</div></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; SELECT pkg_var.c_my_var x</span><br><span class="line">  2    FROM DUAL;</span><br><span class="line"><span class="keyword">SELECT</span> pkg_var.c_my_var x</span><br><span class="line">       *</span><br><span class="line"><span class="keyword">ERROR</span> <span class="keyword">at</span> line <span class="number">1</span>:</span><br><span class="line">ORA<span class="number">-06553</span>: PLS<span class="number">-221</span>: <span class="string">'C_MY_VAR'</span> <span class="keyword">is</span> <span class="keyword">not</span> a <span class="keyword">procedure</span> <span class="keyword">or</span> <span class="keyword">is</span> undefined</span><br></pre></td></tr></table></figure>
 </li>
 </ul>
 <p><em>This results in an Oracle error.</em></p>
 <ul>
 <li>Try the same code, but in an block of PL/SQL</li>
 </ul>
-<figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">SQL&gt; DECLARE</div><div class="line">  2    v_x   VARCHAR2 (5);</div><div class="line">  3  BEGIN</div><div class="line">  4    SELECT pkg_var.c_my_var x</div><div class="line">  5      INTO v_x</div><div class="line">  6      FROM DUAL;</div><div class="line">  7</div><div class="line">  8    DBMS_OUTPUT.put_line (v_x);</div><div class="line">  9  END;</div><div class="line"> 10  /</div><div class="line">hello</div><div class="line"></div><div class="line">PL/SQL procedure successfully completed.</div></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; DECLARE</span><br><span class="line">  2    v_x   VARCHAR2 (5);</span><br><span class="line">  3  <span class="keyword">BEGIN</span></span><br><span class="line">  <span class="number">4</span>    <span class="keyword">SELECT</span> pkg_var.c_my_var x</span><br><span class="line">  <span class="number">5</span>      <span class="keyword">INTO</span> v_x</span><br><span class="line">  <span class="number">6</span>      <span class="keyword">FROM</span> DUAL;</span><br><span class="line">  7</span><br><span class="line">  8    DBMS_OUTPUT.put_line (v_x);</span><br><span class="line">  9  <span class="keyword">END</span>;</span><br><span class="line"> 10  /</span><br><span class="line">hello</span><br><span class="line"></span><br><span class="line">PL/SQL procedure successfully completed.</span><br></pre></td></tr></table></figure>
 <p><em>As you can see this worked.</em></p>
 <p>So how can we reference package variables in a non-PL/SQL setting? I created the following function to do so. It will handle values that are of type <code>VARCHAR2</code>. I’ve also removed any spaces from the parameter (<code>pkg_name.var_name</code>) to ensure that no SQL injection will occur.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- **</span></div><div class="line"><span class="comment">-- * Returns Package Variable value</span></div><div class="line"><span class="comment">-- * <span class="doctag">Note:</span> for demo purposes I broke this function into various steps</span></div><div class="line"><span class="comment">-- *</span></div><div class="line"><span class="comment">-- * @param p_pkg_var_name fully qualified variable reference. Ex: pkg_x.var_y</span></div><div class="line"><span class="comment">-- * @return Varchar2 value</span></div><div class="line"><span class="comment">-- * @author Martin Giffy D'Souza: http://apex-smb.blogspot.com</span></div><div class="line"><span class="comment">-- **</span></div><div class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">FUNCTION</span> f_get_pkg_val_vc2 (p_pkg_var_name <span class="keyword">in</span> varchar2)</div><div class="line">  <span class="keyword">RETURN</span> VARCHAR2</div><div class="line"><span class="keyword">AS</span></div><div class="line">  v_string          VARCHAR2 (<span class="number">4000</span>);</div><div class="line">  <span class="comment">-- Full Variable Name (i.e. pkg.var)</span></div><div class="line">  v_var_full_name   VARCHAR2 (61);                             <span class="comment">-- Max of 61 chars since 30 + . + 30</span></div><div class="line"><span class="keyword">BEGIN</span></div><div class="line">  v_var_full_name := p_pkg_var_name;</div><div class="line">  <span class="comment">-- Remove any spaces to avoid SQL injections</span></div><div class="line">  v_var_full_name := REGEXP_REPLACE (v_var_full_name, '[[:space:]]', '');</div><div class="line"></div><div class="line">  <span class="keyword">EXECUTE</span> <span class="keyword">IMMEDIATE</span> <span class="string">'begin :v_string := '</span> || v_var_full_name || <span class="string">'; end;'</span></div><div class="line">              <span class="keyword">USING</span> <span class="keyword">OUT</span> v_string;</div><div class="line"></div><div class="line">  RETURN v_string;</div><div class="line"><span class="keyword">END</span> f_get_pkg_val_vc2;</div></pre></td></tr></table></figure>
-<p>Now when you run in SQL*Plus you get the following:<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">SQL&gt; SELECT f_get_pkg_val_vc2 ('pkg_var.c_my_var') x</div><div class="line">  2    FROM DUAL;</div><div class="line"></div><div class="line">X</div><div class="line">-----------------------------------------------------</div><div class="line"></div><div class="line">hello</div></pre></td></tr></table></figure></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- **</span></span><br><span class="line"><span class="comment">-- * Returns Package Variable value</span></span><br><span class="line"><span class="comment">-- * <span class="doctag">Note:</span> for demo purposes I broke this function into various steps</span></span><br><span class="line"><span class="comment">-- *</span></span><br><span class="line"><span class="comment">-- * @param p_pkg_var_name fully qualified variable reference. Ex: pkg_x.var_y</span></span><br><span class="line"><span class="comment">-- * @return Varchar2 value</span></span><br><span class="line"><span class="comment">-- * @author Martin Giffy D'Souza: http://apex-smb.blogspot.com</span></span><br><span class="line"><span class="comment">-- **</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">FUNCTION</span> f_get_pkg_val_vc2 (p_pkg_var_name <span class="keyword">in</span> varchar2)</span><br><span class="line">  <span class="keyword">RETURN</span> VARCHAR2</span><br><span class="line"><span class="keyword">AS</span></span><br><span class="line">  v_string          VARCHAR2 (<span class="number">4000</span>);</span><br><span class="line">  <span class="comment">-- Full Variable Name (i.e. pkg.var)</span></span><br><span class="line">  v_var_full_name   VARCHAR2 (61);                             <span class="comment">-- Max of 61 chars since 30 + . + 30</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">  v_var_full_name := p_pkg_var_name;</span><br><span class="line">  <span class="comment">-- Remove any spaces to avoid SQL injections</span></span><br><span class="line">  v_var_full_name := REGEXP_REPLACE (v_var_full_name, '[[:space:]]', '');</span><br><span class="line"></span><br><span class="line">  <span class="keyword">EXECUTE</span> <span class="keyword">IMMEDIATE</span> <span class="string">'begin :v_string := '</span> || v_var_full_name || <span class="string">'; end;'</span></span><br><span class="line">              <span class="keyword">USING</span> <span class="keyword">OUT</span> v_string;</span><br><span class="line"></span><br><span class="line">  RETURN v_string;</span><br><span class="line"><span class="keyword">END</span> f_get_pkg_val_vc2;</span><br></pre></td></tr></table></figure>
+<p>Now when you run in SQL*Plus you get the following:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; SELECT f_get_pkg_val_vc2 ('pkg_var.c_my_var') x</span><br><span class="line">  2    FROM DUAL;</span><br><span class="line"></span><br><span class="line">X</span><br><span class="line"><span class="comment">-----------------------------------------------------</span></span><br><span class="line"></span><br><span class="line">hello</span><br></pre></td></tr></table></figure></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="cjk5frtkw003kyjn9ovr7zv07" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="cjk6qo9bb003i70n9axkqueb3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/03/how-to-reference-package-variables/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -170,7 +170,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="cjk5frtkv003iyjn97r79a0h5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="cjk6qo9ba003g70n99i8g3j3t" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -217,7 +217,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="cjk5frtku003eyjn9bkcji2wk" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="cjk6qo9b7003e70n992eu05mq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -363,7 +363,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="cjk5frtku003gyjn9ibcabtyi" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="cjk6qo9b4003c70n9c3m2wpwy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -441,7 +441,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cjk5frtkt003cyjn95qgis6iz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cjk6qo9b2003a70n9umhosdec" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/12/apex-orphaned-application-files/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -485,7 +485,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cjk5frtks003ayjn9jvkwnb3x" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cjk6qo9ay003870n93f8zci1e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -562,7 +562,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cjk5frtks0038yjn9vudk79o9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cjk6qo9at003670n9fvjuyhcg" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -628,7 +628,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cjk5frtkr0036yjn9qi5qmnkd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cjk6qo9as003470n9ubkb0kn6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -678,7 +678,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cjk5frtkq0034yjn9e7t6edfx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cjk6qo9ap003270n9dcrqhr64" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -727,7 +727,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="cjk5frtkq0032yjn9f0abxq8v" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="cjk6qo9an002y70n9awx6lt4q" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/#disqus_thread" class="article-comment-link">Comments</a>
       

@@ -99,7 +99,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/06/my-early-departure-from-kscope-14/" data-id="cjk5frtnb009cyjn9tyd8hh11" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/06/my-early-departure-from-kscope-14/" data-id="cjk6qo9ff00bc70n93671cuqz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/06/my-early-departure-from-kscope-14/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -143,7 +143,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/06/tourkscope/" data-id="cjk5frtrf00ifyjn9j5d3ifve" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/06/tourkscope/" data-id="cjk6qo9jj00ie70n93tiom4um" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/06/tourkscope/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -198,7 +198,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/06/presenting-at-odtug-kscope-14/" data-id="cjk5frtna009ayjn93sqtu6ao" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/06/presenting-at-odtug-kscope-14/" data-id="cjk6qo9fe00ba70n9n0u7cmfd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/06/presenting-at-odtug-kscope-14/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -243,7 +243,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/06/get2kscope/" data-id="cjk5frtn90098yjn9ba75k86u" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/06/get2kscope/" data-id="cjk6qo9fc00b870n9mri8ixyz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/06/get2kscope/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -286,13 +286,13 @@
 <h3 id="Equiheight-WIDTH-BUCKET"><a href="#Equiheight-WIDTH-BUCKET" class="headerlink" title="Equiheight (WIDTH_BUCKET):"></a>Equiheight (<a href="http://docs.oracle.com/cd/E11882_01/server.112/e41084/functions234.htm#SQLRF06163" target="_blank" rel="noopener">WIDTH_BUCKET</a>):</h3><p>This will take the min and max range, divided by the number of buckets and place each value in it. For example, the salaries in the <code>EMP</code> table range from <code>801</code> ~ <code>5000</code>. If you set the min/max range from <code>0~5000</code> 3 buckets will be created. All values from <code>0~1,666</code> will go into <code>B1</code>, values from <code>1,6667~3333</code> into <code>B2</code>, and values <code>3334~5000</code> into <code>B3</code>. <em>(Note: for simplicity I excluded decimals in this split).</em></p>
 <h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h3><p>An easy way to think of these two bucketing methods is that <code>NTILE</code> divides values based on the number of items. <code>WIDTH_BUCKET</code> divides values based on their values.</p>
 <p>Here’s an example that highlights the difference between the two functions.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">with data as (</div><div class="line">  <span class="comment">-- using this as data input</span></div><div class="line">  <span class="keyword">select</span> <span class="number">3</span> <span class="keyword">as</span> num_buckets</div><div class="line">  <span class="keyword">from</span> dual</div><div class="line">)</div><div class="line"><span class="keyword">select</span></div><div class="line">  d.dname,</div><div class="line">  e.ename,</div><div class="line">  e.sal,</div><div class="line">  ntile (data.num_buckets) <span class="keyword">over</span> (<span class="keyword">order</span> <span class="keyword">by</span> sal <span class="keyword">asc</span>) ntile,</div><div class="line">  width_bucket(sal, <span class="number">0</span>, <span class="keyword">max</span>(sal+<span class="number">1</span>) <span class="keyword">over</span> (), data.num_buckets) width_bucket</div><div class="line"><span class="keyword">from</span> emp e, dept d, <span class="keyword">data</span></div><div class="line"><span class="keyword">where</span> e.deptno = d.deptno</div><div class="line"><span class="keyword">order</span> <span class="keyword">by</span> sal;</div><div class="line"></div><div class="line">DNAME          ENAME      SAL        NTILE      WIDTH_BUCKET</div><div class="line"><span class="comment">-------------- ---------- ---------- ---------- ------------</span></div><div class="line">RESEARCH       SMITH         801          1        1</div><div class="line">SALES          JAMES         950          1        1</div><div class="line">RESEARCH       ADAMS        1100          1        1</div><div class="line">SALES          WARD         1250          1        1</div><div class="line">SALES          MARTIN       1250          1        1</div><div class="line">ACCOUNTING     MILLER       1300          2        1</div><div class="line">SALES          TURNER       1500          2        1</div><div class="line">SALES          ALLEN        1600          2        1</div><div class="line">ACCOUNTING     CLARK        2450          2        2</div><div class="line">RESEARCH       JONES        2975          2        2</div><div class="line">RESEARCH       SCOTT        3000          3        2</div><div class="line">RESEARCH       FORD         3000          3        2</div><div class="line">SALES          BLAKE        3850          3        3</div><div class="line">ACCOUNTING     KING         5000          3        3</div></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">with data as (</span><br><span class="line">  <span class="comment">-- using this as data input</span></span><br><span class="line">  <span class="keyword">select</span> <span class="number">3</span> <span class="keyword">as</span> num_buckets</span><br><span class="line">  <span class="keyword">from</span> dual</span><br><span class="line">)</span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">  d.dname,</span><br><span class="line">  e.ename,</span><br><span class="line">  e.sal,</span><br><span class="line">  ntile (data.num_buckets) <span class="keyword">over</span> (<span class="keyword">order</span> <span class="keyword">by</span> sal <span class="keyword">asc</span>) ntile,</span><br><span class="line">  width_bucket(sal, <span class="number">0</span>, <span class="keyword">max</span>(sal+<span class="number">1</span>) <span class="keyword">over</span> (), data.num_buckets) width_bucket</span><br><span class="line"><span class="keyword">from</span> emp e, dept d, <span class="keyword">data</span></span><br><span class="line"><span class="keyword">where</span> e.deptno = d.deptno</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> sal;</span><br><span class="line"></span><br><span class="line">DNAME          ENAME      SAL        NTILE      WIDTH_BUCKET</span><br><span class="line"><span class="comment">-------------- ---------- ---------- ---------- ------------</span></span><br><span class="line">RESEARCH       SMITH         801          1        1</span><br><span class="line">SALES          JAMES         950          1        1</span><br><span class="line">RESEARCH       ADAMS        1100          1        1</span><br><span class="line">SALES          WARD         1250          1        1</span><br><span class="line">SALES          MARTIN       1250          1        1</span><br><span class="line">ACCOUNTING     MILLER       1300          2        1</span><br><span class="line">SALES          TURNER       1500          2        1</span><br><span class="line">SALES          ALLEN        1600          2        1</span><br><span class="line">ACCOUNTING     CLARK        2450          2        2</span><br><span class="line">RESEARCH       JONES        2975          2        2</span><br><span class="line">RESEARCH       SCOTT        3000          3        2</span><br><span class="line">RESEARCH       FORD         3000          3        2</span><br><span class="line">SALES          BLAKE        3850          3        3</span><br><span class="line">ACCOUNTING     KING         5000          3        3</span><br></pre></td></tr></table></figure>
 <p>It’s important to note that <code>WIDTH_BUCKET</code> is not an analytic function but <code>NTILE</code> is. For more information read the documentation for each function. For <code>WIDTH_BUCKET</code>, the documentation covers what happens with values outside the min/max range (they go into bucket <code>0</code> and <code>num_buckets+1</code>).</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/04/ntile-vs-widthbucket/" data-id="cjk5frtn90096yjn9p3euwujq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/04/ntile-vs-widthbucket/" data-id="cjk6qo9fb00b670n9rjfnq51m" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/04/ntile-vs-widthbucket/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -340,7 +340,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/03/running-custom-code-for-tabular-forms/" data-id="cjk5frtn80094yjn9ad0d2o01" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/03/running-custom-code-for-tabular-forms/" data-id="cjk6qo9f900b470n9kxqg0yyz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/03/running-custom-code-for-tabular-forms/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -383,7 +383,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/03/oracleapexcom-part-2/" data-id="cjk5frtn70091yjn9qt24cj2a" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/03/oracleapexcom-part-2/" data-id="cjk6qo9f800b170n9x9lp3yq7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/03/oracleapexcom-part-2/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -429,7 +429,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/03/apex-50-and-kscope-14/" data-id="cjk5frtn7008zyjn9mno5i1uq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/03/apex-50-and-kscope-14/" data-id="cjk6qo9f700az70n9y34xfus5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/03/apex-50-and-kscope-14/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -467,7 +467,7 @@
       
         <p>It’s not uncommon to reference the current user as <code>USER</code> in your PL/SQL code. A simple use case may be to determine the client or environment that you’re running in (ex: dev, test, prod).</p>
 <p>Referencing <code>USER</code> will have some slight side effects when running the code in APEX as the current <code>USER</code> is actually <code>APEX_PUBLIC_USER</code> (or what ever user you configured). This can cause issues in your application. To resolve it, simply reference <code>sys_context(&#39;userenv&#39;,&#39;current_schema’)</code> instead.</p>
-<p>Example:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">-- Via SQL*Plus</span></div><div class="line"><span class="keyword">select</span> <span class="keyword">user</span>, sys_context(<span class="string">'userenv'</span>,<span class="string">'current_schema'</span>) sc_user</div><div class="line"><span class="keyword">from</span> dual;</div><div class="line"></div><div class="line">USER       SC_USER</div><div class="line"><span class="comment">---------- --------------------</span></div><div class="line">GIFFY      GIFFY</div></pre></td></tr></table></figure></p>
+<p>Example:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Via SQL*Plus</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">user</span>, sys_context(<span class="string">'userenv'</span>,<span class="string">'current_schema'</span>) sc_user</span><br><span class="line"><span class="keyword">from</span> dual;</span><br><span class="line"></span><br><span class="line">USER       SC_USER</span><br><span class="line"><span class="comment">---------- --------------------</span></span><br><span class="line">GIFFY      GIFFY</span><br></pre></td></tr></table></figure></p>
 <p>If you run the same query in APEX the output is shown below. You’ll notice that referencing <code>USER</code> it does not display my current schema (<code>GIFFY</code> in this case).</p>
 <p><div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-ozCvnbjIbkA/UwqzQGMCjSI/AAAAAAAAEnE/C2g_N5lmlVo/s1600/apex_users.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/-ozCvnbjIbkA/UwqzQGMCjSI/AAAAAAAAEnE/C2g_N5lmlVo/s1600/apex_users.png" alt=""></a></div>The same applies to compiled code executed from APEX. For example if you have a procedure that references USER and that procedure is run from APEX then <code>USER</code> will be <code>APEX_PUBLIC_USER</code>.</p>
 <p>This can be really tough to detect in automated tests as when testing via SQL*Plus, <code>USER</code> will return the current schema name.</p>
@@ -475,7 +475,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/03/referencing-user-in-apex/" data-id="cjk5frtn6008xyjn93ouhz8gv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/03/referencing-user-in-apex/" data-id="cjk6qo9f600ax70n9yn9twjlv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/03/referencing-user-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -516,7 +516,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/02/oracle-apex-training/" data-id="cjk5frtn5008tyjn98d9x3fa6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/02/oracle-apex-training/" data-id="cjk6qo9f500av70n94c2f1d66" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/02/oracle-apex-training/#disqus_thread" class="article-comment-link">Comments</a>
       
