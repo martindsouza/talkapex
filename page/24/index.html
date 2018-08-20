@@ -67,6 +67,81 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-oracle-how-to-update-all-sequences" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/07/oracle-how-to-update-all-sequences/" class="article-date">
+  <time datetime="2009-07-24T15:00:00.000Z" itemprop="datePublished">2009-07-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/07/oracle-how-to-update-all-sequences/">Oracle: How to update all sequences</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>If you ever do data refreshes from production to development or test environments you may run into an issue where your sequences are not up to date. It seems that Oracle exports the sequences first, then the data. If your sequence numbers change during the entire export process you may get errors when using them in your refreshed schema.</p>
+<p>To fix this problem you can try to find where your sequences are used and get the MAX(value) to find the next value. Alternatively you can just add a large random number, say 1,000,000, to all your sequences. For most users this will fix the problem and is very easy to do. Here’s how:</p>
+<pre class="brush: sql">
+-- Update all sequences
+DECLARE
+  v_increase_by                     NUMBER;
+  v_bkp_increment_by            NUMBER;
+  v_str                         VARCHAR2 (1000);
+  v_count                       NUMBER;
+BEGIN
+  v_increase_by                  := 1000000;
+
+  FOR rec IN (SELECT *
+              FROM   user_sequences) LOOP
+    -- Backup current incrementation number
+    v_bkp_increment_by         := rec.increment_by;
+    -- Alter the sequence to increase by a defined amount
+    v_str                      := 'alter sequence ' || rec.sequence_name || ' increment by ' || v_increase_by;
+
+    EXECUTE IMMEDIATE v_str;
+
+    -- Increase by that amount
+    v_str                      := 'select ' || rec.sequence_name || '.nextval from dual';
+
+    EXECUTE IMMEDIATE v_str
+    INTO              v_count;
+
+    -- Reset the increment factor
+    v_str                      := 'alter sequence ' || rec.sequence_name || ' increment by ' || v_bkp_increment_by;
+
+    EXECUTE IMMEDIATE v_str;
+  END LOOP;
+END;
+/
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/07/oracle-how-to-update-all-sequences/" data-id="cjl2lto3y002mion9v0gxmm17" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/07/oracle-how-to-update-all-sequences/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/">oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-oracle-advanced-error-messages" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/07/oracle-advanced-error-messages/" class="article-date">
@@ -142,7 +217,7 @@ EXEC pkg_err_test.sp_err_test(p_empno => 123);
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/oracle-advanced-error-messages/" data-id="cjk6qo9af002g70n9fmzgsq98" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/oracle-advanced-error-messages/" data-id="cjl2lto3x002kion99d4amrpn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/oracle-advanced-error-messages/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -210,7 +285,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/how-to-resolve-null-issue-in-apex-lovs/" data-id="cjk6qo9ad002b70n9e6swjbjz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/how-to-resolve-null-issue-in-apex-lovs/" data-id="cjl2lto3n002fion9qrhgb85c" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/how-to-resolve-null-issue-in-apex-lovs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -255,7 +330,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/javascript-if-else/" data-id="cjk6qo9ac002970n9yuc0a0kv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/javascript-if-else/" data-id="cjl2lto3m002dion9vurh6dw5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/javascript-if-else/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -320,7 +395,7 @@ SELECT line_content content_without_subs
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/apexapplicationdosubstitutions/" data-id="cjk6qo9ae002e70n98tqysk0o" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/apexapplicationdosubstitutions/" data-id="cjl2lto3l002bion99gslie05" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/apexapplicationdosubstitutions/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -372,7 +447,7 @@ SELECT line_content content_without_subs
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/apex-how-to-develop-in-2-browser-tabs/" data-id="cjk6qo9a8002070n9qstfg73b" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/apex-how-to-develop-in-2-browser-tabs/" data-id="cjl2lto3k0029ion9v9l0kya6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/apex-how-to-develop-in-2-browser-tabs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -465,7 +540,7 @@ SELECT region_id,
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/apex-how-to-dynamically-render-regions/" data-id="cjk6qo9ab002770n9blddoagi" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/apex-how-to-dynamically-render-regions/" data-id="cjl2lto3i0025ion9rngp612y" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/apex-how-to-dynamically-render-regions/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -573,7 +648,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/07/apex-saving-item-values-for-each-user/" data-id="cjk6qo9a9002370n9snpolytb" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/07/apex-saving-item-values-for-each-user/" data-id="cjl2lto3j0027ion9ka7q8nm8" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/07/apex-saving-item-values-for-each-user/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -657,7 +732,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/odtug-kaleidoscope-2009-summary/" data-id="cjk6qo9aa002570n90uhdg59n" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/06/odtug-kaleidoscope-2009-summary/" data-id="cjl2lto3q002iion9er5kqcjf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/06/odtug-kaleidoscope-2009-summary/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -699,7 +774,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/odtug-kaleidoscope-twitter/" data-id="cjk6qo9a7001y70n9uo37vfhh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/06/odtug-kaleidoscope-twitter/" data-id="cjl2lto3g0020ion9ueu95xdn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/06/odtug-kaleidoscope-twitter/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -713,112 +788,11 @@ END;
 
 
   
-    <article id="post-how-to-quickly-append-varchar2-to-clob" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/06/how-to-quickly-append-varchar2-to-clob/" class="article-date">
-  <time datetime="2009-06-15T15:00:00.000Z" itemprop="datePublished">2009-06-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/06/how-to-quickly-append-varchar2-to-clob/">How to Quickly Append VARCHAR2 to CLOB</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><span style="font-style:italic">This is not an APEX specific issue, however it could be useful for some of your PL/SQL code</span></p>
-<p>I ran into an issue today where I had to append VARCHAR2s to a CLOB many times in a loop. I first tried appending a VARCHAR2 to a CLOB: CLOB := CLOB || VARCHAR2. I noticed that this was taking a long time to run. In order to speed up the process I tried the following techniques:</p>
-<ul>
-<li>Create a “temp” CLOB (TMP_CLOB := VARCHAR2) and then appended it the clob CLOB := CLOB || CLOB</li>
-<li>Use the CLOB := CLOB || TO_CLOB(VARCHAR2)</li>
-<li>Use DBMS_LOB.append (CLOB, VARCHAR2)</li>
-</ul>
-<p>All three options resulted in significant speed increases, however using the “temp” CLOB method resulted in the quickest code. Here is the test that I ran along with the results:</p>
-<pre class="brush: sql">
-DECLARE
-  v_start TIMESTAMP;
-  v_end TIMESTAMP;
-  v_clob CLOB;
-  v_tmp_clob CLOB;
-  v_iterations PLS_INTEGER := 100000; -- Used 1,000, 10,000, and 100,000 for testing
-BEGIN
-  v_start := SYSTIMESTAMP;
-  v_clob := NULL;
-
-  FOR i IN 1 .. v_iterations LOOP
-    v_clob := v_clob || TO_CHAR (SYSTIMESTAMP) || ', ';
-  END LOOP;
-
-  v_end := SYSTIMESTAMP;
-  DBMS_OUTPUT.put_line ('CLOB := CLOB || VARCHAR2 method: ' || TO_CHAR (v_end - v_start));
-  v_start := SYSTIMESTAMP;
-  v_clob := NULL;
-
-  FOR i IN 1 .. v_iterations LOOP
-    v_clob := v_clob || TO_CLOB (TO_CHAR (SYSTIMESTAMP) || ', ');
-  END LOOP;
-
-  v_end := SYSTIMESTAMP;
-  DBMS_OUTPUT.put_line ('CLOB := CLOB || TO_CLOB(VARCHAR2) method: ' || TO_CHAR (v_end - v_start));
-  v_start := SYSTIMESTAMP;
-  v_clob := NULL;
-
-  FOR i IN 1 .. v_iterations LOOP
-    v_tmp_clob := TO_CHAR (SYSTIMESTAMP) || ', ';
-    v_clob := v_clob || v_tmp_clob;
-  END LOOP;
-
-  v_end := SYSTIMESTAMP;
-  DBMS_OUTPUT.put_line ('CLOB := CLOB || TMP_CLOB method: ' || TO_CHAR (v_end - v_start));
-  v_start := SYSTIMESTAMP;
-  v_clob := NULL;
-  v_clob := 'h'; -- need to initialize it;
-
-  FOR i IN 1 .. v_iterations LOOP
-    DBMS_LOB.append (v_clob, TO_CHAR (SYSTIMESTAMP) || ', ');
-  END LOOP;
-
-  v_end := SYSTIMESTAMP;
-  DBMS_OUTPUT.put_line ('DBMS_LOB.append method: ' || TO_CHAR (v_end - v_start));
-END;
-</pre>
-
-<p>The results were as follows:</p>
-<p><span style="font-weight:bold">1,000 Iterations</span><br>CLOB := CLOB || VARCHAR2 method: +000000000 00:00:00.578000000<br>CLOB := CLOB || TO_CLOB(VARCHAR2) method: +000000000 00:00:00.063000000<br>CLOB := CLOB || TMP_CLOB method: +000000000 00:00:00.047000000<br>DBMS_LOB.append method: +000000000 00:00:00.172000000</p>
-<p><span style="font-weight:bold">10,000 Iterations</span><br>CLOB := CLOB || VARCHAR2 method: +000000000 00:00:10.656000000<br>CLOB := CLOB || TO_CLOB(VARCHAR2) method: +000000000 00:00:00.688000000<br>CLOB := CLOB || TMP_CLOB method: +000000000 00:00:00.672000000<br>DBMS_LOB.append method: +000000000 00:00:00.687000000</p>
-<p><span style="font-weight:bold">100,000 Iterations</span><br>CLOB := CLOB || VARCHAR2 method: +000000000 00:42:17.453000000<br>CLOB := CLOB || TO_CLOB(VARCHAR2) method: +000000000 00:00:17.953000000<br>CLOB := CLOB || TMP_CLOB method: +000000000 00:00:08.140000000<br>DBMS_LOB.append method: +000000000 00:00:11.110000000</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/how-to-quickly-append-varchar2-to-clob/" data-id="cjk6qo9a6001w70n9ebd8jiec" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/06/how-to-quickly-append-varchar2-to-clob/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/23/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="page-number" href="/page/23/">23</a><span class="page-number current">24</span><a class="page-number" href="/page/25/">25</a><a class="page-number" href="/page/26/">26</a><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/25/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/23/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/22/">22</a><a class="page-number" href="/page/23/">23</a><span class="page-number current">24</span><a class="page-number" href="/page/25/">25</a><a class="page-number" href="/page/26/">26</a><span class="space">&hellip;</span><a class="page-number" href="/page/28/">28</a><a class="extend next" rel="next" href="/page/25/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -852,7 +826,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">142</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">142</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -889,7 +863,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

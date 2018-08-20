@@ -67,6 +67,64 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-enhancing-apex-security-explanation" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/05/enhancing-apex-security-explanation/" class="article-date">
+  <time datetime="2009-05-14T14:16:00.000Z" itemprop="datePublished">2009-05-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/05/enhancing-apex-security-explanation/">Enhancing APEX Security - Explanation</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I recently posted an entry called <a href="http://apex-smb.blogspot.com/2009/05/enhancing-apex-security.html" target="_blank" rel="noopener">Enhancing APEX Security</a>. I may have jumped the gun and not given a full explanation as to what problem this was trying to solving and the logic behind this solution. Here’s the full explanation to the problem and a high level overview of the proposed solution.</p>
+<p>In APEX, Session State Protection (SSP) can help secure your applications by preventing users to set session state value of items. Developers should be aware that it has 2 issues regarding it. First, it prevents items from being set using AJAX. If I try to set using AJAX I get the following error (using Firebug):</p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/SgwoKsULsHI/AAAAAAAADog/9ZSr7t3nPbw/s1600-h/_15_folloup_1.bmp" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/SgwoKsULsHI/AAAAAAAADog/9ZSr7t3nPbw/s400/_15_folloup_1.bmp" alt=""></a></p>
+<p>Second, when a user is on a page, they can alter the value before it is submitted to try to access data they aren’t allowed to. For example, let’s say users are only allowed to see information about people within their own department. So my LOV is something like:</p>
+<pre class="brush: sql">
+SELECT e.ename d,
+       e.empno r
+  FROM emp e
+WHERE job = 'CLERK'
+</pre>
+
+<p>Using Firebug I can see that this is what my option list looks like</p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/Sgwoe5C-a5I/AAAAAAAADoo/ujojjsZow68/s1600-h/_15_followup_2.bmp" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/Sgwoe5C-a5I/AAAAAAAADoo/ujojjsZow68/s400/_15_followup_2.bmp" alt=""></a></p>
+<p>Now what if I were to modify the select list and change the value for “SMITH” from 7369 to 7839 (This is “KING” / President) then submit the page? It still works and sets the value in session state:</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/SgwomQs7-1I/AAAAAAAADow/j87nrZ3affs/s1600-h/_15_followup_3.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/SgwomQs7-1I/AAAAAAAADow/j87nrZ3affs/s400/_15_followup_3.bmp" alt=""></a></p>
+<p>Notice how the value in session is set to 7839, which we really shouldn’t have access to? If you’re not careful in your application this can lead to serious security holes.</p>
+<p>Now on to the proposed solution. When you have a Select List, use a hashed value for the IDs so that users can’t alter the select list values (well they can but they’ll require the hash value as well). Instead of P1_EMPNO being a select list, set it as a Hidden and Protected item and enable SSP for it. This allows your application to still reference P1_EMPNO as it normally would. Create a new item, P1_EMPNO_SEC, which will be a select list with the altered LOV code (i.e. the return value has a hash associated to it). So if the value is 7369, it will actually be 7369@J92388502378540C (i.e. VALUE[DELIMITER][HASH]). The code (in my <a href="http://apex-smb.blogspot.com/2009/05/enhancing-apex-security.html" target="_blank" rel="noopener">example</a>) handles the rest so that when a user submits a page, it will take the submitted value from the secure item and then set the “regular” item with the unhashed value. If someone were to try to alter the select list, they’d be unsuccessful since the unhashing method returns NULL when an invalid hash value is present.</p>
+<p>The reason why I create 2 items is I don’t want to have to alter any existing code. So all code referencing P1_EMPNO will remain the same. If users need to pass P1_EMPNO in via the URL they can (provided they pass in the checksum since it has SSP enabled).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/05/enhancing-apex-security-explanation/" data-id="cjl2lto32001gion9ks5onnn7" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/05/enhancing-apex-security-explanation/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/security/">security</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-enhancing-apex-security" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/05/enhancing-apex-security/" class="article-date">
@@ -370,7 +428,7 @@ function onLovChange(pThisId){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/05/enhancing-apex-security/" data-id="cjk6qo9id00i470n9agpnrgnz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/05/enhancing-apex-security/" data-id="cjl2ltoc600i7ion9f3pxxt67" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/05/enhancing-apex-security/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -491,7 +549,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait_28/" data-id="cjk6qo99s001670n9ywz0iw3c" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait_28/" data-id="cjl2lto2w001cion9f5mtqehj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait_28/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -534,7 +592,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/presenting-at-coug-calgary-oracle-user/" data-id="cjk6qo99q001370n9tjr4jzyl" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/presenting-at-coug-calgary-oracle-user/" data-id="cjl2lto2u001aion9uuf6g4k4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/presenting-at-coug-calgary-oracle-user/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -655,7 +713,7 @@ $(document).ready(function() {
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/custom-download-for-apex-interactive/" data-id="cjk6qo99p001170n9q9pidgur" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/custom-download-for-apex-interactive/" data-id="cjl2lto2z001eion9yhs8bjh8" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/custom-download-for-apex-interactive/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -724,7 +782,7 @@ connect by level <= 3="" <="" pre="">
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait/" data-id="cjk6qo99n000w70n935pv4597" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait/" data-id="cjl2lto1k000uion9rkissu0n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -768,7 +826,7 @@ connect by level <= 3="" <="" pre="">
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/presenting-at-odtug-kaleidoscope-2009/" data-id="cjk6qo99l000t70n9g85j89c3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/presenting-at-odtug-kaleidoscope-2009/" data-id="cjl2lto1l000xion9j5pwr46k" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/presenting-at-odtug-kaleidoscope-2009/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -867,7 +925,7 @@ Create a HTML region and add the following javascript code:
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/" data-id="cjk6qo99k000r70n9y6rmj5ok" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/" data-id="cjl2lto1j000sion9o37vswcp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -1052,7 +1110,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/" data-id="cjk6qo99o000y70n93zd4pj3h" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/" data-id="cjl2lto2v001bion9sc4dghti" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -1110,103 +1168,9 @@ $(document).ready(function() {
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/interactive-report-download-with-one/" data-id="cjk6qo99j000o70n9yp4d0ia6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/interactive-report-download-with-one/" data-id="cjl2lto1i000pion9su3sp3bj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/interactive-report-download-with-one/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-custom-authentication-status" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/03/custom-authentication-status/" class="article-date">
-  <time datetime="2009-03-22T16:27:00.000Z" itemprop="datePublished">2009-03-22</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/03/custom-authentication-status/">Custom Authentication Status</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>When writing custom authentication scheme I noticed that invalid logins weren’t showing up properly in the apex logs (apex_workspace_access_log).</p>
-<p>Here’s how to re-create the problem along with the fix.</p>
-<p>First let’s create a custom authentication function:</p>
-<p><pre class="brush: sql;"><br>CREATE OR REPLACE FUNCTION blog_cust_auth (<br>  p_username IN VARCHAR2,<br>  p_password IN VARCHAR2<br>)<br>  RETURN BOOLEAN<br>AS<br>BEGIN<br>  IF     LOWER (p_username) = ‘pass’<br>     AND LOWER (p_password) = ‘123’ THEN<br>    RETURN TRUE;<br>  ELSE<br>    RETURN FALSE;<br>  END IF;<br>END;<br></pre><br>Let’s set the APEX authentication scheme to use this custom function:</p>
-<p>Shared Components / Authentication Schemes:</p>
-<ul>
-<li>Create</li>
-<li>From Scratch</li>
-<li>Name: BLOG_TEST</li>
-<li><p>Keep hitting “Next” until:</p>
-<ul>
-<li>Credentials Verification Method:<ul>
-<li>return blog_cust_auth</li>
-</ul>
-</li>
-<li>Keep hitting “Next” until the end</li>
-</ul>
-</li>
-<li><p>Change the current authentication scheme to BLOG_TEST</p>
-<ul>
-<li>On the Authentication Schemes page, on the right hand side select “Change Current” and select “BLOG_TEST’</li>
-</ul>
-</li>
-</ul>
-<p>Let’s create a region to always display the authentication statuses:</p>
-<ul>
-<li>Create Page<ul>
-<li>Page Zero</li>
-</ul>
-</li>
-<li>On Page 0 Create a region<ul>
-<li>Report<br><pre class="brush: sql;"><br>SELECT   user_name,<pre><code>authentication_method,
-access_date,
-authentication_result,
-custom_status_text
-</code></pre>FROM apex_workspace_access_log<br>WHERE application_id = :APP_ID<br>ORDER BY access_date DESC<br></pre><br>Now let’s try to log in using a valid username and password:</li>
-</ul>
-</li>
-<li>username: pass, password: 123</li>
-</ul>
-<p>If things worked well you’re now on P1, and the “AUTHENITCATION_RESULT” is flagged as “AUTH_SUCCESS”</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s1600-h/01_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s400/01_cust_auth_status.bmp" alt=""></a></p>
-<p>Now logout and try to login with invalid credentials</p>
-<ul>
-<li>username: pass, password: fail</li>
-</ul>
-<p>You’ll notice that the login failed, however it still logged it as a successful login attempt:</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s1600-h/02_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s400/02_cust_auth_status.bmp" alt=""></a></p>
-<p>Let’s update our authentication function to use the 2 authentication result customizations:<br>apex_util.set_authentication_result and apex_util.set_custom_auth_status</p>
-<p><pre class="brush: sql;"><br>CREATE OR REPLACE FUNCTION blog_cust_auth (<br>  p_username IN VARCHAR2,<br>  p_password IN VARCHAR2<br>)<br>  RETURN BOOLEAN<br>AS<br>BEGIN<br>  IF     LOWER (p_username) = ‘pass’<br>     AND LOWER (p_password) = ‘123’ THEN<br>    RETURN TRUE;<br>  ELSE<br>    – Set APEX authentication Codes<br>    apex_util.set_authentication_result (p_code =&gt; 3);<br>    – Set our own APEX custom text<br>    apex_util.set_custom_auth_status (p_status =&gt; ‘Bad Username’);<br>    RETURN FALSE;<br>  END IF;<br>END;<br></pre><br>Let’s now see what happens when we now login with invalid credentials:</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s1600-h/03_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s400/03_cust_auth_status.bmp" alt=""></a></p>
-<p>Notice that we now have proper error information in the logs? Here’s a list of some codes you can use for apex_util.set_authentication_result, taken from the view apex_workspace_access_log:</p>
-<p>0, ‘AUTH_SUCCESS’,<br>1, ‘AUTH_UNKNOWN_USER’,<br>2, ‘AUTH_ACCOUNT_LOCKED’,<br>3, ‘AUTH_ACCOUNT_EXPIRED’,<br>4, ‘AUTH_PASSWORD_INCORRECT’,<br>5, ‘AUTH_PASSWORD_FIRST_USE’,<br>6, ‘AUTH_ATTEMPTS_EXCEEDED’,<br>7, ‘AUTH_INTERNAL_ERROR’,    </p>
-<p>Of course you can use your own codes but I’d suggest sticking with these codes to utilize the APEX views. You can supplement the codes with the custom authentication status text (apex_util.set_custom_auth_status)</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="cjk6qo99e000h70n9gqgakob1" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/03/custom-authentication-status/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
@@ -1222,7 +1186,7 @@ custom_status_text
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/25/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><a class="extend next" rel="next" href="/page/27/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/25/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><a class="page-number" href="/page/28/">28</a><a class="extend next" rel="next" href="/page/27/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -1256,7 +1220,7 @@ custom_status_text
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">142</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">142</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -1293,7 +1257,7 @@ custom_status_text
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
