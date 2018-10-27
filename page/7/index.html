@@ -67,6 +67,79 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-request-branchtopageaccept" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/05/apex-request-branchtopageaccept/" class="article-date">
+  <time datetime="2015-05-13T12:30:00.000Z" itemprop="datePublished">2015-05-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/05/apex-request-branchtopageaccept/">APEX Request: BRANCH_TO_PAGE_ACCEPT</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>In APEX, there’s a special request type called <a href="https://docs.oracle.com/cd/E59726_01/doc.50/e39147/concept_sub.htm#CHDICEDJ" target="_blank" rel="noopener">BRANCH_TO_PAGE_ACCEPT</a>. This can be used in the REQUEST portion of the <a href="http://docs.oracle.com/cd/E37097_01/doc.42/e35125/concept_url.htm#BEIFCDGF" target="_blank" rel="noopener">APEX URL</a>. The syntax for the <code>REQUEST</code> attribute is <code>BRANCH_TO_PAGE_ACCEPT|&lt;branch_page_request&gt;</code>.</p>
+<p>For example, suppose you are on Page 1 (P1) and want a button which will:</p>
+<ul>
+<li>Go Page 2 (P2)</li>
+<li>Set <code>P2_X</code> to <code>some_value</code></li>
+<li>Automatically submit the page, simulating the SAVE button on P2</li>
+</ul>
+<p>Create a button on P1 that redirects to the following URL: <code>f?p=&amp;APP_ID.:2:&amp;APP_SESSION.:BRANCH_TO_PAGE_ACCEPT|SAVE:&amp;DEBUG.:2:P2_X:some_value</code></p>
+<p>The <a href="https://docs.oracle.com/cd/E59726_01/doc.50/e39147/concept_sub.htm#CHDICEDJ" target="_blank" rel="noopener">current documentation</a> for <code>BRANCH_TO_PAGE_ACCEPT</code> states that “_Using BRANCH_TO_PAGE_ACCEPT is the same as navigating to page 1, entering a value into the item P1<em>DATA, and clicking a button that submits the page with a SAVE request.</em>“ You may interpret this as:</p>
+<ul>
+<li>Run Page 2<ul>
+<li>Therefor load/run the page rendering regions and processes</li>
+</ul>
+</li>
+<li>Simulate clicking the Save button on P2</li>
+<li>Run the Page Processing of P2</li>
+</ul>
+<p>This is not entirely true as the following occurs when a user goes to the above URL:</p>
+<ul>
+<li>Set <code>P2_X</code> to <code>some_value</code> (this is regular APEX URL behavior)</li>
+<li>Execute the Page Processing portion of P2.<ul>
+<li>This includes Validations, Processes, and Page branching on P2 as shown below.</li>
+</ul>
+</li>
+</ul>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://3.bp.blogspot.com/-b8W9rpVxcIE/VVIuOrN5w4I/AAAAAAAAHEY/ddRVI-TNSs8/s1600/Snip20150512_4.png" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/-b8W9rpVxcIE/VVIuOrN5w4I/AAAAAAAAHEY/ddRVI-TNSs8/s320/Snip20150512_4.png" alt=""></a></div>
+
+<p>What does not occur is the Page Rendering potion of P2. This is important to note because if you had some Pre-Rendering page processes (i.e. on page load) they will not be run. This is slightly contrary to what the documentation states that it is “… <em>the same as navigating to Page 2 …</em>“.</p>
+<p>If everything runs smoothly on the P2 submit page processing (i.e no errors or validations fail) then you will branch to the defined page branch on P2. If something does fail then you will be shown P2 along with the corresponding error message.</p>
+<p>It is important to note that currently the page item built-in validations are not executed when using <code>BRANCH_TO_PAGE_ACCEPT</code>. For example, suppose that you set Value Required attribute to Yes for <code>P2_X</code>.</p>
+<div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-eFh4HT4VARI/VVIvFz3CVCI/AAAAAAAAHEg/0J6vgLH0t0g/s1600/Snip20150512_5.png" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-eFh4HT4VARI/VVIvFz3CVCI/AAAAAAAAHEg/0J6vgLH0t0g/s1600/Snip20150512_5.png" alt=""></a></div>
+
+<p>If you run P2 normally, set <code>P2_X</code> to an empty value, then submit the page, an error will appear stating that “<em>X must have some value</em>“. This is done automatically for you due to the Value Required attribute. If you use the <code>URL</code> <code>f?p=&amp;APP_ID.:2:&amp;APP_SESSION.:BRANCH_TO_PAGE_ACCEPT|SAVE:&amp;DEBUG.:2:P2_X:</code> it will set <code>P2_X</code> to <code>null</code>, no error will occur as the page item’s build in validations aren’t executed.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/" data-id="cjnrmklxz00c829rabzqbt7mv" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apexjsonparse-issue-with-clobs-and-11g" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2015/05/apexjsonparse-issue-with-clobs-and-11g/" class="article-date">
@@ -107,7 +180,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/" data-id="cjnckh61s00c02prajuk9q1nm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/" data-id="cjnrmklxy00c529ra7mp6gk7y" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -155,7 +228,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/oos-utilities-package/" data-id="cjnckh61u00c22pracziz46w2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/oos-utilities-package/" data-id="cjnrmklxw00c329ratum13byv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/oos-utilities-package/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -199,7 +272,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/apex-backup-script/" data-id="cjnckh61r00by2pralkxang5i" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/apex-backup-script/" data-id="cjnrmklxv00c129rapmnl6c1e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/apex-backup-script/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -245,7 +318,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/15-minute-timer-on-mac/" data-id="cjnckh61q00bw2pravgnzht28" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/15-minute-timer-on-mac/" data-id="cjnrmklxq00bu29rayt380yw9" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/15-minute-timer-on-mac/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -311,7 +384,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/apex-5-creating-sub-menus/" data-id="cjnckh61p00bu2prar33jov8m" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/apex-5-creating-sub-menus/" data-id="cjnrmklxu00bz29ra6txoptv0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/apex-5-creating-sub-menus/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -366,7 +439,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/odtug-oracle-blogs-now-on-twitter/" data-id="cjnckh61p00br2pralifqlyzm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/odtug-oracle-blogs-now-on-twitter/" data-id="cjnrmklxs00bx29ra7xqjr3hd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/odtug-oracle-blogs-now-on-twitter/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -413,7 +486,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/installing-sqlcl/" data-id="cjnckh61o00bp2pra8al21n03" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/installing-sqlcl/" data-id="cjnrmklxp00bs29ra83z9aeoj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/installing-sqlcl/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -456,7 +529,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/03/js-console-wrapper-moved-to-github/" data-id="cjnckh61m00bl2prabwu4a1kw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/03/js-console-wrapper-moved-to-github/" data-id="cjnrmklxo00bq29ra1wvzrr3n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/03/js-console-wrapper-moved-to-github/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -497,60 +570,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/03/logger-300-ea1/" data-id="cjnckh61n00bn2pra4y5qkqul" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/03/logger-300-ea1/" data-id="cjnrmklxm00bo29ramfwg6lbe" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/03/logger-300-ea1/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-logger-is-moving" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/03/logger-is-moving/" class="article-date">
-  <time datetime="2015-03-04T14:47:00.000Z" itemprop="datePublished">2015-03-04</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/03/logger-is-moving/">Logger is Moving</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’m pleased to announce that <a href="http://www.oraopensource.com/logger/" target="_blank" rel="noopener">Logger</a> has found a new home and will be maintained by <a href="http://www.oraopensource.com/" target="_blank" rel="noopener">OraOpenSource</a>. A very big thank you goes out to <a href="https://twitter.com/tmuth" target="_blank" rel="noopener">Tyler Muth</a> for starting this project many years ago and handing over the reins to OraOpenSource.</p>
-<p>Here’s a brief FAQ regarding the move:</p>
-<h3 id="What-is-Logger"><a href="#What-is-Logger" class="headerlink" title="What is Logger?"></a>What is Logger?</h3><p><a href="http://www.oraopensource.com/logger/" target="_blank" rel="noopener">Logger</a> is a (free) open source logging tool for Oracle PL/SQL. It is used in many instances ranging from small applications to very large applications in major corporations.</p>
-<h3 id="What-will-happen-with-links-to-the-old-project-page"><a href="#What-will-happen-with-links-to-the-old-project-page" class="headerlink" title="What will happen with links to the old project page?"></a>What will happen with links to the old project page?</h3><p>They’ll still work. The project was forked and a notice was put up on the old Github site letting people know its new home.</p>
-<h3 id="Will-Logger-still-remain-open-source-free"><a href="#Will-Logger-still-remain-open-source-free" class="headerlink" title="Will Logger still remain open source / free?"></a>Will Logger still remain open source / free?</h3><p>Yes. We’ll update the license slightly so that it will be easier to understand and use within your code. This will not affect any existing implementations.</p>
-<h3 id="When-is-the-next-release"><a href="#When-is-the-next-release" class="headerlink" title="When is the next release?"></a>When is the next release?</h3><p>I did a lot of work last year, then was sidelined with my concussion. It turns out that picking up a project after not touching it for 8 months takes some time.</p>
-<p>Since I’m working on this project as part of my rehab I can not give a definite time frame. As soon as the beta version is ready I’ll make it available.</p>
-<h3 id="What-is-in-the-next-release"><a href="#What-is-in-the-next-release" class="headerlink" title="What is in the next release?"></a>What is in the next release?</h3><p>Lots of great stuff! Going forward you can monitor what will be in each subsequent release by tracking the upcoming <a href="https://github.com/OraOpenSource/Logger/milestones" target="_blank" rel="noopener">milestones</a> on the project’s <a href="https://github.com/OraOpenSource/Logger/issues" target="_blank" rel="noopener">issue</a> page.</p>
-<h3 id="Will-you-still-post-info-on-Logger-on-this-site"><a href="#Will-you-still-post-info-on-Logger-on-this-site" class="headerlink" title="Will you still post info on Logger on this site?"></a>Will you still post info on Logger on this site?</h3><p>Over the years I have written a lot about Logger and posted it on this blog. To maintain a consistent branding and marketing effort all future posts regarding Logger will be on <a href="http://www.oraopensource.com/blog/" target="_blank" rel="noopener">OraOpenSource’s blog</a>.</p>
-<h3 id="What-can-I-do-to-help"><a href="#What-can-I-do-to-help" class="headerlink" title="What can I do to help?"></a>What can I do to help?</h3><p>Right now the best thing you can do is sign up for the email list (link on <a href="http://www.oraopensource.com/logger/" target="_blank" rel="noopener">oraopensource.com/logger</a>). We’ll be announcing the beta version and next major release when it’s available. You can also follow OraOpenSource on twitter: <a href="https://twitter.com/oraopensource" target="_blank" rel="noopener">@oraopensource</a>.</p>
-<p>Once the next release is available we’ll be looking for help from the community to continue to develop and maintain Logger.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/03/logger-is-moving/" data-id="cjnckh61l00bh2prar1rc3tkx" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2015/03/logger-is-moving/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li></ul>
@@ -600,7 +622,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">142</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">142</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -637,7 +659,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
