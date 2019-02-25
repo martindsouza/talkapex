@@ -67,6 +67,55 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ntile-vs-widthbucket" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/04/ntile-vs-widthbucket/" class="article-date">
+  <time datetime="2014-04-13T03:40:00.000Z" itemprop="datePublished">2014-04-12</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/04/ntile-vs-widthbucket/">NTILE vs WIDTH_BUCKET</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Rick Cale recently asked a question on an article I wrote two years ago about <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic.html">Some Interesting Oracle Analytic Functions</a>. His question (see comments on Apr 11, 2014) were about the results from the <a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions115.htm#SQLRF00680" target="_blank" rel="noopener"><code>NTILE</code></a> function and how the same value could be in two different buckets. It was an excellent question and one that got me digging a bit more into the functionality of <code>NTILE</code>.</p>
+<p>They’re two ways to handle “bucketing data” in Oracle. In the documentation Oracle describes the two types as either having equiwidth or or equiheight histograms.</p>
+<h3 id="Equiwidth-NTILE"><a href="#Equiwidth-NTILE" class="headerlink" title="Equiwidth (NTILE):"></a>Equiwidth (<a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions115.htm#SQLRF00680" target="_blank" rel="noopener"><code>NTILE</code></a>):</h3><p>Each bucket will have the same number of items in it with some buckets having at most 1 more item than other buckets. An easy way to think of this concept is to order all the items, then divide the data evenly into groups based on the number of buckets. For example, supposed you have 9 values (<code>AAAABCDEF</code>) and wanted to put them into 3 buckets. the buckets would be <code>B1 = AAA</code>, <code>B2 = ABC</code>, <code>B3 = DEF</code>. You’ll notice that the value <code>A</code> is in both buckets <code>B1</code> <em>and</em> <code>B2</code>.</p>
+<p>When an uneven amount of objects need to go into the buckets, <code>NTILE</code> will fill the first bucket first, second bucket second, etc. For example, suppose you had 10 values (<code>AAAABCDEFG</code>) and wanted to fill them into 3 buckets. (<em>Note this is similar to the previous example with an additional <code>G</code>)</em>. The buckets would be <code>B1 = AAAA</code>, <code>B2 = BCD</code>, <code>B3 = EFG</code>.</p>
+<h3 id="Equiheight-WIDTH-BUCKET"><a href="#Equiheight-WIDTH-BUCKET" class="headerlink" title="Equiheight (WIDTH_BUCKET):"></a>Equiheight (<a href="http://docs.oracle.com/cd/E11882_01/server.112/e41084/functions234.htm#SQLRF06163" target="_blank" rel="noopener">WIDTH_BUCKET</a>):</h3><p>This will take the min and max range, divided by the number of buckets and place each value in it. For example, the salaries in the <code>EMP</code> table range from <code>801</code> ~ <code>5000</code>. If you set the min/max range from <code>0~5000</code> 3 buckets will be created. All values from <code>0~1,666</code> will go into <code>B1</code>, values from <code>1,6667~3333</code> into <code>B2</code>, and values <code>3334~5000</code> into <code>B3</code>. <em>(Note: for simplicity I excluded decimals in this split).</em></p>
+<h3 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h3><p>An easy way to think of these two bucketing methods is that <code>NTILE</code> divides values based on the number of items. <code>WIDTH_BUCKET</code> divides values based on their values.</p>
+<p>Here’s an example that highlights the difference between the two functions.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">with</span> <span class="keyword">data</span> <span class="keyword">as</span> (</span><br><span class="line">  <span class="comment">-- using this as data input</span></span><br><span class="line">  <span class="keyword">select</span> <span class="number">3</span> <span class="keyword">as</span> num_buckets</span><br><span class="line">  <span class="keyword">from</span> dual</span><br><span class="line">)</span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">  d.dname,</span><br><span class="line">  e.ename,</span><br><span class="line">  e.sal,</span><br><span class="line">  ntile (data.num_buckets) <span class="keyword">over</span> (<span class="keyword">order</span> <span class="keyword">by</span> sal <span class="keyword">asc</span>) ntile,</span><br><span class="line">  width_bucket(sal, <span class="number">0</span>, <span class="keyword">max</span>(sal+<span class="number">1</span>) <span class="keyword">over</span> (), data.num_buckets) width_bucket</span><br><span class="line"><span class="keyword">from</span> emp e, dept d, <span class="keyword">data</span></span><br><span class="line"><span class="keyword">where</span> e.deptno = d.deptno</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> sal;</span><br><span class="line"></span><br><span class="line">DNAME          ENAME      SAL        NTILE      WIDTH_BUCKET</span><br><span class="line"><span class="comment">-------------- ---------- ---------- ---------- ------------</span></span><br><span class="line">RESEARCH       SMITH         801          1        1</span><br><span class="line">SALES          JAMES         950          1        1</span><br><span class="line">RESEARCH       ADAMS        1100          1        1</span><br><span class="line">SALES          WARD         1250          1        1</span><br><span class="line">SALES          MARTIN       1250          1        1</span><br><span class="line">ACCOUNTING     MILLER       1300          2        1</span><br><span class="line">SALES          TURNER       1500          2        1</span><br><span class="line">SALES          ALLEN        1600          2        1</span><br><span class="line">ACCOUNTING     CLARK        2450          2        2</span><br><span class="line">RESEARCH       JONES        2975          2        2</span><br><span class="line">RESEARCH       SCOTT        3000          3        2</span><br><span class="line">RESEARCH       FORD         3000          3        2</span><br><span class="line">SALES          BLAKE        3850          3        3</span><br><span class="line">ACCOUNTING     KING         5000          3        3</span><br></pre></td></tr></table></figure>
+<p>It’s important to note that <code>WIDTH_BUCKET</code> is not an analytic function but <code>NTILE</code> is. For more information read the documentation for each function. For <code>WIDTH_BUCKET</code>, the documentation covers what happens with values outside the min/max range (they go into bucket <code>0</code> and <code>num_buckets+1</code>).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2014/04/ntile-vs-widthbucket/" data-id="cjsjxkfyd00ba7uramqht6us3" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2014/04/ntile-vs-widthbucket/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-running-custom-code-for-tabular-forms" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2014/03/running-custom-code-for-tabular-forms/" class="article-date">
@@ -101,7 +150,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/03/running-custom-code-for-tabular-forms/" data-id="cjsjwp2ux008yypraq2nzlkuu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/03/running-custom-code-for-tabular-forms/" data-id="cjsjxkfyc00b87uras8jtq9vc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/03/running-custom-code-for-tabular-forms/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -144,7 +193,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/03/oracleapexcom-part-2/" data-id="cjsjwp2v00093ypraak893rdn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/03/oracleapexcom-part-2/" data-id="cjsjxkfyb00b57uraau4argik" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/03/oracleapexcom-part-2/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -190,7 +239,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/03/apex-50-and-kscope-14/" data-id="cjsjwp2uw008wypra9psggcr5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/03/apex-50-and-kscope-14/" data-id="cjsjxkfya00b37ura28o2ciy4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/03/apex-50-and-kscope-14/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -236,7 +285,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/03/referencing-user-in-apex/" data-id="cjsjwp2uu008uypra3lgwychx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/03/referencing-user-in-apex/" data-id="cjsjxkfy900b17urapbbs12ja" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/03/referencing-user-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -277,7 +326,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/02/oracle-apex-training/" data-id="cjsjwp2ut008sypraz11corq7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/02/oracle-apex-training/" data-id="cjsjxkfy800az7uraxvlu7a3i" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/02/oracle-apex-training/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -342,7 +391,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/02/apex-shortcuts/" data-id="cjsjwp2us008qypra215jmxba" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/02/apex-shortcuts/" data-id="cjsjxkfy700ax7urap7z2wobz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/02/apex-shortcuts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -384,7 +433,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/02/apex-theme-competition/" data-id="cjsjwp2up008mypra0bmpqrru" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/02/apex-theme-competition/" data-id="cjsjxkfy600av7urafy5bo4ch" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/02/apex-theme-competition/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -433,7 +482,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/changing-default-item-required-error/" data-id="cjsjwp2uq008oypra04az7yff" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/01/changing-default-item-required-error/" data-id="cjsjxkfy500as7ura7mt23ndu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/01/changing-default-item-required-error/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -486,59 +535,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/stopping-dynamic-actions-using/" data-id="cjsjwp2ul008hyprafwfpb4jv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/01/stopping-dynamic-actions-using/" data-id="cjsjxkfy400aq7uraibucyzer" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/01/stopping-dynamic-actions-using/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-parsing-imperfect-json" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2014/01/parsing-imperfect-json/" class="article-date">
-  <time datetime="2014-01-08T14:00:00.000Z" itemprop="datePublished">2014-01-08</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2014/01/parsing-imperfect-json/">Parsing Imperfect JSON</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>In JavaScript, each JSON attribute name should be wrapped in quotes for it to be parsed correctly. Sometimes you may receive a JSON string that isn’t properly formed because of the missing quotes. You can still parse it using the technique described below.</p>
-<p>To start, here’s an example of malformed JSON using <a href="http://json.parse/" target="_blank" rel="noopener"><code>JSON.parse</code></a> and jQuery’s <a href="http://api.jquery.com/jQuery.parseJSON/" target="_blank" rel="noopener"><code>$.parseJSON</code></a>. You’ll notice that it doesn’t parse the JSON string since it doesn’t have its names wrapped with quotes.</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Using native JS: JSON.parse</span></span><br><span class="line"><span class="comment">//Similar result for jQuery $.parseJSON</span></span><br><span class="line"><span class="keyword">var</span> jsonStr = <span class="string">'&#123;ename : "martin", sal: 100&#125;'</span>;</span><br><span class="line"><span class="keyword">var</span> jsonObj = <span class="built_in">JSON</span>.parse(jsonStr);</span><br><span class="line"></span><br><span class="line"><span class="comment">//Raises error:</span></span><br><span class="line"><span class="built_in">SyntaxError</span>: <span class="built_in">JSON</span>.parse: expected property name or <span class="string">'&#125;'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//Correct JSON object (notice attribute names are quoted)</span></span><br><span class="line"><span class="keyword">var</span> jsonStr = <span class="string">'&#123;"ename" : "martin", "sal": 100&#125;'</span>;</span><br><span class="line"><span class="keyword">var</span> jsonObj = <span class="built_in">JSON</span>.parse(jsonStr);</span><br><span class="line"><span class="built_in">console</span>.log (jsonObj);</span><br><span class="line"></span><br><span class="line"><span class="comment">//Returns JSON object</span></span><br><span class="line"><span class="built_in">Object</span> &#123; ename=<span class="string">"martin"</span>, sal=<span class="number">100</span>&#125;</span><br></pre></td></tr></table></figure>
-<p>To get around this issue you can use JavaSript’s <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval" target="_blank" rel="noopener"><code>eval</code></a> method. It’s not pretty but it does the job and will probably save you a lot of time trying to correct your JSON object.</p>
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> jsonStr = <span class="string">'&#123;ename : "martin", sal: 100&#125;'</span>;</span><br><span class="line"><span class="built_in">eval</span>(<span class="string">'jsonObj = '</span> + jsonStr + <span class="string">';'</span>);</span><br><span class="line"><span class="built_in">console</span>.log(jsonObj);</span><br><span class="line"></span><br><span class="line"><span class="comment">//Returns JSON object</span></span><br><span class="line"><span class="built_in">Object</span> &#123; ename=<span class="string">"martin"</span>, sal=<span class="number">100</span>&#125;</span><br></pre></td></tr></table></figure>
-<p>I’ve found this technique really helpful when passing back JSON strings from APEX AJAX calls (via a Dynamic Action, Plugin, or custom AJAX).</p>
-<p><strong>Update</strong>: Please read John’s comment below as he makes a good point that the data should be data that you control otherwise perfect area for a JS injection attack.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/parsing-imperfect-json/" data-id="cjsjwp2un008jyprasjjnml63" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2014/01/parsing-imperfect-json/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li></ul>
 
     </footer>
   </div>
@@ -585,7 +587,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">144</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">144</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -622,7 +624,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
