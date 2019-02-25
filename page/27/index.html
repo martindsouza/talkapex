@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.8.0">
   <meta charset="utf-8">
   
   <title>TalkApex</title>
@@ -24,7 +24,7 @@
   
   <link rel="stylesheet" href="/css/style.css">
 </head>
-
+</html>
 <body>
   <div id="container">
     <div id="wrap">
@@ -32,7 +32,7 @@
   <!-- <div id="banner"></div> -->
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
-      <img src="/images/header-banner.png" alt="" />
+      <img src="/images/header-banner.png" alt>
       <!-- <h1 id="logo-wrap">
         <a href="/" id="logo">TalkApex</a>
       </h1> -->
@@ -67,6 +67,105 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-log-apex-interactive-report-search" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/04/log-apex-interactive-report-search/" class="article-date">
+  <time datetime="2009-04-01T13:22:00.000Z" itemprop="datePublished">2009-04-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/04/log-apex-interactive-report-search/">Log APEX Interactive Report Search Filter</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A few days ago someone posted a question on the forums <a href="http://forums.oracle.com/forums/message.jspa?messageID=3365707" target="_blank" rel="noopener">http://forums.oracle.com/forums/message.jspa?messageID=3365707</a> asking how to log the search filter in an IR. Here’s how to do it. A working example is available <a href="http://apex.oracle.com/pls/otn/f?p=20195:1100" target="_blank" rel="noopener">here.</a></p>
+<p><span style="font-style:italic;">Please note you will need <a href="http://www.jquery.com" target="_blank" rel="noopener">jQuery</a> for this example</span></p>
+<p><span style="font-weight:bold;">Step 1: Create Log Table</span></p>
+<pre class="brush: sql">
+  CREATE TABLE tir_search_filter_log(
+    search_filter VARCHAR2(255) NULL,
+    search_date DATE DEFAULT SYSDATE NOT NULL,
+    username VARCHAR2(255) NOT NULL);
+</pre>
+<span style="font-weight:bold;">Step 2: Create Application Process</span>
+
+Create an On Demand Application Process. Call it: AP_LOG_SEARCH_FILTER
+<pre class="brush: sql;">
+  BEGIN
+    INSERT INTO tir_search_filter_log
+                (search_filter,
+                 search_date,
+                 username
+                )
+    VALUES      (apex_application.g_x01,
+                 SYSDATE,
+                 :app_user
+                );
+  END;
+</pre>
+<span style="font-weight:bold;">Step 3: Create Interactive Report</span>
+
+Create a IR Page
+<pre class="brush: sql;">
+  SELECT *
+  FROM   emp
+</pre>
+<span style="font-weight:bold;">Step 3: Javascript</span>
+
+Create a HTML region and add the following javascript code:
+<pre class="brush: js;">
+  // Function to call our Application Process to log the search
+  function fLogSearch(){
+    var get = new htmldb_Get(null,$v('pFlowId'),'APPLICATION_PROCESS=AP_LOG_SEARCH_FILTER',$v('pFlowStepId'));    
+    get.addParam('x01',$v('apexir_SEARCH')); // IR Search Filter Value
+    gReturn = get.get();  // Call AP Log Search Filter to insert log
+    // Call APEX IR Search
+    gReport.search('SEARCH');
+  }
+
+  // Run the following once the document is ready
+  $(document).ready(function(){  
+    // -- Handle Go Button --
+    // Unbind all events. Important for order of execution
+    $('input[type="button"][value="Go"]').attr('onclick',''); //unbind click event
+    // Rebind events
+    $('input[type="button"][value="Go"]').click(function(){fLogSearch()});
+
+    // -- Handle "Enter" in input field --
+    $('#apexir_SEARCH').attr('onkeyup',''); //unbind onkeyup event
+    // Rebind Events
+    $('#apexir_SEARCH').keyup(function(event){($f_Enter(event))?fLogSearch():null;});
+  });
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/" data-id="cjsjmfxy50012jmraalvbw384" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-column-groups-in-apex-interactive" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/03/column-groups-in-apex-interactive/" class="article-date">
@@ -91,7 +190,7 @@
       
         <p><span style="font-style:italic;color:red;">Note: If you are using APEX 4.0 I’ve developed a plugin for this: <a href="http://www.talkapex.com/2010/12/column-groups-in-apex-40-interactive.html">http://www.talkapex.com/2010/12/column-groups-in-apex-40-interactive.html</a></span></p>
 <p>A while ago <a href="http://dgielis.blogspot.com/" target="_blank" rel="noopener">Dimitri Gielis</a> helped us to display column groups in Interactive Reports (IR) in APEX. Please see his <a href="http://dgielis.blogspot.com/2008/11/group-headings-in-interactive-report.html" target="_blank" rel="noopener">blog posting</a> to get a background of how to enable column groups in Interactive Reports.  </p>
-<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/Scr2OYNUyNI/AAAAAAAADn4/GAaBwZhU9tM/s1600-h/01_ir_col_grp.bmp" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/Scr2OYNUyNI/AAAAAAAADn4/GAaBwZhU9tM/s400/01_ir_col_grp.bmp" alt=""></a></p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/Scr2OYNUyNI/AAAAAAAADn4/GAaBwZhU9tM/s1600-h/01_ir_col_grp.bmp" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/Scr2OYNUyNI/AAAAAAAADn4/GAaBwZhU9tM/s400/01_ir_col_grp.bmp" alt></a></p>
 <p>After some testing we’ve made several changes to the code. The updated code fixes a bug that would display multiple group headers. It does not load the group headers via AJAX so it speeds up response time. I’ve included the updated code below. The example of this is <a href="http://apex.oracle.com/pls/otn/f?p=20195:1000" target="_blank" rel="noopener">here.</a></p>
 <p><span style="font-style: italic;">Please note you will need <a href="http://www.jquery.com" target="_blank" rel="noopener">jQuery</a> for this example</span></p>
 <p><span style="font-weight:bold;">Step 1: Application Process</span><br>Create an Application Process to load the IR colum group header information<br>Name: AP_GET_IR_COL_GROUPS<br>Point: On Load: After Header (page template header)</p>
@@ -238,7 +337,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/" data-id="cjnrmklqt001729ra6m03gqc4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/" data-id="cjsjmfxxx000tjmrajsdvupf2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -275,7 +374,7 @@ $(document).ready(function(){
     <div class="article-entry" itemprop="articleBody">
       
         <p>We’ve been working with Interactive Reports (IR) over the past few months and have had to do a lot of customization to meet some of our customers requirements. Over the next few weeks my posts will be focused on these customizations.</p>
-<p>To start, here’s an example of how to modify the download button in IRs. Just some background on this, we’re only supporting CSV downloads now. When the clients would download IRs they would have to click the “Download” link then click on the “CSV” button. <a href="http://1.bp.blogspot.com/_33EF80fk9sM/ScjenbChSKI/AAAAAAAADno/nM3A0JR76l4/s1600-h/01_csv_image.bmp" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/ScjenbChSKI/AAAAAAAADno/nM3A0JR76l4/s400/01_csv_image.bmp" alt=""></a></p>
+<p>To start, here’s an example of how to modify the download button in IRs. Just some background on this, we’re only supporting CSV downloads now. When the clients would download IRs they would have to click the “Download” link then click on the “CSV” button. <a href="http://1.bp.blogspot.com/_33EF80fk9sM/ScjenbChSKI/AAAAAAAADno/nM3A0JR76l4/s1600-h/01_csv_image.bmp" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/ScjenbChSKI/AAAAAAAADno/nM3A0JR76l4/s400/01_csv_image.bmp" alt></a></p>
 <p>We found this extra step unnecessary so here’s a way on how to do it in one step so that it will download as soon as they click “Download”. We used <a href="http://www.jquery.com" target="_blank" rel="noopener">jQuery</a> to help out a bit. Here’s a working <a href="http://apex.oracle.com/pls/otn/f?p=20195:900" target="_blank" rel="noopener">example</a>.</p>
 <pre class="brush: js;">
 $(document).ready(function() {
@@ -283,7 +382,7 @@ $(document).ready(function() {
 });
 </pre>
 
-<p>Here’s a detailed summary of how it works: If you scroll over the “CSV” download button you’ll noticed that it looks something like : “f?p=102:3:207941080701500:CSV:”. If we break that down it’s really: “f?p=<app_id>:<app_page_id>:<session_id>:CSV:”. In Javascript you can reference each as follows:</session_id></app_page_id></app_id></p>
+<p>Here’s a detailed summary of how it works: If you scroll over the “CSV” download button you’ll noticed that it looks something like : “f?p=102:3:207941080701500:CSV:”. If we break that down it’s really: “f?p=&lt;APP_ID&gt;:&lt;APP_PAGE_ID&gt;:&lt;SESSION_ID&gt;:CSV:”. In Javascript you can reference each as follows:</p>
 <p>APP_ID = $v(‘pFlowId’);<br>APP_PAGE_ID = $v(‘pFlowStepId’);<br>SESSION_ID = $v(‘pInstance’);</p>
 <p>Now to alter the “Download” link from the interactive report menu we use jQuery to identify the link: “$(‘.dhtmlSubMenuN[title=”Download”]’)” and then use the <a href="http://docs.jquery.com/Attributes/attr#keyvalue" target="_blank" rel="noopener">attr function</a> to set with the new URL.</p>
 <script src="#APP_IMAGES#jquery-1.3.1.min.js" type="text/javascript"></script>
@@ -296,7 +395,7 @@ $(document).ready(function() {
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/interactive-report-download-with-one/" data-id="cjnrmklqo000t29ra9v73igws" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/interactive-report-download-with-one/" data-id="cjsjmfxxt000rjmra17q0nirc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/interactive-report-download-with-one/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -373,16 +472,16 @@ custom_status_text
 <li>username: pass, password: 123</li>
 </ul>
 <p>If things worked well you’re now on P1, and the “AUTHENITCATION_RESULT” is flagged as “AUTH_SUCCESS”</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s1600-h/01_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s400/01_cust_auth_status.bmp" alt=""></a></p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s1600-h/01_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s400/01_cust_auth_status.bmp" alt></a></p>
 <p>Now logout and try to login with invalid credentials</p>
 <ul>
 <li>username: pass, password: fail</li>
 </ul>
 <p>You’ll notice that the login failed, however it still logged it as a successful login attempt:</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s1600-h/02_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s400/02_cust_auth_status.bmp" alt=""></a></p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s1600-h/02_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s400/02_cust_auth_status.bmp" alt></a></p>
 <p>Let’s update our authentication function to use the 2 authentication result customizations:<br>apex_util.set_authentication_result and apex_util.set_custom_auth_status</p>
 <p><pre class="brush: sql;"><br>CREATE OR REPLACE FUNCTION blog_cust_auth (<br>  p_username IN VARCHAR2,<br>  p_password IN VARCHAR2<br>)<br>  RETURN BOOLEAN<br>AS<br>BEGIN<br>  IF     LOWER (p_username) = ‘pass’<br>     AND LOWER (p_password) = ‘123’ THEN<br>    RETURN TRUE;<br>  ELSE<br>    – Set APEX authentication Codes<br>    apex_util.set_authentication_result (p_code =&gt; 3);<br>    – Set our own APEX custom text<br>    apex_util.set_custom_auth_status (p_status =&gt; ‘Bad Username’);<br>    RETURN FALSE;<br>  END IF;<br>END;<br></pre><br>Let’s now see what happens when we now login with invalid credentials:</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s1600-h/03_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s400/03_cust_auth_status.bmp" alt=""></a></p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s1600-h/03_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s400/03_cust_auth_status.bmp" alt></a></p>
 <p>Notice that we now have proper error information in the logs? Here’s a list of some codes you can use for apex_util.set_authentication_result, taken from the view apex_workspace_access_log:</p>
 <p>0, ‘AUTH_SUCCESS’,<br>1, ‘AUTH_UNKNOWN_USER’,<br>2, ‘AUTH_ACCOUNT_LOCKED’,<br>3, ‘AUTH_ACCOUNT_EXPIRED’,<br>4, ‘AUTH_PASSWORD_INCORRECT’,<br>5, ‘AUTH_PASSWORD_FIRST_USE’,<br>6, ‘AUTH_ATTEMPTS_EXCEEDED’,<br>7, ‘AUTH_INTERNAL_ERROR’,    </p>
 <p>Of course you can use your own codes but I’d suggest sticking with these codes to utilize the APEX views. You can supplement the codes with the custom authentication status text (apex_util.set_custom_auth_status)</p>
@@ -390,7 +489,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="cjnrmklqk000o29rapsk71o4s" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="cjsjmfxxq000ojmracwuskxyc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/custom-authentication-status/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -433,9 +532,9 @@ custom_status_text
 <p>When creating the report, change the number of rows from <code>15</code> to <code>5</code> for this example. <strong>This is important for this demonstration!</strong></p>
 <p>Now create a page item called <code>P800_LETTER</code> and a submit button who submits and redirect to <code>P800</code>.</p>
 <p>If things went well you’d have a report that looks like this:</p>
-<p><img src="http://1.bp.blogspot.com/_33EF80fk9sM/ScB3T-xfUyI/AAAAAAAADnA/RKxPha9YmBk/s400/01_reset_pagination.bmp" alt=""></p>
+<p><img src="http://1.bp.blogspot.com/_33EF80fk9sM/ScB3T-xfUyI/AAAAAAAADnA/RKxPha9YmBk/s400/01_reset_pagination.bmp" alt></p>
 <p>To illustrate the problem click on the <code>Next</code> pagination link so that we are seeing rows <code>6~10</code>.<br>Now, in the text box enter the letter <code>I</code> (this will restrict to 4 rows) and click submit. You should see the following error message:</p>
-<p><img src="http://1.bp.blogspot.com/_33EF80fk9sM/ScB30k-IF-I/AAAAAAAADnI/BSuRiX4RT0I/s400/02_reset_pagination.bmp" alt=""></p>
+<p><img src="http://1.bp.blogspot.com/_33EF80fk9sM/ScB30k-IF-I/AAAAAAAADnI/BSuRiX4RT0I/s400/02_reset_pagination.bmp" alt></p>
 <p>To summarize what just happened, you initially requested a report with 14 rows and told APEX to display 5 at a time. When you clicked the <code>Next</code> pagination button you told APEX for the report you’re currently looking at display rows <code>6~10</code>. So now, if you were to refresh the page APEX would continue to show rows <code>6~10</code>. When you filtered the report, by restricting to employees with the letter <code>I</code> in their name, you get a result with only 4 rows however APEX is still trying to display rows <code>6~10</code>. I hope you now see the problem with this.</p>
 <p>So now that we’ve demonstrated the problem, how do you fix it? Well there’s several ways. To solve our current issue, on <code>P800</code> in the submit branch we could check the <code>reset pagination for this page</code>. This means that each time you submit the page APEX will set the display rows back to <code>1~5</code>.</p>
 <p>There are also other ways to reset the pagination automatically. You can reset pagination in the URL: In the <code>Clear Cache</code> section you can enter <code>RP</code> to clear the page’s cache. Please see the <a href="http://download.oracle.com/docs/cd/E14373_01/appdev.32/e11838/concept.htm#BEIFCDGF" target="_blank" rel="noopener">APEX documentation</a> for more information. There is also a page process to reset the pagination. This allows you to also set the scope of the current page, multiple pages, or all pages.</p>
@@ -444,7 +543,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/" data-id="cjnrmklqp000w29rabj6ic40k" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/" data-id="cjsjmfxxi000hjmrah3xh355u" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -495,7 +594,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="cjnrmklqm000r29rasn2fopms" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="cjsjmfxzj001hjmra8hxcf492" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -537,7 +636,7 @@ custom_status_text
 <p>“<span style="font-style:italic;">I’m a bit of a golf fan, and I like to read up on current events, standings, player profiles, etc.  My favorite site to do this is <a href="http://www.pgatour.com" target="_blank" rel="noopener">www.pgatour.com</a></span></p>
 <p>I was recently searching for a player with the surname of Fischer on the website.  I had a good laugh when the search results came back.  Take a look at the 6th name in the list in the attached image…“</p>
 <p>Here’s the screenshot:</p>
-<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/SbXM-V4zNoI/AAAAAAAADm4/lDQi1TPuQRY/s1600-h/search_results.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/SbXM-V4zNoI/AAAAAAAADm4/lDQi1TPuQRY/s400/search_results.jpg" alt=""></a></p>
+<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/SbXM-V4zNoI/AAAAAAAADm4/lDQi1TPuQRY/s1600-h/search_results.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/SbXM-V4zNoI/AAAAAAAADm4/lDQi1TPuQRY/s400/search_results.jpg" alt></a></p>
 <ul>
 <li>Martin</li>
 </ul>
@@ -545,7 +644,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="cjnrmklqe000l29rasmxyhlam" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="cjsjmfxzg001djmrags4fc2ht" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/test-data-in-production-applications/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -573,7 +672,7 @@ custom_status_text
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2009/02/application-id-reserved-fix/">&quot;Application ID Reserved&quot; - Fix</a>
+      <a class="article-title" href="/2009/02/application-id-reserved-fix/">&#34;Application ID Reserved&#34; - Fix</a>
     </h1>
   
 
@@ -582,7 +681,7 @@ custom_status_text
     <div class="article-entry" itemprop="articleBody">
       
         <p>When you upgrade an application do you ever get the following <code>Application ID Reserved</code> error message?</p>
-<p><img src="http://3.bp.blogspot.com/_33EF80fk9sM/SYtWlmBrUOI/AAAAAAAADl4/MNxQkrJD8LA/s400/application_id_reserved.jpg" alt=""></p>
+<p><img src="http://3.bp.blogspot.com/_33EF80fk9sM/SYtWlmBrUOI/AAAAAAAADl4/MNxQkrJD8LA/s400/application_id_reserved.jpg" alt></p>
 <p>Even if you delete your application and try to re-import using the same application ID you’ll get the message.</p>
 <p>To view “reserved” application ids you can run the following query (please note you may need to be a dba user):</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> *</span><br><span class="line"><span class="keyword">from</span> flows_030100.wwv_flows_reserved;</span><br></pre></td></tr></table></figure>
@@ -592,7 +691,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/02/application-id-reserved-fix/" data-id="cjnrmklqh000m29rax1360g32" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/02/application-id-reserved-fix/" data-id="cjsjmfxxo000mjmraa0pu6jjt" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/02/application-id-reserved-fix/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -658,7 +757,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/" data-id="cjnrmklqb000i29rae3dj7b9d" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/" data-id="cjsjmfxxf000ejmraaedcp9kd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -705,64 +804,12 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/" data-id="cjnrmklq3000c29rae6vjvwdn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/" data-id="cjsjmfxxd000bjmradqfpe33x" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-jquery-calendar-and-application-date" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2008/12/jquery-calendar-and-application-date/" class="article-date">
-  <time datetime="2008-12-15T05:54:00.000Z" itemprop="datePublished">2008-12-14</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2008/12/jquery-calendar-and-application-date/">jQuery Calendar and Application Date Format</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Hi,</p>
-<p>Last week Roel had a posting about jQuery’s Date Picker: <a href="http://roelhartman.blogspot.com/2008/12/how-to-replace-default-apex-calendar.html" target="_blank" rel="noopener">http://roelhartman.blogspot.com/2008/12/how-to-replace-default-apex-calendar.html</a> Definitely a great example for people who are looking for an alternative to APEX’s date picker.</p>
-<p>We do use the jQuery calendar and have some interesting standards around it (I’ll try to blog about this another day). The most important one, and easiest to implement, is the date format standards.</p>
-<p>Javascript/jQuery and Oracle use different date formats. If you are going to use the jQuery date picker I strongly suggest that you standardize your date formats so that you won’t have conflicting results down the road. Here’s what we do:</p>
-<p>We have 2 application level items:</p>
-<p>F_DATE_FORMAT: is used for the application level date format<br>F_JQUERY_DATE_FORMAT: format to display the date the same as f_date_format</p>
-<p>Both these items are set at login time and the values are defined in our database at the client level. You have to make sure that the date formats produce the same results.</p>
-<p>In Roel’s example he uses the jQuery on load function. For the date format just use &amp;F_JQUERY_DATE_FORMAT. instead and this will load set the jQuery date formats accordingly.</p>
-<p>Here’s a listing of jQuery’s date formats: <a href="http://docs.jquery.com/UI/Datepicker/%24.datepicker.formatDate" target="_blank" rel="noopener">http://docs.jquery.com/UI/Datepicker/%24.datepicker.formatDate</a></p>
-<p>And Oracle’s date formats: <a href="http://www.techonthenet.com/oracle/functions/to_date.php" target="_blank" rel="noopener">http://www.techonthenet.com/oracle/functions/to_date.php</a></p>
-<p>Hope this helps,</p>
-<p>M</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/" data-id="cjnrmklq8000g29rae7v7fl29" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jquery/">jquery</a></li></ul>
 
     </footer>
   </div>
@@ -785,7 +832,7 @@ custom_status_text
     <div class="widget-wrap">
   <h3 class="widget-title">Martin Giffy D'Souza</h3>
   <div class="widget aced">
-    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt="" /></a>
+    <img src="/images/profile-martin.jpg" alt>&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt></a>
   </div>
 </div>
 
@@ -809,7 +856,7 @@ custom_status_text
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/12c/">12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">142</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">143</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">22</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -821,16 +868,16 @@ custom_status_text
     <table class="books">
       <tbody>
         <tr>
-          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
-          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+          <td><img src="/images/book-apex-plugins.jpeg" alt></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt></td>
         </tr>
         <tr>
           <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
           <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
         </tr>
         <tr>
-          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
-          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt></td>
         </tr>
         <tr>
           <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
@@ -846,7 +893,7 @@ custom_status_text
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -859,7 +906,7 @@ custom_status_text
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2018 Martin Giffy D&#39;Souza<br>
+      &copy; 2019 Martin Giffy D&#39;Souza<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
