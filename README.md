@@ -9,10 +9,18 @@ hexo new draft TITLE
 
 # Once ready to post
 hexo publish FILENAME
+```
 
+# Install
+
+```bash
+npm install hexo-deployer-git --save
+npm install hexo-browsersync --save
 ```
 
 # Testing
+`npm install -g hexo-cli`
+
 This uses the `npm install hexo-browsersync --save` plugin
 
 `hexo server --draft`
