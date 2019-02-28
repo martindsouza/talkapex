@@ -67,6 +67,157 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-back-to-basics-html-form" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/07/back-to-basics-html-form/" class="article-date">
+  <time datetime="2015-07-27T12:30:00.000Z" itemprop="datePublished">2015-07-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/07/back-to-basics-html-form/">Back to Basics: The HTML Form</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>This is the first post in a multi-part series on how APEX submits and processes input elements from your browser to the server. The goal is to understand the effects of moving elements around the page. It is important to read these articles in the following order.</em></p>
+<ul>
+<li><a href="http://www.talkapex.com/2015/07/back-to-basics-html-form.html">Back to Basics</a></li>
+<li><a href="http://www.talkapex.com/2015/07/apex-and-html-form.html">APEX and the HTML Form</a></li>
+<li><a href="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted.html">APEX and the Order Items are Submitted</a></li>
+<li><a href="http://hardlikesoftware.com/weblog/2015/07/30/apex-item-submission/" target="_blank" rel="noopener">Why does APEX do this? (by John Snyders)</a></li>
+</ul>
+<p><em>As the above note suggests, the next few articles will cover how APEX submits and processes input elements in a page. This article is specifically focused on the basics: HTML forms. It’s important to understand how the HTML <code>form</code> tag works and posts input elements. They’re other articles that cover this in much more detail and this article will only cover the high level concepts.</em></p>
+<p>Any web page that submits data to it has the following structure:</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">"submitURL"</span> <span class="attr">method</span>=<span class="string">"post"</span>&gt;</span></span><br><span class="line">First name: <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"foo"</span> <span class="attr">name</span>=<span class="string">"firstname"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span></span><br><span class="line">  Last Name: <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"bar"</span> <span class="attr">name</span>=<span class="string">"lastname"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"submit"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>This will produce a page that looks like:</p>
+<p><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-m6WcfIpetF8/VbL4s2AWHXI/AAAAAAAAJys/-E-lg-jGPK0/s1600/Snip20150724_4.png" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-m6WcfIpetF8/VbL4s2AWHXI/AAAAAAAAJys/-E-lg-jGPK0/s1600/Snip20150724_4.png" alt></a></div>When the page is submitted the following is sent to the server:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">firstname = Martin</span><br><span class="line">lastname = D&apos;Souza</span><br></pre></td></tr></table></figure>
+<p>Despite what most developers think, the element’s IDs (in this case <code>foo</code> and <code>bar</code>) are not submitted to the server. The server never sees/knows about them. Instead it must use the element’s <code>name</code> attribute.</p>
+<p>HTML form behavior has another nice feature that allows for the same name to be used multiple times. Modifying the previous example, the next example will use the name <code>person</code> for both the first and last name elements:<br><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">action</span>=<span class="string">"submitURL"</span> <span class="attr">method</span>=<span class="string">"post"</span>&gt;</span></span><br><span class="line">First name: <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"foo"</span> <span class="attr">name</span>=<span class="string">"person"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span></span><br><span class="line">Last Name: <span class="tag">&lt;<span class="name">input</span> <span class="attr">id</span>=<span class="string">"bar"</span> <span class="attr">name</span>=<span class="string">"person"</span> <span class="attr">type</span>=<span class="string">"text"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">"submit"</span> /&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>Now when submitting the page the following is sent to the server:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">person[1] = Martin</span><br><span class="line">person[2] = D&apos;Souza</span><br></pre></td></tr></table></figure>
+<p>The server processes the <code>person</code> attribute as an array of data. Using pseudo code, this is how a web server scripting language may process the data:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">firstName = htmlForm.person[1];</span><br><span class="line">lastName = htmlForm.person[2];</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+<p>The two key items to take away from this article are:</p>
+<ul>
+<li>When elements are submitted, only the <code>name</code> attribute is sent to the web server and is used to reference the element.</li>
+<li>A form can contain multiple elements with the same name. In this case the web server will view them as an array of data.</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2015/07/back-to-basics-html-form/" data-id="cjso50bxh00ciedrax6cbcurg" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2015/07/back-to-basics-html-form/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-a-new-chapter" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/06/a-new-chapter/" class="article-date">
+  <time datetime="2015-06-08T14:18:00.000Z" itemprop="datePublished">2015-06-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/06/a-new-chapter/">A New Chapter</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I’m please to announce that starting in July I will be joining <a href="http://insum.ca/" target="_blank" rel="noopener">Insum Solutions</a> as a Senior Technical Consultant! I’m really excited to be joining their team which specializes in Oracle and APEX solutions.</p>
+<p>A bit about Insum:</p>
+<p>“<em>Insum is a highly creative solution center specialized in Oracle Database, developing innovative applications for clients and partners in North America. Founded in 2002, Insum has been assisting customers realize the full benefits of Oracle Database with Application Express since 2005. In fact, Insum is a pioneer with APEX and is today the largest consultancy specialized in Oracle APEX developments in North America. Privately held with offices in Montreal, Canada and South Burlington, USA, Insum has the most complete and experienced staff to serve the needs for complex application development and deployments in a wide range of industries. Come discover our unique APEX center of excellence</em>“</p>
+<p>– Martin</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2015/06/a-new-chapter/" data-id="cjso50bxg00cgedrabw088x3m" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2015/06/a-new-chapter/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apex-meetups-calgary" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/05/apex-meetups-calgary/" class="article-date">
+  <time datetime="2015-05-21T14:30:00.000Z" itemprop="datePublished">2015-05-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/05/apex-meetups-calgary/">APEX Meetups - Calgary</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>One of the popular things these days in the APEX community is to have localized <a href="http://apexmeetups.com/" target="_blank" rel="noopener">APEX Meetups</a>. These are usually monthly meetings where one, or a few, people give a presentation about APEX. These are a lot more informal than traditional conferences and help the community grow in a given area.</p>
+<p>I recently launched the Calgary APEX Meetup group: <a href="http://www.meetup.com/orclapex-YYC/" target="_blank" rel="noopener">ORCLAPEX-YYC</a>. If you live in or around Calgary and are interested in getting together once a month to hear more about APEX join this group! The plan is to host our first Meetup in early June and are currently looking for a venue to host us. If you can acquire some space please leave a comment on the <a href="http://www.meetup.com/orclapex-YYC/messages/boards/thread/48970051" target="_blank" rel="noopener">discussion board</a>.</p>
+<p>We’re looking to keep these events free and are always looking for sponsors to help fund some of the small costs. If you or your organization is interested please leave a comment on the <a href="http://www.meetup.com/orclapex-YYC/messages/boards/thread/48970066" target="_blank" rel="noopener">discussion board</a>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2015/05/apex-meetups-calgary/" data-id="cjso50bxd00ceedralugeej9h" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2015/05/apex-meetups-calgary/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-sqlcl-and-loginsql" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2015/05/sqlcl-and-loginsql/" class="article-date">
@@ -98,7 +249,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/" data-id="cjsjxkfz200cp7uraw4d1u8ap" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/" data-id="cjso50bxp00ckedralxn9ihe0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -150,7 +301,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/help-promote-logger/" data-id="cjsjxkfz100cn7uram0h39atn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/help-promote-logger/" data-id="cjso50bxb00ccedracp45btny" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/help-promote-logger/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -197,7 +348,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apex-docs-for-ibooks/" data-id="cjsjxkfyz00cl7uravynjaxoj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apex-docs-for-ibooks/" data-id="cjso50bx800caedra4lans0mc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apex-docs-for-ibooks/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -270,7 +421,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/" data-id="cjsjxkfyy00cj7uraav8ablna" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/" data-id="cjso50bx200c5edradzf8oz8h" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apex-request-branchtopageaccept/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -324,7 +475,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/" data-id="cjsjxkfyx00cg7uraqtampw43" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/" data-id="cjso50bx600c8edralyl1q2pu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apexjsonparse-issue-with-clobs-and-11g/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -372,7 +523,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/oos-utilities-package/" data-id="cjsjxkfyw00ce7uragrlid1qd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/oos-utilities-package/" data-id="cjso50bwz00c3edrawcg29a41" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/oos-utilities-package/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -416,179 +567,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/apex-backup-script/" data-id="cjsjxkfyv00cc7urayxnpi29o" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/04/apex-backup-script/" data-id="cjso50bwv00bzedrahejmepst" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/04/apex-backup-script/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/open-source/">open-source</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-15-minute-timer-on-mac" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/04/15-minute-timer-on-mac/" class="article-date">
-  <time datetime="2015-04-20T15:00:00.000Z" itemprop="datePublished">2015-04-20</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/04/15-minute-timer-on-mac/">15 Minute Timer on Mac</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I need to take a small break every 15 minutes when using my computer. I looked at various timers for OS X to help notify me when 15 minutes were up. I wasn’t overly impressed with any of the options that I found.</p>
-<p>Then I stumbled upon a neat feature in OS X that will announce the time every hour, half hour, or quarter hour. To enable it, go into <code>System Preferences</code>, then <code>Date &amp; Time</code>. Select the <code>Announce the time</code> check box and the desired interval.</p>
-<div class="separator" style="clear: both; text-align: center;"></div><div class="separator" style="clear: both; text-align: center;"><a href="http://1.bp.blogspot.com/-O-c5RTC8sws/VTPGtMKbXtI/AAAAAAAAHAc/nyJKI46m3rQ/s1600/Snip20150419_10.png" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-O-c5RTC8sws/VTPGtMKbXtI/AAAAAAAAHAc/nyJKI46m3rQ/s1600/Snip20150419_10.png" alt></a></div>
-
-<p>You can also change the voice for the time announcement by clicking on the <code>Customize Voice</code> button.</p>
-<p>Though this solution isn’t perfect it seems to be working well for me. The only catch is that in noisy environments or when I have the audio off I can’t hear the notification.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/15-minute-timer-on-mac/" data-id="cjsjxkfyu00c87urae14sbc05" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2015/04/15-minute-timer-on-mac/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/macos/">macos</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-5-creating-sub-menus" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/04/apex-5-creating-sub-menus/" class="article-date">
-  <time datetime="2015-04-20T13:00:00.000Z" itemprop="datePublished">2015-04-20</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/04/apex-5-creating-sub-menus/">APEX 5: Creating Sub-Menus</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>APEX 5 has gotten rid of the old APEX tabs concept and instead replaced it with the APEX Navigation Menu. This is a very positive change and, tied in with the new Universal Theme it, certainly makes life easier.</p>
-<p>One thing that I really like is the simplicity to create sub-menus. They’re various ways to create sub-menus. This post will cover creating sub-menus from both the page creation wizard and via the <code>Shared Components</code> &gt; <code>Navigation Menu</code> options. There will be three pages in this example: parent, child, and grand child.</p>
-<p>To start, I’ll assume that you have one page and one Navigation Menu item called Parent. Next, create a second page called Child using the wizard. In the wizard, configure the Navigation Menu options as shown below:</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-8B0z_dq3pXQ/VTL-1uWIS3I/AAAAAAAAG_Q/KqGt79mUjnM/s1600/Snip20150418_2.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/-8B0z_dq3pXQ/VTL-1uWIS3I/AAAAAAAAG_Q/KqGt79mUjnM/s1600/Snip20150418_2.png" alt></a></div>
-
-<p>Finish the page creation wizard. When you run your app you’ll now see the Parent/Child menu and sub-menu.</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-D8fEfMZVY9Y/VTL_RA_xu3I/AAAAAAAAG_Y/74aKgvY9790/s1600/Snip20150418_3.png" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-D8fEfMZVY9Y/VTL_RA_xu3I/AAAAAAAAG_Y/74aKgvY9790/s1600/Snip20150418_3.png" alt></a></div>
-
-<p>Create a third page, called Grand Child. This time when you get the the Navigation Menu wizard option you can’t select the Child page as it’s parent. It is shown in the list, but greyed out. To get around this issue, just select <code>No Parent Selected</code> and finish the wizard.<br>To make the Grand Child page a sub-menu of Child</p>
-<ul>
-<li>Go to <code>Shared Components</code> &gt; <code>Navigation Menu</code>.</li>
-<li>Edit the Grant Child list entry.</li>
-<li>Select Child for the Parent List Entry and click <code>Apply Changes</code>. If you rerun the application you should now see the updated sub-menu structure.</li>
-</ul>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-WaSM0ccyvUI/VTMBTjvBshI/AAAAAAAAG_s/uPx9NYZO428/s1600/Snip20150418_4.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/-WaSM0ccyvUI/VTMBTjvBshI/AAAAAAAAG_s/uPx9NYZO428/s1600/Snip20150418_4.png" alt></a></div>
-
-<p>The above example show the default Navigation Menu with the new Universal Theme, which is a side menu. To make it into a top navigation menu with a drop down sub-menus:</p>
-<ul>
-<li>Go to <code>Shared Components</code> &gt; <code>User Interface Attributes</code>.</li>
-<li>Edit the <code>Desktop</code> theme.</li>
-<li>Click on the <code>Navigation Menu</code> tab, and make the following changes:</li>
-</ul>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-mt3fMIKYbYc/VTMEPNBsX0I/AAAAAAAAG_4/dI1kqCb8e9Q/s1600/Snip20150418_5.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/-mt3fMIKYbYc/VTMEPNBsX0I/AAAAAAAAG_4/dI1kqCb8e9Q/s1600/Snip20150418_5.png" alt></a></div>
-
-<p>If you refresh the page the Navigation Menu will now be at the top of the page and has the drop down menu/sub-menu.</p>
-<div class="separator" style="clear: both; text-align: center;"><a href="http://2.bp.blogspot.com/-kOsgVlZW3rs/VTMEnTRhmuI/AAAAAAAAHAA/dGlApSHwaX0/s1600/Snip20150418_6.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/-kOsgVlZW3rs/VTMEnTRhmuI/AAAAAAAAHAA/dGlApSHwaX0/s1600/Snip20150418_6.png" alt></a></div>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/apex-5-creating-sub-menus/" data-id="cjsjxkfyv00ca7uraayf3aapa" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2015/04/apex-5-creating-sub-menus/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-5/">apex-5</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-odtug-oracle-blogs-now-on-twitter" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/04/odtug-oracle-blogs-now-on-twitter/" class="article-date">
-  <time datetime="2015-04-17T14:38:00.000Z" itemprop="datePublished">2015-04-17</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/04/odtug-oracle-blogs-now-on-twitter/">ODTUG Oracle Blogs - Now on Twitter</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>A while ago, <a href="http://odtug.com/" target="_blank" rel="noopener">ODTUG</a> put a heavy emphasis on <a href="http://www.odtug.com/communities" target="_blank" rel="noopener">communities</a>. As a result, 6 main communities were created: <a href="http://www.odtug.com/apex" target="_blank" rel="noopener">APEX</a>, <a href="http://www.odtug.com/bi" target="_blank" rel="noopener">BI</a>, <a href="http://www.odtug.com/epm" target="_blank" rel="noopener">EPM</a>, <a href="http://www.odtug.com/development" target="_blank" rel="noopener">Development</a>, <a href="http://www.odtug.com/administration" target="_blank" rel="noopener">DBA</a>, and <a href="http://www.odtug.com/adf" target="_blank" rel="noopener">ADF</a>. Each of these communities have their own site dedicated to them along with a blog aggregator (<em>click on each of their titles for the appropriate page</em>).</p>
-<p>The blogs contain an amazing amount of content from the entire Oracle community. The authors include Oracle ACE (Associates, ACEs, and Directors), Oracle employees, speakers from all the major conferences (including <a href="http://kscope15.com/" target="_blank" rel="noopener">Kscope</a>), book authors, etc.</p>
-<p>Up until last week the only ways to take advantage of the blog aggregator were to go to the appropriate ODTUG community site or subscribe to the respective RSS feed. Starting today you can subscribe to the following Twitter accounts to get a message in your feed each time a new article is posted for your community.</p>
-<ul>
-<li>APEX: <a href="https://twitter.com/orclapexblogs" target="_blank" rel="noopener">@orclapexblogs</a></li>
-<li>BI: <a href="https://twitter.com/orclbiblogs" target="_blank" rel="noopener">@orclbiblogs</a></li>
-<li>EPM: <a href="https://twitter.com/orclepmblogs" target="_blank" rel="noopener">@orclepmblogs</a></li>
-<li>Development: <a href="https://twitter.com/orcldevblogs" target="_blank" rel="noopener">@orcldevblogs</a></li>
-<li>DBA: <a href="https://twitter.com/orcldevblogs" target="_blank" rel="noopener">@orcldbablogs</a></li>
-<li>ADF: <a href="https://twitter.com/orcladfblogs" target="_blank" rel="noopener">@orcladfblogs</a></li>
-</ul>
-<p>Each tweet will also contain the community’s appropriate hashtag. ODTUG has the complete hashtag listing here: <a href="http://www.odtug.com/hashtag" target="_blank" rel="noopener">http://www.odtug.com/hashtag</a> If you’re new to Twitter, following your appropriate hashtag can be a quick way to find some excellent and helpful content.</p>
-<p>Some tweets will contain the author’s Twitter handle (via a <code>@mention</code>). We’re currently in the process of updating all the twitter handles for the authors in each community. If you write an article and don’t see your Twitter handle show up, just reply to the appropriate Twitter account and we’ll fix it.</p>
-<p>As always, if you want to add your blog to the list, please email <a href="mailto:lauren@odtug.com" target="_blank" rel="noopener">lauren@odtug.com.</a></p>
-<p><em>Thanks to <a href="https://twitter.com/fuzziebrain" target="_blank" rel="noopener">Adrian Png</a> and <a href="https://twitter.com/patrickwolf" target="_blank" rel="noopener">Patrick Wolf</a> for their ideas and patience getting this setup!</em></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/04/odtug-oracle-blogs-now-on-twitter/" data-id="cjsjxkfyt00c57uraliy5elvf" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2015/04/odtug-oracle-blogs-now-on-twitter/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
 
     </footer>
   </div>
@@ -635,7 +619,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">144</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">146</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -672,7 +656,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

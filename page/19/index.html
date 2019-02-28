@@ -67,6 +67,182 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-100th-post" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2011/01/100th-post/" class="article-date">
+  <time datetime="2011-01-17T14:00:00.000Z" itemprop="datePublished">2011-01-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2011/01/100th-post/">100th Post</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Two and a half years after starting this blog I’m excited to be writing my 100<sup>th</sup> post! Through this blog I’ve had the opportunity to meet a lot of people, learn a lot of new things, and given opportunities I may not have otherwise had.</p>
+<p>I thought it would be interesting to post some stats about this blog for those that were curious. I wrote my <a href="http://www.talkapex.com/2008/07/manually-creating-tabular-form.html">first post</a> on July 31st, 2008 but only started to capture analytics starting in March 2009.<br><span style="font-style:italic"><br><span style="font-weight:bold;">- March 2009</span></span></p>
+<ul>
+<li>~1500 visits / month</li>
+<li>~2400 page views / month</li>
+</ul>
+<p><span style="font-weight:bold;">- Current monthly avg (Dec 2010)</span></p>
+<ul>
+<li>~3500 visits / month</li>
+<li>~5300 page views / month</li>
+</ul>
+<p><span style="font-weight:bold;">- Overall (since March 2009)</span></p>
+<ul>
+<li>~53,000 visits</li>
+<li>~85,000 page views</li>
+<li>~150 countries<br><br>Thanks for following along and providing feedback.</li>
+</ul>
+<ul>
+<li>Martin</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2011/01/100th-post/" data-id="cjso50bqk005nedra01q2vo60" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2011/01/100th-post/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-variables-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2011/01/variables-in-apex/" class="article-date">
+  <time datetime="2011-01-05T15:00:00.000Z" itemprop="datePublished">2011-01-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2011/01/variables-in-apex/">Variables in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When I first started using APEX I was unsure about which method to use when referencing variables (values in session state). The purpose of this post is to outline the different ways to reference APEX variables and provide an examples for each case.</p>
+<p>They’re five ways to reference variables in APEX:</p>
+<ul>
+<li>:Bind_variables</li>
+<li>&amp;Substitution_strings.</li>
+<li>V / NV functions</li>
+<li>#Hash#</li>
+<li>“Shortcuts”</li>
+</ul>
+<h1 id="Bind-Variables"><a href="#Bind-Variables" class="headerlink" title="Bind Variables"></a>Bind Variables</h1><p>Bind variables can be used in any block of SQL or PL/SQL code inside APEX. For example if creating a report to display all the employees in a selected department the query would be:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ename</span><br><span class="line">  <span class="keyword">FROM</span> emp</span><br><span class="line"> <span class="keyword">WHERE</span> deptno = :p1_deptno</span><br></pre></td></tr></table></figure>
+<p> Where <code>P1_DEPTNO</code> is a page item that you created.</p>
+<h1 id="Substitution-Strings"><a href="#Substitution-Strings" class="headerlink" title="Substitution Strings"></a>Substitution Strings</h1><p>Substitution strings use the <code>&amp;variable.</code> notation. They can be used anywhere in your APEX application such as a HTML region or even a template. You can also use them in inline SQL and PL/SQL code but it is not recommended for security reasons. <span style="font-style: italic;">For more information on this security risk read the following Oracle white paper on <a href="http://www.oracle.com/technetwork/database/features/plsql/overview/how-to-write-injection-proof-plsql-1-129572.pdf" target="_blank" rel="noopener">SQL Injection</a></span></p>
+<p>A simple example of using a substitution string is in a HTML region which displays a welcome message. The region source would be:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&gt;Hello &amp;amp;APP_USER.</span><br><span class="line"></span><br><span class="line">Welcome to the demo application.</span><br></pre></td></tr></table></figure></p>
+<h1 id="V-NV-Functions"><a href="#V-NV-Functions" class="headerlink" title="V / NV Functions"></a>V / NV Functions</h1><p>If you want to reference APEX variables in compiled code, such as views, packages, and procedures, you can’t use bind variables. The easiest way to reference the variables is to use the <code>V</code> (for strings) and <code>NV</code> (for numbers) functions. For example:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">PROCEDURE</span> log_apex_info</span><br><span class="line"><span class="keyword">AS</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">  <span class="keyword">INSERT</span> <span class="keyword">INTO</span> tapex_log ( username, apex_page_id, access_date)</span><br><span class="line">       <span class="keyword">VALUES</span> (V (<span class="string">'APP_USER'</span>), NV (<span class="string">'APP_PAGE_ID'</span>), <span class="keyword">SYSDATE</span>);</span><br><span class="line"><span class="keyword">END</span>;</span><br></pre></td></tr></table></figure>
+<h1 id="Hash"><a href="#Hash" class="headerlink" title="#Hash#"></a>#Hash#</h1><p>The hash notation of <code>#variable#</code> is used in multiple places. When creating column links in a report you can use the hash notation to represent column values. The following figure highlights how column values are referenced in a report link.<code>#EMPNO#</code> is used to reference the EMPNO column and <code>#JOB#</code> is used to pass the job as a parameter to Page 2.</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/TR6GfgyIN0I/AAAAAAAAD20/TqVsO0rXg7g/s1600/hash_column_link.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/TR6GfgyIN0I/AAAAAAAAD20/TqVsO0rXg7g/s400/hash_column_link.jpg" alt></a><br>The hash notation is also used in templates (Shared Components &gt; Templates). When modifying a template they’re special variables available depending on the type of template. These variables can be found at the bottom of the screen in the Substitution Strings section.</p>
+<h1 id="Shortcuts"><a href="#Shortcuts" class="headerlink" title="Shortcuts"></a>Shortcuts</h1><p>Shortcuts can only be used in specific areas within APEX (such as some regions, labels, and templates) and can be rendered both statically or dynamically (using PL/SQL functions). To reference a Shortcut use the <code>&quot;shortcutname&quot;</code> notation (quotes included). The following article covers Shortcuts in more detail, including where you can use them in APEX: <a href="http://www.talkapex.com/2014/02/apex-shortcuts.html">http://www.talkapex.com/2014/02/apex-shortcuts.html</a></p>
+<p>For more information about referencing variables in APEX read the <a href="http://download.oracle.com/docs/cd/E17556_01/doc/user.40/e15517/concept.htm#BEICHBBG" target="_blank" rel="noopener">Referencing Session State</a> section in the builder guide.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2011/01/variables-in-apex/" data-id="cjso50bqq005zedrard5dsx8e" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2011/01/variables-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-missing-id-in-no-template-region" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2011/01/missing-id-in-no-template-region/" class="article-date">
+  <time datetime="2011-01-04T15:00:00.000Z" itemprop="datePublished">2011-01-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2011/01/missing-id-in-no-template-region/">Missing ID in the No Template Region Template</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When you create or edit a region in APEX you can select a template. Region templates define the location of buttons in a region, how the region looks, etc. There is a  region template called “No Template” which is the first option in the template list. When you select No Template as the region template APEX will only display the content of the region an nothing else (no header, buttons, etc).</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/TR3z1SvC0sI/AAAAAAAAD2k/DRv93FxN2UA/s1600/no_template.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/TR3z1SvC0sI/AAAAAAAAD2k/DRv93FxN2UA/s400/no_template.jpg" alt></a><br>There is a problem with using No Template if you use Dynamic Actions or have any JavaScript code which references the region. The No Template region template does not contain an ID attribute which prevents dynamic actions from binding to the region.</p>
+<p>The following steps will create a region that simulates the “No Template” region and includes an ID so it will work with dynamic actions.</p>
+<ul>
+<li>Go to Shared Components</li>
+<li>Click on Templates</li>
+<li>Click the Create button</li>
+<li>Template Type: Region</li>
+<li>Select From Scratch and click Next</li>
+<li>Name: No Template w. ID<br>&nbsp;&nbsp;Theme: Select your default theme (in most cases you’ll only have one option)<br>&nbsp;&nbsp;Template Class: Reports Region<br>&nbsp;&nbsp;Click the Create button</li>
+<li>You should be brought back to the Templates page. To filter the list of regions select Region as the Type and click the Go button</li>
+<li>Click on No Template w. ID to modify it</li>
+<li>Put the following HTML in the Definition section<pre class="brush: html;"><br><div id="#REGION_STATIC_ID#" #region_attributes#><br>#BODY#<br></div></pre> - It should look like<br><a href="http://1.bp.blogspot.com/_33EF80fk9sM/TR34Feko17I/AAAAAAAAD2s/OKH7IxHYETI/s1600/no_template_id_template.jpg" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/TR34Feko17I/AAAAAAAAD2s/OKH7IxHYETI/s400/no_template_id_template.jpg" alt></a>- Click the Apply Changes button</li>
+</ul>
+<p>If you modify your region that used No Template and change it to the new template that you created, No Template w. ID, it will look the same for the end users with the big difference being that dynamic actions will work when applied against the region.</p>
+<p>The following query identifies regions that use the No Template region template which you may want to modify to use the custom No Template w. ID: <pre class="brush: sql;"><br>SELECT page_id, page_name, region_name, template<br>  FROM apex_application_page_regions<br> WHERE application_id = :app_id<br>   AND template = ‘No Template’</pre><span style="font-style:italic;">Note: I think <a href="http://www.inside-oracle-apex.com/" target="_blank" rel="noopener">Patrick Wolf</a> mentioned that the No Template region template will include an ID in APEX 4.1.</span></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2011/01/missing-id-in-no-template-region/" data-id="cjso50bqj005ledrah856sx99" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2011/01/missing-id-in-no-template-region/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-column-groups-in-apex-40-interactive" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2010/12/column-groups-in-apex-40-interactive/" class="article-date">
@@ -96,7 +272,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/12/column-groups-in-apex-40-interactive/" data-id="cjsjxkfuy005j7urar3p90q8x" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/12/column-groups-in-apex-40-interactive/" data-id="cjso50bqh005jedratpmdcf8k" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/12/column-groups-in-apex-40-interactive/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -140,7 +316,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/12/apex-40-new-columns-in/" data-id="cjsjxkfuw005h7ura5lietaub" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/12/apex-40-new-columns-in/" data-id="cjso50bqc005hedrad018w974" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/12/apex-40-new-columns-in/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -194,7 +370,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/12/apex-how-to-trigger-dynamic-action-from/" data-id="cjsjxkfuu005f7ura8vq2ua14" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/12/apex-how-to-trigger-dynamic-action-from/" data-id="cjso50bqa005fedra56kziml3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/12/apex-how-to-trigger-dynamic-action-from/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -237,7 +413,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/10/apex-hash-tag-on-twitter-orclapex/" data-id="cjsjxkfus005d7ura80byue1u" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/10/apex-hash-tag-on-twitter-orclapex/" data-id="cjso50bq9005dedrav3s4lhox" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/10/apex-hash-tag-on-twitter-orclapex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -314,7 +490,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/" data-id="cjsjxkfur005b7uraeo02r9l3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/" data-id="cjso50bq7005bedrayvu7tqeb" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -383,7 +559,7 @@ $ grep -l "2603384364125271" *.trc
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/10/oracle-xe-and-apex-where-is-my-trace/" data-id="cjsjxkfuq00597ura9j6au9un" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/10/oracle-xe-and-apex-where-is-my-trace/" data-id="cjso50bq30059edra1ed2jwb2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/10/oracle-xe-and-apex-where-is-my-trace/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -488,162 +664,9 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/10/apex-region-errors-part-2/" data-id="cjsjxkfup00577urank2rskng" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/10/apex-region-errors-part-2/" data-id="cjso50bq10055edrarp815dc2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/10/apex-region-errors-part-2/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-region-errors-part-1" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2010/10/apex-region-errors-part-1/" class="article-date">
-  <time datetime="2010-10-18T15:00:00.000Z" itemprop="datePublished">2010-10-18</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2010/10/apex-region-errors-part-1/">APEX Region Errors - Part 1</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>A while ago I wrote about how to handle and customize the default unhandled exception error page in APEX: <a href="http://www.talkapex.com/2010/09/custom-error-messages-in-apex.html">http://www.talkapex.com/2010/09/custom-error-messages-in-apex.html</a> The method described in the post catches page level errors and can notify administrators immediately when an undhandled exception occurs.</p>
-<p>Region level errors are not caught using the method above. An example of a region error is when you have a query that has divisor is equal to zero error. To simulate this error create a standard report region with the following query:</p>
-<p><pre class="brush: sql; highlight: 3"><br>SELECT *<br>  FROM emp<br> WHERE 1 / 0 = 0 – Causes an ORA-01476: divisor is equal to zero<br></pre><br>This query will return a “<span style="font-style:italic;">ORA-01476: divisor is equal to zero</span>“ error message in APEX.</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/TLuUB6biMtI/AAAAAAAAD0w/QPLuUQ-IlOE/s1600/region_error.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/TLuUB6biMtI/AAAAAAAAD0w/QPLuUQ-IlOE/s400/region_error.jpg" alt></a><br>Starting with APEX 4.0 region level errors are logged in the APEX Activity Log. The following query identifies both page and region level errors:</p>
-<p><pre class="brush: sql;"><br>SELECT apex_user,<br>       application_id,<br>       application_name,<br>       page_id,<br>       page_name,<br>       view_date,<br>       apex_session_id,<br>       error_message,<br>       error_on_component_type,<br>       error_on_component_name – Region/Process that caused the issue<br>  FROM apex_workspace_activity_log<br> WHERE error_message IS NOT NULL<br></pre><br>I strongly recommend that you frequently scan the activity logs for errors. <span style="font-style:italic;">Part 2 of will describe a way to be automatically notified of region level errors.</span></p>
-<p>They’re a few caveats that you should be aware of:</p>
-<ul>
-<li><p>As mentioned, the activity log identifies both region and page level errors. <span style="font-style:italic;">APEX_WORKSPACE_ACTIVITY_LOG.ERROR_ON_COMPONENT_NAME</span> identifies the region or process that the error occured in.</p>
-</li>
-<li><p>When multiple region level errors occur only the first error is logged in the activity log.</p>
-</li>
-<li><p>From my limited testing, errors in Interactive Reports are not logged. Their may be other types of regions that don’t log errors as well.</p>
-</li>
-</ul>
-<p>Given the caveats listed above querying the activity logs help identify some, but not all, errors that happen in your application.</p>
-<p><a href="http://www.talkapex.com/2010/10/apex-region-errors-part-2.html">APEX Region Errors - Part 2</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/10/apex-region-errors-part-1/" data-id="cjsjxkfum00557ura6o96aaz7" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2010/10/apex-region-errors-part-1/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-page-locks" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2010/09/apex-page-locks/" class="article-date">
-  <time datetime="2010-09-29T13:21:00.000Z" itemprop="datePublished">2010-09-29</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2010/09/apex-page-locks/">APEX Page Locks</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>When developing APEX applications in a team environment you usually don’t want multiple developers working on the same page at the same time. This can cause a lot of confusion and unexpected effects with the application.</p>
-<p>APEX has a great feature called Page Locks which enables developers to lock a page so that they’re the only one that can work on it at a given time. Other developers can view the page, but can not make any changes while the page is locked.</p>
-<p>To lock a page, click on the lock icon located in the top right corner of the page as displayed in the following picture:</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/TKM8h_AOwGI/AAAAAAAAD0o/h4QIeqGXmwA/s1600/Page+Locks.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/TKM8h_AOwGI/AAAAAAAAD0o/h4QIeqGXmwA/s400/Page+Locks.jpg" alt></a><br>You will need to enter a comment and then click the Lock Checked button. For the comment it is recommended that you enter what case/bug number you’re working on and what impact it may have on the page. The history of these comments, both for locking and unlocking the page, is logged. Before you invest a lot of time with detailed comments it’s important to note the following points that may be relevant within your environment.</p>
-<p>Page locks are not retained when an application is copied or exported. This makes sense as you don’t want page locks to propagate in an export file.</p>
-<p>Like page locks, the lock history is not retained when an application is copied or exported. If you tend to move the development copy of your application between workspaces this may be an issue. This may effect the level of detail for lock comments that you require the developers on your team to use.</p>
-<p>If you want to backup the page lock comment history you can access them from the following table:</p>
-<pre class="brush: sql">
-  SELECT *
-    FROM apex_040000.wwv_flow_lock_page_log
-   WHERE lock_flow = :app_id
-ORDER BY lock_page, action_date
-</pre>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/apex-page-locks/" data-id="cjsjxkful00537uraflgjpfu2" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2010/09/apex-page-locks/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-demo-apex-right-out-of-box" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2010/09/demo-apex-right-out-of-box/" class="article-date">
-  <time datetime="2010-09-16T14:00:00.000Z" itemprop="datePublished">2010-09-16</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2010/09/demo-apex-right-out-of-box/">Demo APEX Right Out of the Box</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>If you want to quickly try out the new features after installing APEX 4.0 you don’t need to do anything! APEX now comes with a built in demo.</p>
-<p>To access this demo, log into a workspace and click the “Learn more…” button.</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/TJGEV7qE4qI/AAAAAAAAD0Q/mBjE86WGL7c/s1600/learn_more.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/TJGEV7qE4qI/AAAAAAAAD0Q/mBjE86WGL7c/s400/learn_more.jpg" alt></a><br>On the right hand side you’ll see a list of features to demo.</p>
-<p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/TJGEVeA3zuI/AAAAAAAAD0I/Q1S3Ev-8vkk/s1600/demo.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/TJGEVeA3zuI/AAAAAAAAD0I/Q1S3Ev-8vkk/s400/demo.jpg" alt></a><br>If you’re curious, the tables that the demo is using are: <span style="font-style:italic;">APEX_040000.WWV_DEMO_DEPT</span> and <span style="font-style:italic;">APEX_040000.WWV_DEMO_EMP</span>.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/demo-apex-right-out-of-box/" data-id="cjsjxkfuk00517urag5beya7u" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2010/09/demo-apex-right-out-of-box/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
@@ -693,7 +716,7 @@ ORDER BY lock_page, action_date
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">144</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">146</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -730,7 +753,7 @@ ORDER BY lock_page, action_date
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

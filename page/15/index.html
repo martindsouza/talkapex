@@ -67,6 +67,219 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-nodatafound-exceptions-in-plsql" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/nodatafound-exceptions-in-plsql/" class="article-date">
+  <time datetime="2012-08-16T13:00:00.000Z" itemprop="datePublished">2012-08-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/nodatafound-exceptions-in-plsql/">NO_DATA_FOUND Exceptions in PL/SQL Functions Called in Queries</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Functions in PL/SQL can be a tricky thing as they don’t always raise an exception when one occurs. You may be asking yourself: <em>How, I thought functions and procedures always raise exceptions when one occurs</em>? This is true except in some very specific situations.</p>
+<p>First lets look at a very simple function which is then executed in both PL/SQL and in a query. It should (and does) raise an exception in both cases since we have a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">1/0</span> in it.</p>
+<pre class="brush: sql;">SQL> CREATE OR REPLACE FUNCTION f_generate_error RETURN VARCHAR2
+  2  AS
+  3    l_x pls_integer;
+  4  BEGIN
+  5    SELECT 1 INTO l_x FROM dual WHERE 1/0 = 0;
+  6    RETURN 'No exception raised';
+  7  END;
+  8  /
+
+Function created.
+
+SQL> EXEC dbms_output.put_line(f_generate_error);
+BEGIN dbms_output.put_line(f_generate_error); END;
+
+*
+ERROR at line 1:
+ORA-01476: divisor is equal to zero
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 5
+ORA-06512: at line 1
+
+SQL> SELECT f_generate_error FROM dual;
+SELECT f_generate_error FROM dual
+       *
+ERROR at line 1:
+ORA-01476: divisor is equal to zero
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 5
+</pre>What if we change the query slightly so that the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SELECT INTO</span> statement doesn't return any rows (by applying a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">1=0</span> predicate) and raises a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception?
+<pre class="brush: sql; highlight: [22,23,24,25,26,27]">SQL> CREATE OR REPLACE FUNCTION f_generate_error RETURN VARCHAR2
+  2  AS
+  3    l_x pls_integer;
+  4  BEGIN
+  5    SELECT 1 INTO l_x FROM dual WHERE 1=0;
+  6    RETURN 'No exception raised';
+  7  END;
+  8  /
+
+Function created.
+
+SQL> EXEC dbms_output.put_line(f_generate_error);
+BEGIN dbms_output.put_line(f_generate_error); END;
+
+*
+ERROR at line 1:
+ORA-01403: no data found
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 5
+ORA-06512: at line 1
+
+SQL> SELECT f_generate_error FROM dual;
+
+F_GENERATE_ERROR
+----------------------------------------------------------------
+
+1 row selected.</pre>When we run it in PL/SQL it raises an exception but when we run it in a query it doesn't. It just returns a null value which doesn't really tell the calling query that an exception was raised. This can obviously cause issues and unexpected behavior in your application.
+
+According to the [Oracle documentation](http://docs.oracle.com/cd/B13789_01/appdev.101/b10807/07_errs.htm) the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception will not propagate the exception if run in a query: "_Because this exception is used internally by some SQL functions to signal that they are finished, you should not rely on this exception being propagated if you raise it within a function that is called as part of a query._"
+
+To get around this issue you can raise a custom exception when you encounter a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception in functions so that it will propagate when called via a SQL query. In the example below a custom exception is raised and the exception is propagated when called from a query.
+<pre class="brush: sql; highlight: [7,8,9]">SQL> CREATE OR REPLACE FUNCTION f_generate_error RETURN VARCHAR2
+  2  AS
+  3    l_x pls_integer;
+  4  BEGIN
+  5    SELECT 1 INTO l_x FROM dual WHERE 1=0;
+  6    RETURN 'No exception raised';
+  7  EXCEPTION
+  8    WHEN NO_DATA_FOUND THEN
+  9      raise_application_error(-20001, 'Custom NO_DATA_FOUND');
+ 10  END;
+ 11  /
+
+Function created.
+
+SQL> SELECT f_generate_error FROM dual;
+SELECT f_generate_error FROM dual
+       *
+ERROR at line 1:
+ORA-20001: Custom NO_DATA_FOUND
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cjso50bs1007xedra8yav9qrp" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-create-apex-session-in-plsql" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/how-to-create-apex-session-in-plsql/" class="article-date">
+  <time datetime="2012-08-15T14:38:00.000Z" itemprop="datePublished">2012-08-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/how-to-create-apex-session-in-plsql/">How to Create an APEX Session in PL/SQL</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Debugging a function or procedure which references APEX items using the V/NV functions or trying to debug APEX collections can be frustrating when the only way to set, and view, the values is to actually do it through the application. Thankfully, there’s a way to create an APEX session from a PL/SQL session to test out your code.</p>
+<p>They’re various examples on the <a href="https://forums.oracle.com/forums/forum.jspa?forumID=137" target="_blank" rel="noopener">APEX forums</a> on how to create an APEX session in PL/SQL. Here’s one version of it.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">procedure</span> sp_create_apex_session(</span><br><span class="line">  p_app_id <span class="keyword">in</span> apex_applications.application_id%<span class="keyword">type</span>,</span><br><span class="line">  p_app_user <span class="keyword">in</span> apex_workspace_activity_log.apex_user%<span class="keyword">type</span>,</span><br><span class="line">  p_app_page_id <span class="keyword">in</span> apex_application_pages.page_id%<span class="keyword">type</span> <span class="keyword">default</span> <span class="number">1</span>)</span><br><span class="line"><span class="keyword">as</span></span><br><span class="line">  l_workspace_id apex_applications.workspace_id%<span class="keyword">type</span>;</span><br><span class="line">  l_cgivar_name  owa.vc_arr;</span><br><span class="line">  l_cgivar_val   owa.vc_arr;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line"></span><br><span class="line">  htp.init;</span><br><span class="line"></span><br><span class="line">  l_cgivar_name(1) := 'REQUEST_PROTOCOL';</span><br><span class="line">  l_cgivar_val(1) := 'HTTP';</span><br><span class="line"></span><br><span class="line">  owa.init_cgi_env(</span><br><span class="line">    num_params =&gt; 1,</span><br><span class="line">    param_name =&gt; l_cgivar_name,</span><br><span class="line">    param_val =&gt; l_cgivar_val );</span><br><span class="line"></span><br><span class="line">  <span class="keyword">select</span> workspace_id</span><br><span class="line">  <span class="keyword">into</span> l_workspace_id</span><br><span class="line">  <span class="keyword">from</span> apex_applications</span><br><span class="line">  <span class="keyword">where</span> application_id = p_app_id;</span><br><span class="line"></span><br><span class="line">  wwv_flow_api.set_security_group_id(l_workspace_id);</span><br><span class="line"></span><br><span class="line">  apex_application.g_instance := 1;</span><br><span class="line">  apex_application.g_flow_id := p_app_id;</span><br><span class="line">  apex_application.g_flow_step_id := p_app_page_id;</span><br><span class="line"></span><br><span class="line">  apex_custom_auth.post_login(</span><br><span class="line">    p_uname =&gt; p_app_user,</span><br><span class="line">    p_session_id =&gt; null, -- could use APEX_CUSTOM_AUTH.GET_NEXT_SESSION_ID</span><br><span class="line">    p_app_page =&gt; apex_application.g_flow_id||':'||p_app_page_id);</span><br><span class="line"><span class="keyword">end</span>;</span><br></pre></td></tr></table></figure>
+<p>To create an APEX session (in PL/SQL) to mimic some tests I can do the following:  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span></span><br><span class="line">  sp_create_apex_session(</span><br><span class="line">    p_app_id =&gt; <span class="number">106</span>,</span><br><span class="line">    p_app_user =&gt; <span class="string">'MARTIN'</span>,</span><br><span class="line">    p_app_page_id =&gt; <span class="number">10</span>);</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br><span class="line"></span><br><span class="line">PL/SQL procedure successfully completed.</span><br></pre></td></tr></table></figure>
+<p>View some APEX session state variables:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> </span><br><span class="line">  v(<span class="string">'APP_USER'</span>) app_user, </span><br><span class="line">  v(<span class="string">'APP_SESSION'</span>) app_session,</span><br><span class="line">  v(<span class="string">'APP_PAGE_ID'</span>) page_id, v(<span class="string">'P1_X'</span>) p1_x</span><br><span class="line"><span class="keyword">from</span> dual;</span><br><span class="line"></span><br><span class="line">APP_USER   APP_SESSION     PAGE_ID    P1_X</span><br><span class="line"><span class="comment">---------- --------------- ---------- ----------</span></span><br><span class="line">MARTIN     374363229560201 10</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Set P1_X</span></span><br><span class="line">exec apex_util.set_session_state('P1_X', 'abc');</span><br><span class="line"></span><br><span class="line">PL/SQL procedure successfully completed.</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">  v(<span class="string">'APP_USER'</span>) app_user,</span><br><span class="line">  v(<span class="string">'APP_SESSION'</span>) app_session,</span><br><span class="line">  v(<span class="string">'APP_PAGE_ID'</span>) page_id,</span><br><span class="line">  v(<span class="string">'P1_X'</span>) p1_x</span><br><span class="line"><span class="keyword">from</span> dual;</span><br><span class="line"></span><br><span class="line">APP_USER   APP_SESSION     PAGE_ID    P1_X</span><br><span class="line"><span class="comment">---------- --------------- ---------- ----------</span></span><br><span class="line">MARTIN     374363229560201 10         abc</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Clear APEX Session State</span></span><br><span class="line">exec apex_util.clear_app_cache(p_app_id =&gt; 106);</span><br><span class="line"></span><br><span class="line">PL/SQL procedure successfully completed.</span><br></pre></td></tr></table></figure>
+<p>You can also create and view collections using the <code>APEX_COLLECTION</code> APIs and the <code>APEX_COLLECTION</code> view.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="cjso50bs0007vedraqdv44r8s" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-odtug-apexposed-2012" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/07/odtug-apexposed-2012/" class="article-date">
+  <time datetime="2012-07-30T13:14:00.000Z" itemprop="datePublished">2012-07-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/07/odtug-apexposed-2012/">ODTUG APEXposed 2012</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><div class="separator" style="clear: both; text-align: center;"><a href="http://4.bp.blogspot.com/-t3VS4FaGTPA/UBYgsLzW0YI/AAAAAAAAENw/wWEdjTUUsag/s1600/2012_APEXposed.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/-t3VS4FaGTPA/UBYgsLzW0YI/AAAAAAAAENw/wWEdjTUUsag/s400/2012_APEXposed.jpg" alt></a></div><br>ODTUG is hosting it’s APEX focused APEXposed conference in Montreal this fall from September 11-12. The <a href="http://odtugapextraining.com/presenters.html" target="_blank" rel="noopener">speaker list</a> is loaded with experts from around the <u>world</u> who will present on a wide variety of APEX and SQL Developer topics. The list includes 3 Oracle Product Managers (APEX / SQL Developer), 6 ACE and ACE Directors, and some other excellent presenters. To put some perspective on this list of presenters, there’s only 14 ACE/ACE Directors in Canada and 375 world wide. Having 6 ACE/ACEDs coming to Montreal is a great opportunity to learn from them.</p>
+<p>On a personal note, I’ll be giving two talks on <a href="http://odtugapextraining.com/presentations.html#dsouzaapex" target="_blank" rel="noopener">APEX + HTML5</a>, and <a href="http://odtugapextraining.com/presentations.html#dsouzaplugins" target="_blank" rel="noopener">APEX Plugins</a>. I gave the HTML 5 presentation this summer at Kscope 12 but I’ll be adding some new parts to it. The plugins presentation will go over how to create a plugin from scratch to help you and your team build your own APEX plugins.</p>
+<p>For more information and to register go to <a href="http://odtugapextraining.com/" target="_blank" rel="noopener">http://odtugapextraining.com</a>. If you register before August 15th you can take advantage of the early bird rate for only $399! This is a steal for the amount of information that you’ll learn and the opportunity to ask the experts any of your APEX questions. To make things even more compelling if you use the code <em>CLARIFIT</em> you will save an additional $50 off your registration cost.</p>
+<p>For those that are coming from out of town (Toronto, Ottawa, Quebec City, Southern US, etc) ODTUG has secured a preferred rate at Le St.Martin. For more information go to <a href="http://odtugapextraining.com/Location.html" target="_blank" rel="noopener">http://odtugapextraining.com/Location.html</a> and scroll to the bottom.</p>
+<p>I really hope that the Oracle community in Canada takes advantage of this opportunity. I’m not sure how often we’ll get such an amazing list of presenters and presentations in our own back yard. See you there!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="cjso50bry007tedra0t96w8kt" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/07/odtug-apexposed-2012/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apex-4-html5-awesome-ii-slides" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/07/apex-4-html5-awesome-ii-slides/" class="article-date">
@@ -95,7 +308,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="cjsjxkfwc007r7ura5vofvqao" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="cjso50brv007pedra44scroeh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -137,7 +350,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="cjsjxkfw8007p7ura9asyx8a5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="cjso50bru007nedraayp5fhpw" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/building-better-team-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -187,7 +400,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="cjsjxkfw7007n7uraebbqwzzx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="cjso50brx007redrasp00oel6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -236,7 +449,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="cjsjxkfw6007l7urajm9oqxgp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="cjso50brt007ledraoapne1gn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/select-into-techinques/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -288,7 +501,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="cjsjxkfw4007j7urapif336y7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="cjso50brr007hedrat3pd00zt" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -466,7 +679,7 @@ RESEARCH       SMITH             800              3
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="cjsjxkfw3007h7urauvbdewx9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="cjso50brs007jedraq9iblf1e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -509,236 +722,12 @@ RESEARCH       SMITH             800              3
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/" data-id="cjsjxkfw2007f7urahg6450qg" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/" data-id="cjso50brq007fedra8d5xxyrs" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/">apex-plugin</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-command-line-backups-for-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/04/command-line-backups-for-apex/" class="article-date">
-  <time datetime="2012-04-28T23:25:00.000Z" itemprop="datePublished">2012-04-28</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/04/command-line-backups-for-apex/">Command Line Backups for APEX Applications</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><span style="color: red;"><strong>Update 21-Apr-2015: </strong>This script will no longer be supported. Instead please use the new script (for Mac/Linux) available on <a href="https://github.com/OraOpenSource/apexbackup" target="_blank" rel="noopener">Github</a>. New article:&nbsp;<a href="http://www.talkapex.com/2015/04/apex-backup-script.html">http://www.talkapex.com/2015/04/apex-backup-script.html</a></span></p>
-<p>One thing developers like to do is keep local backup copies of their development work. Sometimes they’ll copy files and suffix them with <em>.bak</em> or they’ll store them in a version control repository. With APEX you don’t copy a file to back it up. Either you have to copy the application (within the workspace) or export the application and save it locally. For one-off backups this can be ok, but as you develop with more and more applications in larger environments it can be tedious work and will slow down your development time.</p>
-<p>Thankfully APEX has a tool, that comes as part of the install zip file, which allows for command line exports. It’s one of the lesser known tools that is extremely useful.</p>
-<p>Below is a simplified copy of a batch file which will automatically backup all the APEX applications on a given database using the APEX backup tool. I usually recommend that organizations run such a script on their development environments to store hourly backups of their development environments. The example is a very simple example which should be modified to tag the backup with the date/time or zip and store the backups in version control. I’ve also appended an extra script which lists all the APEX applications, workspaces, and IDs and stores this information as part of the backup in a <em>.html</em> file.</p>
-<p>To use the script, create the files listed below in the same directory and make the appropriate modifications in _apex_backup.bat_</p>
-<p><strong>apex_backup.bat</strong><br><em>Backups all the applications in the database</em></p>
-<pre class="brush: bash;">REM ***** START MODIFICATIONS ******
-
-REM ***** Parameters ******
-REM Oracle information
-REM To find SID name: select * from v$instance;
-set oracleSID=XE
-set oracleSystemPass=oracle
-set oraclePort=1526
-set oracleHost=localhost
-REM Root directory where oracle\apex\*class files are stored
-REM These is a sub directory from the extracted APEX install zip file
-set apexExportJavaDir=C:\temp\apex_4.1.1_en\apex\utilities
-REM File that contains names of applications and workspaces
-set apexHtmlFileName=apex_info.html
-REM Directory where backups will be stored
-set backupLocation=C:\temp\apexbackup
-
-REM ****** PATHS *********
-REM Note: You may not need to explicitly define these as they may already be set in OS.
-set ORACLE_HOME=C:\oracle\product\11.2.0\client_1
-set CLASSPATH=%CLASSPATH%;.\;%ORACLE_HOME%\jdbc\lib\ojdbc5.jar;%apexExportJavaDir%
-set PATH=%PATH%;.\;C:\Program Files (x86)\Java\jre6\bin
-
-REM ***** END MODIFICATIONS ******
-
-REM ****** Other *********
-set startRunLocation=%CD%
-
-REM ****** Directory Setup ******
-REM Create temp bacpkup location
-mkdir %backupLocation%
-
-REM ****** APEX BACKUP *******
-REM Go to backup location to run backups in
-cd %backupLocation%
-
-REM Export all applications
-java oracle.apex.APEXExport -db %oracleHost%:%oraclePort%:%oracleSID% -user system -password %oracleSystemPass% -instance
-
-REM Export all Workspaces
-java oracle.apex.APEXExport -db %oracleHost%:%oraclePort%:%oracleSID% -user system -password %oracleSystemPass% -expWorkspace
-
-REM Generate listing of Workspaces and Applications
-sqlplus system/%oracleSystemPass%@%oracleHost%:%oraclePort%/%oracleSID% @%startRunLocation%\apex_backup_info.sql %apexHtmlFileName%
-
-REM Back to start location
-cd %startRunLocation%
-</pre>**apex_backup_info.sql**
-_Stores all the application names, workspaces, and IDs_
-<pre class="brush: sql;">-- Parameters
--- 1 = File Name
-
--- http://forums.devshed.com/oracle-development-96/sql-plus-column-width-format-185085.html
--- http://download.oracle.com/docs/cd/B10501_01/server.920/a90842/ch13.htm#1012748
-SET NUMFORMAT 9999999999999999999999999999999999999
-SET MARKUP HTML ON SPOOL ON HEAD "<title>APEX Export</title>"
-
-SET ECHO OFF
-SPOOL &amp;1
-
--- Current Date
-select to_char(sysdate, 'DD-MON-YYYY HH24:MI:SS') current_date
-from dual;
-
--- Applications
-SELECT application_id, workspace, application_name, owner
-FROM apex_applications
-WHERE workspace != 'INTERNAL'
-ORDER BY application_id;
-
--- Workspaces
-SELECT workspace_id, workspace
-FROM apex_workspaces
-WHERE workspace != 'INTERNAL'
-ORDER BY workspace_id;
-
-SPOOL OFF
-SET MARKUP HTML OFF
-SET ECHO ON  
-
-EXIT;
-</pre>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/04/command-line-backups-for-apex/" data-id="cjsjxkfw1007d7uraz01dsk7u" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/04/command-line-backups-for-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-presenting-at-calgary-oracle-user-group" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/04/presenting-at-calgary-oracle-user-group/" class="article-date">
-  <time datetime="2012-04-04T14:12:00.000Z" itemprop="datePublished">2012-04-04</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/04/presenting-at-calgary-oracle-user-group/">Presenting at Calgary Oracle User Group (COUG) April 19th</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’m really excited about my presentation at the Calgary Oracle User Group (<a href="http://coug.ab.ca/" target="_blank" rel="noopener">COUG</a>) on April 19th. I gave a presentation there three years ago and it’ll be nice to give a talk “on home turf” again.</p>
-<p>Here’s the information about the presentation:</p>
-<p><strong>Title:</strong> Common Questions DBA have about APEX</p>
-<p><strong>Abstract:</strong> DBAs have many responsibilities managing the databases in their organizations. The introduction of Oracle Application Express (APEX) has added some more items to their already demanding list of tasks. This presentation will answer some of the common questions DBAs have about APEX.</p>
-<p>APEX items to be discussed include: development best practices, release management, automatic backups, and web server configurations. This presentation is also relevant to developers and they are encouraged to attend.</p>
-<p><strong>Date/Time/Location:</strong><br>April 19th 8:30am (registration starts at 8:00 am)</p>
-<p><a href="http://g.co/maps/kw523" target="_blank" rel="noopener">Suncor Energy Centre (West Tower)</a><br>150 6th Avenue SW<br>17th floor – Room A/B</p>
-<p>I will also be giving away a few things at the end of my talk. <a href="http://www.apress.com/" target="_blank" rel="noopener">Apress</a> has been very generous and donated a copy of each of my <a href="http://www.talkapex.com/p/books.html">books</a> and <a href="http://www.odtug.com/" target="_blank" rel="noopener">ODTUG</a> has donated a lot of really cool swag to help promote the best Oracle conference in the world, <a href="http://www.kscope12.com/" target="_blank" rel="noopener">Kscope 12</a>.</p>
-<p>Hope to see you there!</p>
-<p>Martin</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group/" data-id="cjsjxkfw1007b7uraqqu1786y" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-odtug-apex-plug-in-competition" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/03/odtug-apex-plug-in-competition/" class="article-date">
-  <time datetime="2012-03-27T20:23:00.000Z" itemprop="datePublished">2012-03-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/03/odtug-apex-plug-in-competition/">ODTUG APEX Plug-In Competition</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>A while ago <a href="http://www.apex-at-work.com/" target="_blank" rel="noopener">Tobias Arnhold</a> posted a tweet suggesting that we should have an APEX Plugins competition. After a few months, many emails, a lot of effort by an excellent group of people, and the support from <a href="http://www.odtug.com/" target="_blank" rel="noopener">ODTUG</a>, I’m pleased to announce the first ever world wide <a href="http://www.odtug.com/apex/f?p=500:450:0" target="_blank" rel="noopener">APEX Plug-ins competition</a>! Here’s a short blurb from the official announcement on odtug.com:</p>
-<p><em>ODTUG is holding its first ever world wide <a href="http://www.odtug.com/apex/f?p=500:450:0" target="_blank" rel="noopener">APEX Plug-ins competition</a>! This is your opportunity to write an APEX plug-in and have it viewed by the entire international APEX community and maybe crowned 2012 ODTUG APEX Plug-in Developer of the Year! Even better, there are some really great prizes with the grand prize being a<strong> free pass to Kscope13</strong> or a <strong>Jawbone Jambox</strong>!</em></p>
-<p>This is your opportunity to showcase your Oracle APEX Plugin skills and win some really cool <a href="http://www.odtug.com/apex/f?p=500:450:0#prizes" target="_blank" rel="noopener">prizes</a>. We also made a special Experts category to ensure everyone is on a level playing field.</p>
-<p>I hope this encourages everyone to try to submit a plugin and help expand the list of already fantastic plugins.</p>
-<p>Good luck!</p>
-<p>_Update: Here’s the <a href="https://twitter.com/#%21/tobias_arnhold/status/162425360724664320" target="_blank" rel="noopener">original tweet</a> from Tobias_!</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/" data-id="cjsjxkfw000797uradddcs7b0" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/">apex-plugin</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
 
     </footer>
   </div>
@@ -785,7 +774,7 @@ EXIT;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">144</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">146</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -822,7 +811,7 @@ EXIT;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
