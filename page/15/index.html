@@ -67,6 +67,93 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-integrating-build-options-in-your-plsql" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/integrating-build-options-in-your-plsql/" class="article-date">
+  <time datetime="2012-08-21T13:00:00.000Z" itemprop="datePublished">2012-08-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/integrating-build-options-in-your-plsql/">Integrating Build Options in your PL/SQL Code</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Build Options is a great tool to enable or disable certain objects in APEX. If you’ve never used them before or don’t know what they are I suggest you read <a href="http://www.grassroots-oracle.com/2010/06/oracle-apex-build-options.html" target="_blank" rel="noopener">Scott Wesley’s article</a>.</p>
+<p>I typically use Build Options to display data for developers that should not be displayed in production. This can help improve development time since you don’t have at include, then remove, code in an application before it is migrated to production.</p>
+<p>Build Options are great for APEX but what about PL/SQL code that is directly associated with an APEX application? You could enable and disable certain page processes with build options but that doesn’t allow “fine grained Build Option” control in your PL/SQL code.</p>
+<p>Thankfully you can view your Build Options, and their status, with an <a href="http://www.talkapex.com/2008/11/how-to-list-apex-dictionary-views-using.html">APEX Dictionary</a> view:&nbsp; APEX_APPLICATION_BUILD_OPTIONS.</p>
+<p>Here is a function that I wrote that will allow you to easily see if a given Build Option is enabled in your PL/SQL code:</p>
+<pre class="brush: sql;">/**
+ * Returns Y or N if a build option is enabled
+ *
+ * @param p_build_option_name Name of build option (case sensitive)
+ *  - You can change this to not be case sensitive if applicable
+ * @param p_app_id Application ID, default current Application ID
+ *  - Included this as a parameter in case testing from straight PL/SQL
+ * @return Y or N
+ * @author Martin Giffy DSouza http://www.talkapex.com
+ * @created 15-Aug-2012
+ */
+create or replace FUNCTION f_is_build_option_enabled(
+  p_build_option_name IN apex_application_build_options.build_option_name%TYPE,
+  p_app_id IN apex_application_build_options.application_id%TYPE DEFAULT nv('APP_ID'))
+  return varchar2
+AS
+  l_build_option_status apex_application_build_options.build_option_status%type;
+BEGIN
+
+  SELECT upper(build_option_status)
+  into l_build_option_status
+  FROM apex_application_build_options
+  WHERE application_id = p_app_id
+    AND build_option_name = p_build_option_name;
+
+  IF l_build_option_status = 'INCLUDE' THEN
+    RETURN 'Y';
+  ELSE
+    RETURN 'N';
+  END IF;
+exception
+  WHEN others THEN
+    -- Your call on how to handle errors
+    raise;
+END</pre>Here's an example of how you can use it in your PL/SQL code. Note that it doesn't pass in the application id since it is assuming that you're executing the PL/SQL as part of the APEX application:
+<pre class="brush: sql;">...
+IF f_is_build_option_enabled(p_build_option_name => 'DEV_ONLY') = 'Y' THEN
+  htp.p('DEV_ONLY build option enabled');
+ELSE
+  htp.p('DEV_ONLY build option disabled');
+END IF;
+...</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="cjtisop0k006df6vfcxlt0l2o" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-nodatafound-exceptions-in-plsql" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/08/nodatafound-exceptions-in-plsql/" class="article-date">
@@ -173,7 +260,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cjso50bs1007xedra8yav9qrp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cjtisop0r006jf6vfo7znp1n3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -221,7 +308,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="cjso50bs0007vedraqdv44r8s" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="cjtisop0i0069f6vf0nz5vkfv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -266,7 +353,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="cjso50bry007tedra0t96w8kt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="cjtisop0l006ff6vfhhtg3g7t" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/odtug-apexposed-2012/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -308,7 +395,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="cjso50brv007pedra44scroeh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="cjtisop0j006bf6vfxfy2vkr1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -350,7 +437,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="cjso50bru007nedraayp5fhpw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="cjtisop0h0067f6vfbf6birhi" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/building-better-team-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -400,7 +487,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="cjso50brx007redrasp00oel6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="cjtisop0h0065f6vfxqet8flz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -449,7 +536,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="cjso50brt007ledraoapne1gn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="cjtisop0f0063f6vfa6altjru" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/select-into-techinques/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -501,7 +588,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="cjso50brr007hedrat3pd00zt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="cjtisop0e0061f6vf1kyi6l5u" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -679,55 +766,12 @@ RESEARCH       SMITH             800              3
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="cjso50brs007jedraq9iblf1e" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="cjtisop0c005zf6vf9lf56cp7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-clarifit-from-to-date-picker-101-update" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/05/clarifit-from-to-date-picker-101-update/" class="article-date">
-  <time datetime="2012-05-06T23:27:00.000Z" itemprop="datePublished">2012-05-06</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/05/clarifit-from-to-date-picker-101-update/">ClariFit From To Date Picker 1.0.1 Update</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’ve updated the <a href="http://apex-plugin.com/oracle-apex-plugins/item-plugin/clarifit-from-to-date-picker_154.html" target="_blank" rel="noopener">ClariFit From To Date Picker</a> APEX Plugin. There was a small bug in the initial version that caused rendering issues in IE.</p>
-<p>The initial post about the plugin can be found <a href="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in.html">here</a> and the <a href="http://apex.oracle.com/pls/apex/f?p=45587:700:0" target="_blank" rel="noopener">demo</a> here.</p>
-<p>Thanks to Marc B and Joni V for finding the issue.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/" data-id="cjso50brq007fedra8d5xxyrs" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/">apex-plugin</a></li></ul>
 
     </footer>
   </div>
@@ -774,7 +818,7 @@ RESEARCH       SMITH             800              3
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">146</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">147</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -811,7 +855,7 @@ RESEARCH       SMITH             800              3
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
