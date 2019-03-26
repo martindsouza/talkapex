@@ -67,6 +67,104 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-region-errors-part-3" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2011/07/apex-region-errors-part-3/" class="article-date">
+  <time datetime="2011-07-11T13:00:00.000Z" itemprop="datePublished">2011-07-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2011/07/apex-region-errors-part-3/">APEX Region Errors - Part 3</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><span style="color:red;"><span style="font-weight:bold;">Disclaimer</span>: This is an advanced post that discusses and modifies some of the inner workings of APEX.</span></p>
+<p>In <a href="http://www.talkapex.com/2010/10/apex-region-errors-part-2.html">APEX Region Errors - Part 2</a> I discussed how to add triggers on the APEX Activity Log tables to store information in custom error tables when a user encounters an APEX region error.</p>
+<p>Instead of storing the information in custom error tables you can leverage the APEX Feedback tool and trigger an automatic feedback entry. This may be a preferred option as you don’t need to create custom tables and the feedback tool provides a lot of information.</p>
+<p>Before continuing it’s important that you know how to use the new APEX Feedback tool. If you don’t know about the APEX Feedback tool I suggest that you read about how to create the feedback link (<a href="http://dgielis.blogspot.com/2010/03/apex-40-feedback-link.html" target="_blank" rel="noopener">http://dgielis.blogspot.com/2010/03/apex-40-feedback-link.html</a>) and how to access the feedback tool (<a href="http://dgielis.blogspot.com/2010/03/apex-40-looking-at-feedback-through.html" target="_blank" rel="noopener">http://dgielis.blogspot.com/2010/03/apex-40-looking-at-feedback-through.html</a>). Try implementing it in a dummy application to see what you can do with it.</p>
+<p>The following triggers will enter a feedback entry each time a region error occurs:</p>
+<p><span style="font-style:italic; color:red;"><span style="font-weight:bold;">Disclaimer (again)</span>: Modifying anything in the APEX schema will put your APEX instance in an unsupported state. Please proceed with caution. I take no responsibility for any negative outcomes from this.</span></p>
+<p><pre class="brush: sql"><br>– NOTE: Do this as the APEX_040000 user or a privlidged user such as SYSTEM<br>CREATE OR REPLACE TRIGGER apex_040000.trg_apex_activity_log1_air<br>  AFTER INSERT<br>  ON apex_040000.wwv_flow_activity_log1$<br>  FOR EACH ROW<br>  WHEN (new.SQLERRM IS NOT NULL)<br>DECLARE<br>BEGIN<br>  – Log as feedback<br>  apex_util.submit_feedback (<br>    p_comment         =&gt; ‘AUTO MSG: Region Error’, – Put a comment here that can be used to easily identify auto generated feedback messages<br>    p_type            =&gt; 3, – Bug. See API documentation for different values<br>    p_application_id  =&gt; :new.flow_id,<br>    p_page_id         =&gt; :new.step_id,<br>    p_email           =&gt; null,<br>    p_label_01        =&gt; ‘Error Message’, – You can add up to 8 label/attributes. See API documentation for more information<br>    p_attribute_01    =&gt; :new.sqlerrm,<br>    p_label_02        =&gt; ‘Component Type’,<br>    p_attribute_02    =&gt; :new.sqlerrm_component_type,<br>    p_label_03        =&gt; ‘Component Name’,<br>    p_attribute_03    =&gt; :new.sqlerrm_component_name<br>    );</pre></p>
+<p>   – Could use APEX_MAIL to send a notification to a list of developers to take a look at problem<br>   – This is entirely optional. Modify as required<br>   apex_mail.send(<br>    p_to =&gt; <a href="mailto:&#39;someone@yourorg.com" target="_blank" rel="noopener">&#39;someone@yourorg.com</a>‘,<br>    p_from =&gt; <a href="mailto:&#39;someone@yourorg.com" target="_blank" rel="noopener">&#39;someone@yourorg.com</a>‘,<br>    p_body =&gt; ‘Region Error Occured. Please Check Feedback’,<br>    p_body_html =&gt; ‘’,<br>    p_subj =&gt; ‘APEX Region Error’);</p>
+<p>END;<br>/And… (differences are highlighted)</p>
+<p><pre class="brush: sql; highlight: [2,4]"><br>– NOTE: Do this as the APEX_040000 user or a privlidged user such as SYSTEM<br>CREATE OR REPLACE TRIGGER apex_040000.trg_apex_activity_log2_air<br>  AFTER INSERT<br>  ON apex_040000.wwv_flow_activity_log2$<br>  FOR EACH ROW<br>  WHEN (new.SQLERRM IS NOT NULL)<br>DECLARE<br>BEGIN<br>  – Log as feedback<br>  apex_util.submit_feedback (<br>    p_comment         =&gt; ‘AUTO MSG: Region Error’, – Put a comment here that can be used to easily identify auto generated feedback messages<br>    p_type            =&gt; 3, – Bug. See API documentation for different values<br>    p_application_id  =&gt; :new.flow_id,<br>    p_page_id         =&gt; :new.step_id,<br>    p_email           =&gt; null,<br>    p_label_01        =&gt; ‘Error Message’, – You can add up to 8 label/attributes. See API documentation for more information<br>    p_attribute_01    =&gt; :new.sqlerrm,<br>    p_label_02        =&gt; ‘Component Type’,<br>    p_attribute_02    =&gt; :new.sqlerrm_component_type,<br>    p_label_03        =&gt; ‘Component Name’,<br>    p_attribute_03    =&gt; :new.sqlerrm_component_name<br>    );</pre></p>
+<p>   – Could use APEX_MAIL to send a notification to a list of developers to take a look at problem<br>   – This is entirely optional. Modify as required<br>   apex_mail.send(<br>    p_to =&gt; <a href="mailto:&#39;someone@yourorg.com" target="_blank" rel="noopener">&#39;someone@yourorg.com</a>‘,<br>    p_from =&gt; <a href="mailto:&#39;someone@yourorg.com" target="_blank" rel="noopener">&#39;someone@yourorg.com</a>‘,<br>    p_body =&gt; ‘Region Error Occured. Please Check Feedback’,<br>    p_body_html =&gt; ‘’,<br>    p_subj =&gt; ‘APEX Region Error’);</p>
+<p>END;<br>/When a region error occurs you can now view the information in Team Development &gt; Feedback.</p>
+<p><a href="http://1.bp.blogspot.com/-uNwLAxFt6PU/ThYGRbJX56I/AAAAAAAAD8s/1mRG91GGGrw/s1600/auto_err_msg_feedback.jpg" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/-uNwLAxFt6PU/ThYGRbJX56I/AAAAAAAAD8s/1mRG91GGGrw/s400/auto_err_msg_feedback.jpg" alt></a>If you click the <span style="font-style:italic;">Edit</span> button you can get a lot of detailed information about was happening when the user encountered the error including all of the values in session state.</p>
+<p><a href="http://3.bp.blogspot.com/-TWL3FrTM1bY/ThYJTD6SEuI/AAAAAAAAD80/oGArcyUL1yE/s1600/auto_err_msg_feedback_dtl.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/-TWL3FrTM1bY/ThYJTD6SEuI/AAAAAAAAD80/oGArcyUL1yE/s400/auto_err_msg_feedback_dtl.jpg" alt></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2011/07/apex-region-errors-part-3/" data-id="cjtq9uqjc006k0mrad19vm42o" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2011/07/apex-region-errors-part-3/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apex-4-html-5-awesome-presentation" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2011/07/apex-4-html-5-awesome-presentation/" class="article-date">
+  <time datetime="2011-07-07T13:00:00.000Z" itemprop="datePublished">2011-07-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2011/07/apex-4-html-5-awesome-presentation/">APEX 4 + HTML 5 = Awesome: Presentation Slides</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>You can download the slides of the <span style="font-style:italic;">APEX 4 + HTML 5 = Awesome</span> presentation that I gave last week at <a href="http://kscope11.com" target="_blank" rel="noopener">ODTUG Kscope 11</a> from the following link: <a href="http://goo.gl/vWW3Z" target="_blank" rel="noopener">http://goo.gl/vWW3Z</a>  Please note that the slides have been modified for handout purposes (i.e. not the exact same that I showed in the presentation).</p>
+<p>The slides should also be updated soon on the ODTUG Kscope Scheduler: <a href="http://caat.odtug.com/ODTUG_registration_menu.html" target="_blank" rel="noopener">http://caat.odtug.com/ODTUG_registration_menu.html</a></p>
+<p>I’ll post the <span style="font-style:italic;">How to be Creative II</span> slides in the next few days.</p>
+<p><a href="http://3.bp.blogspot.com/-Cn_0hK2YmM0/ThSOIF3w42I/AAAAAAAAD8k/OcRX-3mqYXA/s1600/HTML5%2B%252B%2BAPEX%2B4_title_slide.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/-Cn_0hK2YmM0/ThSOIF3w42I/AAAAAAAAD8k/OcRX-3mqYXA/s320/HTML5%2B%252B%2BAPEX%2B4_title_slide.jpg" alt></a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2011/07/apex-4-html-5-awesome-presentation/" data-id="cjtq9uqjb006i0mra3z26vkdp" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2011/07/apex-4-html-5-awesome-presentation/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">kscope</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-odtug-kscope-11-recap" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2011/07/odtug-kscope-11-recap/" class="article-date">
@@ -116,7 +214,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/07/odtug-kscope-11-recap/" data-id="cjtisop9z00i7f6vftxp0dt2v" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/07/odtug-kscope-11-recap/" data-id="cjtq9uqja006e0mrawsu87ais" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/07/odtug-kscope-11-recap/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -163,7 +261,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/06/odtug-kscope-11/" data-id="cjtisopbl00ilf6vfrb1humh5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/06/odtug-kscope-11/" data-id="cjtq9uqja006g0mraawegu4ws" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/06/odtug-kscope-11/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -206,7 +304,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/06/beginning-oracle-application-express-4/" data-id="cjtisop9700i5f6vfe0zqsocq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/06/beginning-oracle-application-express-4/" data-id="cjtq9uqj7006a0mraqf6yioeb" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/06/beginning-oracle-application-express-4/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -250,7 +348,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/06/highlight-words-in-standard-reports/" data-id="cjtisopbh00ibf6vfgqd68tb5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/06/highlight-words-in-standard-reports/" data-id="cjtq9uqj9006c0mraee907ebn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/06/highlight-words-in-standard-reports/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -299,7 +397,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/04/malicious-code-in-apex-plugins-feedback/" data-id="cjtisop5h00f6f6vf8xdw04dq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/04/malicious-code-in-apex-plugins-feedback/" data-id="cjtq9uqj600680mrat00re71o" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/04/malicious-code-in-apex-plugins-feedback/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -345,7 +443,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/04/malicious-code-in-apex-plugins/" data-id="cjtisop5e00eyf6vf3enb0f1r" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/04/malicious-code-in-apex-plugins/" data-id="cjtq9uqj500660mrar6tx066i" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/04/malicious-code-in-apex-plugins/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -392,7 +490,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/03/my-first-book-beginning-oracle/" data-id="cjtisop5f00f2f6vf7aupxkhg" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/03/my-first-book-beginning-oracle/" data-id="cjtq9uqj400640mrajy8buarv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/03/my-first-book-beginning-oracle/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -436,7 +534,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/03/virtualbox-high-cpu-problem/" data-id="cjtisop5g00f4f6vfmevyu8y0" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/03/virtualbox-high-cpu-problem/" data-id="cjtq9uqj300620mra0ie6o7zy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/03/virtualbox-high-cpu-problem/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -450,100 +548,11 @@
 
 
   
-    <article id="post-demotalkapexcom" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2011/02/demotalkapexcom/" class="article-date">
-  <time datetime="2011-02-01T14:00:00.000Z" itemprop="datePublished">2011-02-01</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2011/02/demotalkapexcom/">demo.talkapex.com</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>As part of this blog I’ve posted a lot of demos on <a href="http://apex.oracle.com" target="_blank" rel="noopener">apex.oracle.com</a>. One thing that’s always bothered me is that the demos have never been linked together or searchable.</p>
-<p>I finally create a new demo site: <a href="http://demo.talkapex.com" target="_blank" rel="noopener">demo.talkapex.com</a>. Going forward all demos will be hosted on this site. In some cases I may move the old demos to the new site.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/02/demotalkapexcom/" data-id="cjtisop5f00f0f6vfsrxu1i0t" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2011/02/demotalkapexcom/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-console-wrapper-previously-js-logger" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2011/01/console-wrapper-previously-js-logger/" class="article-date">
-  <time datetime="2011-01-31T00:52:00.000Z" itemprop="datePublished">2011-01-30</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2011/01/console-wrapper-previously-js-logger/">Console Wrapper (previously JS Logger)</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’ve moved the <a href="http://code.google.com/p/js-console-wrapper/" target="_blank" rel="noopener">Console Wrapper</a> (previous called <a href="http://www.talkapex.com/2010/08/javascript-console-logger.html">JS Logger</a>) code to be hosted as a Google project here: <a href="http://code.google.com/p/js-console-wrapper/" target="_blank" rel="noopener">http://code.google.com/p/js-console-wrapper/</a></p>
-<p>I decided to create a Google project since maintaining code via a blog is not the best or easiest thing to do. I will continue to blog about any major updates but all examples, documentation, issues, and code will be maintained on the Google project page.</p>
-<p><span style="font-style:italic;">Previous references to Console Wrapper</span></p>
-<ul>
-<li><a href="http://www.talkapex.com/2010/08/javascript-console-logger.html">http://www.talkapex.com/2010/08/javascript-console-logger.html</a></li>
-<li><a href="http://www.talkapex.com/2011/01/js-logger-101-logparams.html">http://www.talkapex.com/2011/01/js-logger-101-logparams.html</a><br></li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/01/console-wrapper-previously-js-logger/" data-id="cjtisop5d00ewf6vflaujqujy" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2011/01/console-wrapper-previously-js-logger/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/17/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/28/">28</a><a class="extend next" rel="next" href="/page/19/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/17/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/19/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -577,7 +586,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">147</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -614,7 +623,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

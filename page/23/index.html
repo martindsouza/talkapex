@@ -67,6 +67,137 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-logs-storing-mail-log-data" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/04/apex-logs-storing-mail-log-data/" class="article-date">
+  <time datetime="2010-04-13T15:00:00.000Z" itemprop="datePublished">2010-04-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/04/apex-logs-storing-mail-log-data/">APEX Logs: Storing Mail Log Data</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago (almost a year ago) I wrote about how to permanently store APEX logs into your own tables (<a href="http://apex-smb.blogspot.com/2009/05/apex-logs-storing-log-data.html" target="_blank" rel="noopener">http://apex-smb.blogspot.com/2009/05/apex-logs-storing-log-data.html</a>). I covered the APEX_WORKSPACE_ACCESS_LOG and APEX_WORKSPACE_ACTIVITY_LOG logs. I forgot to include how to permanently store the APEX_MAIL_LOG. You’ll only need to do this if you use APEX_MAIL to send email.</p>
+<p><span style="font-weight:bold;">1- Create the APEX Mail Log table</span></p>
+<pre class="brush: sql">
+-- Mail Log
+CREATE TABLE tapex_mail_log
+AS  SELECT * FROM apex_mail_log;
+</pre><span style="font-weight:bold;">2- Update the APEX Mail Log table</span>
+
+<span style="font-style:italic;">Note: You may want to store this in a procedure and run as a nightly scheduled job so you don't forget to update the tables</span>
+<pre class="brush: sql">
+BEGIN
+  -- apex_mail_log is linked to the workspace.
+  -- Need to access all the mail sent for each workspace that is linked to this schema
+
+  FOR x IN (SELECT workspace_id FROM apex_workspaces) LOOP
+    -- Set the workspace ID
+    wwv_flow_api.set_security_group_id (x.workspace_id);
+
+    INSERT INTO tapex_mail_log (mail_to,
+                                mail_from,
+                                mail_replyto,
+                                mail_subj,
+                                mail_cc,
+                                mail_bcc,
+                                mail_send_error,
+                                last_updated_on)
+      SELECT aml.mail_to,
+             aml.mail_from,
+             aml.mail_replyto,
+             aml.mail_subj,
+             aml.mail_cc,
+             aml.mail_bcc,
+             aml.mail_send_error,
+             aml.last_updated_on
+        FROM tapex_mail_log x, apex_mail_log aml
+       WHERE     NVL (aml.mail_to, -1) = NVL (x.mail_to(+), -1)
+             AND NVL (aml.mail_from, -1) = NVL (x.mail_from(+), -1)
+             AND NVL (aml.mail_replyto, -1) = NVL (x.mail_replyto(+), -1)
+             AND NVL (aml.mail_subj, -1) = NVL (x.mail_subj(+), -1)
+             AND NVL (aml.mail_cc, -1) = NVL (x.mail_cc(+), -1)
+             AND NVL (aml.mail_bcc, -1) = NVL (x.mail_bcc(+), -1)
+             AND NVL (aml.mail_send_error, -1) = NVL (x.mail_send_error(+), -1)
+             AND aml.last_updated_on = x.last_updated_on(+)
+             AND x.ROWID IS NULL;
+  END LOOP;
+END;
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/" data-id="cjtq9uqhr003v0mrajj3rxan1" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-restoring-jquery-ui-theme-from" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/03/restoring-jquery-ui-theme-from/" class="article-date">
+  <time datetime="2010-03-25T15:00:00.000Z" itemprop="datePublished">2010-03-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/03/restoring-jquery-ui-theme-from/">Restoring jQuery UI Theme from ThemeRoller</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/S6mfnc13b-I/AAAAAAAADwY/jKWUIeU-UEg/s1600/theme-roller.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/S6mfnc13b-I/AAAAAAAADwY/jKWUIeU-UEg/s320/theme-roller.jpg" alt></a><br>If you ever use <a href="http://jqueryui.com/themeroller/" target="_blank" rel="noopener">jQuery’s Theme Roller</a>, you may find it frustrating to alter a custom theme. For example, if you created a theme, downloaded it, then decided to change your colors you may not know how to restore your changes.</p>
+<p>Believe it or not there’s a pretty easy way to restore a Theme Roller theme. Before you download a theme copy, or bookmark, the URL at the top of the browser. All the changes you have made are stored in the URL! If you forget to copy the URL before downloading, the URL is stored in ..\css\custom-theme\jquery-ui-1.8.custom.css (where 1.8 is the version number).</p>
+<p>Here’s an example of a theme modification where I changed the header background to red: <a href="http://jqueryui.com/themeroller/#ffDefault=Verdana%2CArial%2Csans-serif&amp;fwDefault=normal&amp;fsDefault=1.1em&amp;cornerRadius=4px&amp;bgColorHeader=e10505&amp;bgTextureHeader=03_highlight_soft.png&amp;bgImgOpacityHeader=75&amp;borderColorHeader=aaaaaa&amp;fcHeader=222222&amp;iconColorHeader=222222&amp;bgColorContent=ffffff&amp;bgTextureContent=01_flat.png&amp;bgImgOpacityContent=75&amp;borderColorContent=aaaaaa&amp;fcContent=222222&amp;iconColorContent=222222&amp;bgColorDefault=e6e6e6&amp;bgTextureDefault=02_glass.png&amp;bgImgOpacityDefault=75&amp;borderColorDefault=d3d3d3&amp;fcDefault=555555&amp;iconColorDefault=888888&amp;bgColorHover=dadada&amp;bgTextureHover=02_glass.png&amp;bgImgOpacityHover=75&amp;borderColorHover=999999&amp;fcHover=212121&amp;iconColorHover=454545&amp;bgColorActive=ffffff&amp;bgTextureActive=02_glass.png&amp;bgImgOpacityActive=65&amp;borderColorActive=aaaaaa&amp;fcActive=212121&amp;iconColorActive=454545&amp;bgColorHighlight=fbf9ee&amp;bgTextureHighlight=02_glass.png&amp;bgImgOpacityHighlight=55&amp;borderColorHighlight=fcefa1&amp;fcHighlight=363636&amp;iconColorHighlight=2e83ff&amp;bgColorError=fef1ec&amp;bgTextureError=05_inset_soft.png&amp;bgImgOpacityError=95&amp;borderColorError=cd0a0a&amp;fcError=cd0a0a&amp;iconColorError=cd0a0a&amp;bgColorOverlay=aaaaaa&amp;bgTextureOverlay=01_flat.png&amp;bgImgOpacityOverlay=0&amp;opacityOverlay=30&amp;bgColorShadow=aaaaaa&amp;bgTextureShadow=01_flat.png&amp;bgImgOpacityShadow=0&amp;opacityShadow=30&amp;thicknessShadow=8px&amp;offsetTopShadow=-8px&amp;offsetLeftShadow=-8px&amp;cornerRadiusShadow=8px" target="_blank" rel="noopener">Red Header</a>.</p>
+<p>APEX 4.0 will be using jQuery and some jQuery UI components, so I hope this helps when customizing the look and feel of your applications.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/" data-id="cjtq9uqhp003r0mrassbirkx2" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/jquery/">jquery</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-how-to-reference-package-variables" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2010/03/how-to-reference-package-variables/" class="article-date">
@@ -111,7 +242,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="cjtisooyz003lf6vfcu7khrn1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="cjtq9uqho003p0mrab4dunhah" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/03/how-to-reference-package-variables/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -170,7 +301,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="cjtisooyw003df6vfvv3ngwk0" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="cjtq9uqhl003n0mraekdudtme" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -217,7 +348,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="cjtisooyx003hf6vfji9x9u43" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="cjtq9uqhi003j0mras3k5kmge" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -363,7 +494,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="cjtisooyx003ff6vfpafkss7a" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="cjtq9uqhj003l0mrab9bri5t4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -441,7 +572,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cjtisooyv003bf6vfdv18vilv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="cjtq9uqhh003h0mrarwvxlndd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/12/apex-orphaned-application-files/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -485,7 +616,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cjtisooyt0037f6vfn3k95ma4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="cjtq9uqhg003f0mraj4b44ax4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -562,7 +693,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cjtisooys0035f6vfdif3p3x0" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/" data-id="cjtq9uqhf003d0mram94emwq6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/standardizing-help-text-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -628,7 +759,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cjtisooyu0039f6vfhxmcx0k4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/" data-id="cjtq9uqhb00390mray3e1edmo" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/10/saving-saved-interactive-reports-when/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -642,110 +773,11 @@ END;
 
 
   
-    <article id="post-designing-apex-applications-ui-mockups" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/10/designing-apex-applications-ui-mockups/" class="article-date">
-  <time datetime="2009-10-22T14:30:00.000Z" itemprop="datePublished">2009-10-22</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/10/designing-apex-applications-ui-mockups/">Designing APEX Applications: UI Mockups</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>When doing any sort of development it’s important to use the right tool for the right job. With that in mind, I thought I’d discuss mockups for APEX applications, or better yet any GUI.</p>
-<p>One of my biggest pet peeves is when I get a functional or technical spec with modified screen shots of existing applications for the UI mockups. I’m not a graphic artist or a UI expert but I do know that taking a screen shot of a similar application, then spending several hours moving things around in Paint isn’t very good. Using MS Paint, or similar applications, would be like developing your application using a typewriter (I’ve included a picture for those that have never used one :-).<br><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Stbwntt0aJI/AAAAAAAADr8/o3pfdONNC-A/s1600-h/typewriter.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Stbwntt0aJI/AAAAAAAADr8/o3pfdONNC-A/s320/typewriter.jpg" alt></a>I know some people have developed basic APEX applications and used screen shots for their UI mockups. I think APEX is a great tool for creating demo applications but it shouldn’t be used for mockups. People reviewing the design may get carried away with the specifics since it looks like a real application.</p>
-<p>What should you use to create application mockups? Personally I like a good old-fashion hand drawn diagram (I’ve been known to ask colleagues to give me their mockups on scrap paper). Though they are quick they don’t work well in documents and they aren’t great when doing several design iterations. Wireframe diagrams are an excellent alternative as they’re exactly like hand drawn diagrams with pre-defined shapes.<br><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Stb0cEpQevI/AAAAAAAADtI/6GJPWXyhwlc/s1600-h/balsamiq_example.PNG" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Stb0cEpQevI/AAAAAAAADtI/6GJPWXyhwlc/s400/balsamiq_example.PNG" alt></a><br>Why use wireframe diagrams?</p>
-<ul>
-<li>Quick to develop <span style="font-style:italic;">(the example above took me 2 minutes to create)</span></li>
-<li>Easy to modify</li>
-<li>Focus on flow and useability, not specifics</li>
-<li>Cheap/Easy to do multiple design iterations<br>The list could go on, but I’ll stop there. I’d like to emphasize on the fact that people will focus on specifics rather than the flow and usability of the application when looking at screen shots. For example: if you use have a screen shot with a drop down list of 100 countries and you only include 2 or 3 in the diagram, readers may wonder where the other 100 or so countries are etc. They aren’t focused on the fact that it’s a drop down list with countries, rather there’s something wrong with the list. With a wireframe diagram it will be extremly clear that it’s a drop down list of countries with no real focus on the values inside the select list.</li>
-</ul>
-<p>I’ve you’re looking for an application to do wireframe diagrams I’d recommend <a href="http://www.balsamiq.com/products/mockups" target="_blank" rel="noopener">Balsamiq</a>. I’ve been really impressed with it so far as it allows me to do UI mockups really quickly <span style="font-style:italic">(I have no affiliation with Balsamiq, so please don’t take this as an advertisement)</span>. Of course they’re many other tools out there that will do this so I encourage you to find one that is suitable for your organization.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/" data-id="cjtisooyp0033f6vffamya6fn" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/10/designing-apex-applications-ui-mockups/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/best-practice/">best-practice</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-oracle-and-apex-jobs" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/10/oracle-and-apex-jobs/" class="article-date">
-  <time datetime="2009-10-15T09:25:00.000Z" itemprop="datePublished">2009-10-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/10/oracle-and-apex-jobs/">Oracle and APEX Jobs</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>A lot of people were affected by the recession and may have lost their jobs. I know they’re several companies looking for talented workers. To help out I’ve decided to start a small Jobs section on my blog (see right hand side). If you’re interested in submitting a job, please leave a comment on this post with the following information:</p>
-<ul>
-<li>Job Title</li>
-<li>City the job is in</li>
-<li>Link to position</li>
-</ul>
-<p>To keep with the theme of this blog please only submit Oracle (SQL,PL/SQL) and APEX related jobs.</p>
-<p><span style="font-style:italic;">On a side note I may create a small application where people can post jobs specific to APEX.</span></p>
-<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/StbxVpZXRgI/AAAAAAAADso/Kw406pQsAw8/s1600-h/jobs.PNG" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/StbxVpZXRgI/AAAAAAAADso/Kw406pQsAw8/s320/jobs.PNG" alt></a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/" data-id="cjtisooym002xf6vfbnerzuoz" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/10/oracle-and-apex-jobs/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/22/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="page-number" href="/page/22/">22</a><span class="page-number current">23</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="space">&hellip;</span><a class="page-number" href="/page/28/">28</a><a class="extend next" rel="next" href="/page/24/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/22/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="page-number" href="/page/22/">22</a><span class="page-number current">23</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/24/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -779,7 +811,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">147</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -816,7 +848,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

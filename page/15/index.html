@@ -67,6 +67,154 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-setting-sysdate-in-oracle-for-testing" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/setting-sysdate-in-oracle-for-testing/" class="article-date">
+  <time datetime="2012-08-28T13:00:00.000Z" itemprop="datePublished">2012-08-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/setting-sysdate-in-oracle-for-testing/">Setting SYSDATE in Oracle for Testing</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago two very smart guys (<a href="http://ruepprich.wordpress.com/" target="_blank" rel="noopener">Cristian Ruepprich</a> and <a href="http://sql-plsql-de.blogspot.ca/" target="_blank" rel="noopener">Carsten Czarski</a>) had a conversation on Twitter about how to modify the value of <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SYSDATE</span> in Oracle for testing purposes. The ability to modify the value of <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SYSDATE</span> can be very valuable if you have to do time-sensitive testing.</p>
+<p>Thankfully they did have a solution, by setting the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">FIXED_DATE</span> system parameter. Here’s an example on how to use it:</p>
+<p><pre class="brush: sql; highlight: [10]">DECLARE<br>SQL&gt; SELECT SYSDATE FROM dual;</pre></p>
+<h2 id="SYSDATE"><a href="#SYSDATE" class="headerlink" title="SYSDATE"></a>SYSDATE</h2><p>22-AUG-2012 10:20:19</p>
+<p>SQL&gt; – Do this now as priviledged user (ex: SYSTEM)<br>SQL&gt; – Note: this affects the entire database (not just your session)<br>SQL&gt; ALTER SYSTEM SET fixed_date=’2010-01-01-14:10:00’;</p>
+<p>System altered.</p>
+<p>SQL&gt; SELECT SYSDATE FROM dual;</p>
+<h2 id="SYSDATE-1"><a href="#SYSDATE-1" class="headerlink" title="SYSDATE"></a>SYSDATE</h2><p>01-JAN-2010 14:10:00</p>
+<p>SQL&gt; – Reset SYSDATE back to “Current Time”<br>SQL&gt; ALTER SYSTEM SET fixed_date=NONE;</p>
+<p>System altered.</p>
+<p>SQL&gt; SELECT SYSDATE FROM dual;</p>
+<h2 id="SYSDATE-2"><a href="#SYSDATE-2" class="headerlink" title="SYSDATE"></a>SYSDATE</h2><p>22-AUG-2012 10:21:29<br><br>They’re a few things to know about <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">FIXED_DATE</span> before using it:</p>
+<ul>
+<li><p>Setting it requires access to <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">ALTER SYSTEM</span>. This can be mitigated by creating a procedure to handle this as a privledged user (see Tom Kyte’s suggestion <a href="http://asktom.oracle.com/pls/asktom/f?p=100:11:0::::P11_QUESTION_ID:26070651474562" target="_blank" rel="noopener">here</a>).</p>
+</li>
+<li><p><span style="color:red;">It affects the entire system, not just your session</span>. If you have multiple users testing on a system then you may not be able to use it. Hopefully in the future we’ll be able to modify it at a session level.</p>
+</li>
+<li><p>It <span style="color:red;">only</span> affects SYSDATE and not date/time functions such as systimestamp (see Sean’s comment below</p>
+</li>
+</ul>
+<p>The documentation for <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">FIXED_DATE</span> can be found <a href="http://docs.oracle.com/cd/E11882_01/server.112/e25513/initparams093.htm#REFRN10062" target="_blank" rel="noopener">here</a>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/" data-id="cjtq9uqla009v0mraljvwynqo" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-sqlrowcount-and-logger" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/sqlrowcount-and-logger/" class="article-date">
+  <time datetime="2012-08-23T13:00:00.000Z" itemprop="datePublished">2012-08-23</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/sqlrowcount-and-logger/">SQL%ROWCOUNT and Logger</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://tylermuth.wordpress.com/2009/11/03/logger-a-plsql-logging-and-debugging-utility/" target="_blank" rel="noopener">Logger</a> (by <a href="http://tylermuth.wordpress.com/" target="_blank" rel="noopener">Tyler Muth</a>) is a free open source logging tool for PL/SQL. Tyler initially launched it in 2009 and now it has become a staple tool for many Oracle development teams. If you’ve never heard of it go check it out.</p>
+<p>When using logger I like to log the number of rows an update statement made after the update was performed. In order to do that I use the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SQL%ROWCOUNT</span> variable. The thing to be aware of is if you log <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SQL%ROWCOUNT </span>using logger it will be “reset” by the implicit insert that logger does.&nbsp; In the example below you’ll notice that after calling logger the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SQL%ROWCOUNT</span> now has a value of 0 since it does an insert:</p>
+<pre class="brush: sql; highlight: [13]">
+SQL> BEGIN
+  2    UPDATE emp
+  3    set sal = sal;
+  4
+  5    dbms_output.put_line('Rows updated: ' || SQL%rowcount);
+  6    dbms_output.put_line('Rows updated: ' || SQL%rowcount);
+  7    logger.log('Rows updated: ' || SQL%rowcount);
+  8    dbms_output.put_line('Rows updated: ' || SQL%rowcount);
+  9  END;
+ 10  /
+Rows updated: 14
+Rows updated: 14
+Rows updated: 0
+
+PL/SQL procedure successfully completed.
+
+SQL> SELECT text
+  2  FROM logger_logs
+  3  WHERE ROWNUM = 1
+  4  ORDER BY ID DESC;
+
+TEXT
+------------------
+Rows updated: 14
+</pre>This is important to know because sometimes you may do some additional work after an update statement depending on how many records were updated in the previous statement. You should change your code from:
+<pre class="brush: sql; highlight: []">
+UPDATE emp
+SET sal = sal;
+logger.log('Rows updated: ' || SQL%rowcount);
+
+IF SQL%rowcount > 0 THEN
+  ...
+END IF;
+</pre>To:
+<pre class="brush: sql; highlight: [3,4,6]">
+UPDATE emp
+SET sal = sal;
+l_row_count := SQL%rowcount;
+logger.LOG('Rows updated: ' || l_row_count);
+
+IF l_row_count > 0 THEN
+  ...
+END IF;
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/" data-id="cjtq9uqjw00820mra6eu74oy8" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/">logger</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-integrating-build-options-in-your-plsql" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/08/integrating-build-options-in-your-plsql/" class="article-date">
@@ -140,7 +288,7 @@ END IF;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="cjtisop0k006df6vfcxlt0l2o" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="cjtq9uqjx00840mrafqau6oiu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -260,7 +408,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cjtisop0r006jf6vfo7znp1n3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="cjtq9uql9009t0mrat7s783oc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -308,7 +456,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="cjtisop0i0069f6vf0nz5vkfv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="cjtq9uqjw00800mraw5m03z0q" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -353,7 +501,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="cjtisop0l006ff6vfhhtg3g7t" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="cjtq9uqjv007y0mra8rya9xs7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/odtug-apexposed-2012/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -395,7 +543,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="cjtisop0j006bf6vfxfy2vkr1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="cjtq9uqjt007u0mraqgf6icm0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -437,7 +585,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="cjtisop0h0067f6vfbf6birhi" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="cjtq9uqjt007s0mraxr0ii8o7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/building-better-team-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -487,7 +635,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="cjtisop0h0065f6vfxqet8flz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="cjtq9uqju007w0mraol325s1a" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -536,7 +684,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="cjtisop0f0063f6vfa6altjru" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="cjtq9uqjs007q0mra0svjkxkl" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/select-into-techinques/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -550,241 +698,11 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
 
 
   
-    <article id="post-nthvalue-windowing-clause" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/06/nthvalue-windowing-clause/" class="article-date">
-  <time datetime="2012-06-01T13:55:00.000Z" itemprop="datePublished">2012-06-01</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/06/nthvalue-windowing-clause/">NTH_VALUE Windowing Clause</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>In my <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic.html">previous post</a>, which highlighted some analytic functions, I mentioned that the windowing clause must be explicitly defined when using the <a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions114.htm#CJAFEJBE" target="_blank" rel="noopener">NTH_VALUE</a> function.</p>
-<p>To recap, here’s the example I used for NTH_VALUE which lists the 2nd highest salary for each department:</p>
-<p><pre class="brush: sql; highlight: 5">SELECT d.dname, e.ename, e.sal,<br>   nth_value(e.sal, 2) OVER (<br>    PARTITION BY e.deptno ORDER BY e.sal DESC<br>    – windowing_clause<br>    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) sec_high_sal_dept<br>FROM emp e, dept d<br>WHERE e.deptno = d.deptno;</pre></p>
-<p>– Result</p>
-<p>DNAME          ENAME             SAL SEC_HIGH_SAL_DEPT</p>
-<hr>
-<p>ACCOUNTING     KING             5000              2450<br>ACCOUNTING     CLARK            2450              2450<br>ACCOUNTING     MILLER           1300              2450<br>RESEARCH       FORD             3000              3000<br>RESEARCH       SCOTT            3000              3000<br>RESEARCH       JONES            2975              3000<br>RESEARCH       ADAMS            1100              3000<br>RESEARCH       SMITH             800              3000<br>SALES          BLAKE            2850              1600<br>SALES          ALLEN            1600              1600<br>SALES          TURNER           1500              1600<br>SALES          WARD             1250              1600<br>SALES          MARTIN           1250              1600<br>SALES          JAMES             950              1600<br>What happens if we don’t include the windowing clause? Here’s the same query, but just focusing on the Accounting department, without the windowing clause:</p>
-<p><pre class="brush: sql; highlight: 12">SELECT d.dname, e.ename, e.sal,<br>   nth_value(e.sal, 2) OVER (<br>    PARTITION BY e.deptno ORDER BY e.sal DESC) sec_high_sal_dept<br>FROM emp e, dept d<br>WHERE e.deptno = d.deptno<br>  AND d.dname = ‘ACCOUNTING’;</pre></p>
-<p>– Result</p>
-<p>DNAME          ENAME             SAL SEC_HIGH_SAL_DEPT</p>
-<hr>
-<p>ACCOUNTING     KING             5000<br>ACCOUNTING     CLARK            2450              2450<br>ACCOUNTING     MILLER           1300              2450<br>You’ll notice that the first row (KING) has a NULL returned for the SEC_HIGH_SAL_DEPT column. That’s because when it looks at the first row (KING) it still hasn’t had a chance to evaluate at least 2 values.   Obviously writing some test queries will identify this “issue” which may or may not be what you’re looking for. If it isn’t then just add the windowing clause (above).</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="cjtisop0e0061f6vf1kyi6l5u" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-some-interesting-oracle-analytic" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/05/some-interesting-oracle-analytic/" class="article-date">
-  <time datetime="2012-05-22T13:00:00.000Z" itemprop="datePublished">2012-05-22</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/05/some-interesting-oracle-analytic/">Some Interesting Oracle Analytic Functions</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I had to write some reports for a personal application of mine last night and needed to expand beyond my usual set of analytic functions that I normally use. I thought it would be a good idea to do a quick blog post on these analytic functions.</p>
-<p>_If you’ve never heard of or used Oracle analytic functions please read <a href="http://orafaq.com/node/55" target="_blank" rel="noopener">this article</a> first. It’s by far the best article I’ve read at explaining what analytic functions are and how to use them. The Oracle analytic function documentation can be found <a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions004.htm#SQLRF06174" target="_blank" rel="noopener">here</a>._</p>
-<p><strong>RATIO_TO_REPORT</strong></p>
-<p><a href="http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions142.htm#i85800" target="_blank" rel="noopener">RATIO_TO_REPORT</a> compares the current value against the sum of the other set of values.   The following example shows the percentage of each employees salary when compared to the sum of their department’s salary. You’ll notice that you can calculate the same value using a different method (_sal_dept_ratio2_) which may be why I haven’t seen RATIO_TO_REPORT used that often.  </p>
-<pre class="brush: sql; highlight: 2">SELECT d.dname, e.ename, e.sal,
-  round(ratio_to_report(sal) OVER (PARTITION BY e.deptno),2) sal_dept_ratio,
-  round(sal / sum(e.sal) OVER (PARTITION BY e.deptno),2) sal_dept_ratio2
-FROM emp e, dept d
-WHERE e.deptno = d.deptno;
-
--- Result
-
-DNAME          ENAME             SAL SAL_DEPT_RATIO SAL_DEPT_RATIO2
--------------- ---------- ---------- -------------- ---------------
-ACCOUNTING     CLARK            2450            .28             .28
-ACCOUNTING     MILLER           1300            .15             .15
-ACCOUNTING     KING             5000            .57             .57
-RESEARCH       FORD             3000            .28             .28
-RESEARCH       SCOTT            3000            .28             .28
-RESEARCH       JONES            2975            .27             .27
-RESEARCH       SMITH             800            .07             .07
-RESEARCH       ADAMS            1100             .1              .1
-SALES          WARD             1250            .13             .13
-SALES          MARTIN           1250            .13             .13
-SALES          TURNER           1500            .16             .16
-SALES          JAMES             950             .1              .1
-SALES          ALLEN            1600            .17             .17
-SALES          BLAKE            2850             .3              .3
-</pre>
-**NTH_VALUE**
-
-[NTH_VALUE](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions114.htm#CJAFEJBE) returns the nth row in the window clause. It's extremely important that you <u>explicitly define the window</u> or your values may not make sense. I'll write another post explaining this later. _Update: [NTH_VALUE Windowing Clause](http://www.talkapex.com/2012/06/nthvalue-windowing-clause.html)_
-
-The following example shows the 2nd highest salary in each department.  
-<pre class="brush: sql; highlight: [2,3,4,5]">SELECT d.dname, e.ename, e.sal,
-   nth_value(e.sal, 2) OVER (
-    PARTITION BY e.deptno ORDER BY e.sal DESC
-    -- Don't forget to define the window
-    ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING) sec_high_sal_dept
-FROM emp e, dept d
-WHERE e.deptno = d.deptno;
-
--- Result
-
-DNAME          ENAME             SAL SEC_HIGH_SAL_DEPT
--------------- ---------- ---------- -----------------
-ACCOUNTING     KING             5000              2450
-ACCOUNTING     CLARK            2450              2450
-ACCOUNTING     MILLER           1300              2450
-RESEARCH       FORD             3000              3000
-RESEARCH       SCOTT            3000              3000
-RESEARCH       JONES            2975              3000
-RESEARCH       ADAMS            1100              3000
-RESEARCH       SMITH             800              3000
-SALES          BLAKE            2850              1600
-SALES          ALLEN            1600              1600
-SALES          TURNER           1500              1600
-SALES          WARD             1250              1600
-SALES          MARTIN           1250              1600
-SALES          JAMES             950              1600
-</pre>
-**LISTAGG**
-
-[LISTAGG](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions089.htm#CJABDFBD) was a highly requested feature that was implemented in 11gR2\. Overall LISTAGG allows you to group values in multiple rows and put them in a comma delimited column on one row.
-
-The following example (which is not an analytic function) shows all the employees for each department:  
-<pre class="brush: sql; highlight: 2">SELECT d.dname,
-  listagg(e.ename, ',') WITHIN GROUP (ORDER BY e.ename) dept_emp_list
-FROM emp e, dept d
-WHERE e.deptno = d.deptno
-GROUP BY d.dname;
-
--- Result
-
-DNAME          DEPT_EMP_LIST
--------------- ----------------------------------------
-
-ACCOUNTING     CLARK,KING,MILLER
-RESEARCH       ADAMS,FORD,JONES,SCOTT,SMITH
-SALES          ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
-</pre>Using the LISTAGG as an analytic function you can see each employee's colleagues in their department, including themselves.  
-<pre class="brush: sql; highlight: [2,3]">SELECT d.dname, e.ename,
-  listagg(e.ename, ',') WITHIN GROUP (ORDER BY e.ename)
-    OVER (PARTITION BY e.deptno) dept_colleagues
-FROM emp e, dept d
-WHERE e.deptno = d.deptno;
-
--- Result
-
-DNAME          ENAME      DEPT_COLLEAGUES
--------------- ---------- --------------------------------------
-
-ACCOUNTING     CLARK      CLARK,KING,MILLER
-ACCOUNTING     KING       CLARK,KING,MILLER
-ACCOUNTING     MILLER     CLARK,KING,MILLER
-RESEARCH       ADAMS      ADAMS,FORD,JONES,SCOTT,SMITH
-RESEARCH       FORD       ADAMS,FORD,JONES,SCOTT,SMITH
-RESEARCH       JONES      ADAMS,FORD,JONES,SCOTT,SMITH
-RESEARCH       SCOTT      ADAMS,FORD,JONES,SCOTT,SMITH
-RESEARCH       SMITH      ADAMS,FORD,JONES,SCOTT,SMITH
-SALES          ALLEN      ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
-SALES          BLAKE      ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
-SALES          JAMES      ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
-SALES          MARTIN     ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
-SALES          TURNER     ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
-SALES          WARD       ALLEN,BLAKE,JAMES,MARTIN,TURNER,WARD
-</pre>
-**NTILE**
-
-[NTILE](http://docs.oracle.com/cd/E11882_01/server.112/e26088/functions115.htm#i85619) allows you to divide your values into buckets and see which bucket the current row belongs to. For educational institutions this is a very good function to let students know that they're in the top _x%_ of the class.
-
-_**Update (12-Apr-2014):** [NTILE vs WIDTH_BOX](http://www.talkapex.com/2014/04/ntile-vs-widthbucket.html) describes the different ways to bucket data in Oracle. It also explains why SAL 1250 exists in both buckets 2 and 3._
-
-The following example shows the 3 tiers (or buckets) of salaries across the entire company. It allows you to easily see who's in the top 33% of salaries.   
-<pre class="brush: sql; highlight: [2]">SELECT d.dname, e.ename, e.sal,
-  ntile (3) over (order by sal desc) three_tier_sal
-FROM emp e, dept d
-WHERE e.deptno = d.deptno;
-
--- Result
-
-DNAME          ENAME             SAL THREE_TIER_SAL
--------------- ---------- ---------- --------------
-ACCOUNTING     KING             5000              1
-RESEARCH       SCOTT            3000              1
-RESEARCH       FORD             3000              1
-RESEARCH       JONES            2975              1
-SALES          BLAKE            2850              1
-ACCOUNTING     CLARK            2450              2
-SALES          ALLEN            1600              2
-SALES          TURNER           1500              2
-ACCOUNTING     MILLER           1300              2
-SALES          WARD             1250              2
-SALES          MARTIN           1250              3
-RESEARCH       ADAMS            1100              3
-SALES          JAMES             950              3
-RESEARCH       SMITH             800              3
-</pre>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="cjtisop0c005zf6vf9lf56cp7" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/14/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/28/">28</a><a class="extend next" rel="next" href="/page/16/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/14/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="page-number current">15</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/16/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -818,7 +736,7 @@ RESEARCH       SMITH             800              3
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">147</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -855,7 +773,7 @@ RESEARCH       SMITH             800              3
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

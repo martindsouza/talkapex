@@ -67,6 +67,116 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-ansi-join-left-join-with-an-inner-join" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/10/ansi-join-left-join-with-an-inner-join/" class="article-date">
+  <time datetime="2018-10-17T01:54:21.000Z" itemprop="datePublished">2018-10-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/10/ansi-join-left-join-with-an-inner-join/">ANSI Join: Left Join with an Inner Join</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I finally caved in and started to write all my queries using ANSI format (<em>thanks <a href="https://twitter.com/vincentmorneau" target="_blank" rel="noopener">Vincent Morneau</a> for encouraging me to change to ANSI</em>). I recently came across a situation where I needed to join two tables then outer join the result with another table. I could easily do this using Oracle joins (with an inner <code>select</code> statement) but was never a fan of it and wanted to see if there was a “cleaner” way to do this using ANSI joins.</p>
+<p>Before continuing it’s important to review some tables that are required for this demo:</p>
+<ul>
+<li><code>dept</code>: 4 departments</li>
+<li><code>emp</code>: 14 rows that contain 3 of the departments (i.e. one department has no employees)</li>
+</ul>
+<p>When you do an outer join (as shown below), 15 rows are returned as one department isn’t referenced in the <code>emp</code> table.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(<span class="number">1</span>)</span><br><span class="line"><span class="keyword">from</span> dept d, emp e</span><br><span class="line"><span class="keyword">where</span> d.deptno = e.deptno(+)</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">COUNT(1)</span><br><span class="line">      15</span><br></pre></td></tr></table></figure>
+<p>For this demo, a new table is required called <code>dept_country</code>. This will be used to join with the <code>emp</code> table to show the country each employee lives in:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> dept_country <span class="keyword">as</span></span><br><span class="line"><span class="keyword">select</span> </span><br><span class="line">  to_number(regexp_replace(<span class="keyword">column_value</span>,<span class="string">'(.*)-(.*)'</span>, <span class="string">'\1'</span>)) deptno,</span><br><span class="line">  regexp_replace(<span class="keyword">column_value</span>,<span class="string">'(.*)-(.*)'</span>, <span class="string">'\2'</span>) country</span><br><span class="line"><span class="keyword">from</span> </span><br><span class="line">  apex_string.split(<span class="string">'10-Can,20-USA,30-Ger,40-Esp'</span>,<span class="string">','</span>) x</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> *</span><br><span class="line"><span class="keyword">from</span> dept_country</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">DEPTNO COUNTRY</span><br><span class="line">    10 Can</span><br><span class="line">    20 USA</span><br><span class="line">    30 Ger</span><br><span class="line">    40 Esp</span><br></pre></td></tr></table></figure>
+<p>If I try to “<code>join</code>“ <code>emp</code> and <code>dept_country</code> without any special handling it will give me invalid data. The following query returns <code>14</code> rows when it should return <code>15</code>:</p>
+<p><em>Note for all the remaining examples the goal is to get <code>15</code> rows</em></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> d.deptno, d.dname, e.ename, dc.country</span><br><span class="line"><span class="keyword">from</span> </span><br><span class="line">  dept d,</span><br><span class="line">  emp e,</span><br><span class="line">  dept_country dc</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> d.deptno = e.deptno(+)</span><br><span class="line">  <span class="keyword">and</span> e.deptno = dc.deptno</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">DEPTNO DNAME        ENAME    COUNTRY</span><br><span class="line">    10 ACCOUNTING   KING     Can</span><br><span class="line">    10 ACCOUNTING   CLARK    Can</span><br><span class="line">    10 ACCOUNTING   MILLER   Can</span><br><span class="line">    20 RESEARCH     JONES    USA</span><br><span class="line">    20 RESEARCH     SCOTT    USA</span><br><span class="line">    20 RESEARCH     FORD     USA</span><br><span class="line">    20 RESEARCH     SMITH    USA</span><br><span class="line">    20 RESEARCH     ADAMS    USA</span><br><span class="line">    30 SALES        BLAKE    Ger</span><br><span class="line">    30 SALES        ALLEN    Ger</span><br><span class="line">    30 SALES        WARD     Ger</span><br><span class="line">    30 SALES        MARTIN   Ger</span><br><span class="line">    30 SALES        TURNER   Ger</span><br><span class="line">    30 SALES        JAMES    Ger</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 14 rows (invalid)</span></span><br></pre></td></tr></table></figure>
+<p>The correct way to write the query using Oracle join syntax is shown below. I’m not a fan of the “inner <code>select</code>“ technique as it takes more time to write and you need to list out all the columns that are required.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> d.deptno, d.dname, e.ename, e.country</span><br><span class="line"><span class="keyword">from</span> dept d,</span><br><span class="line">  (</span><br><span class="line">    <span class="keyword">select</span> e.deptno, e.ename, dc.country</span><br><span class="line">    <span class="keyword">from</span> dept_country dc, emp e</span><br><span class="line">    <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">      <span class="keyword">and</span> dc.deptno = e.deptno(+)</span><br><span class="line">  ) e</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> d.deptno = e.deptno(+)</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">DEPTNO DNAME        ENAME    COUNTRY</span><br><span class="line">    10 ACCOUNTING   KING     Can</span><br><span class="line">    30 SALES        BLAKE    Ger</span><br><span class="line">    10 ACCOUNTING   CLARK    Can</span><br><span class="line">    20 RESEARCH     JONES    USA</span><br><span class="line">    20 RESEARCH     SCOTT    USA</span><br><span class="line">    20 RESEARCH     FORD     USA</span><br><span class="line">    20 RESEARCH     SMITH    USA</span><br><span class="line">    30 SALES        ALLEN    Ger</span><br><span class="line">    30 SALES        WARD     Ger</span><br><span class="line">    30 SALES        MARTIN   Ger</span><br><span class="line">    30 SALES        TURNER   Ger</span><br><span class="line">    20 RESEARCH     ADAMS    USA</span><br><span class="line">    30 SALES        JAMES    Ger</span><br><span class="line">    10 ACCOUNTING   MILLER   Can</span><br><span class="line">    40 OPERATIONS</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 15 rows (correct)</span></span><br><span class="line"><span class="comment">-- Note the extra row for OPERATIONS that has no employees</span></span><br></pre></td></tr></table></figure>
+<p><em>For the rest of this article I won’t be showing the results of each query as they are the same for the 14 vs 15 rows as they are the results are the same as the two previous examples.</em></p>
+<p>Replicating the same situation using ANSI joins the following query is incorrect since the <code>emp</code> is outer joined but <code>dept_country</code> is <code>inner join</code>ed, thus negating the <code>outer</code> join.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> d.deptno, d.dname, e.ename, dc.country</span><br><span class="line"><span class="keyword">from</span> dual</span><br><span class="line">  <span class="keyword">join</span> dept d <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">left</span> <span class="keyword">join</span> emp e <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">    <span class="keyword">and</span> e.deptno = d.deptno</span><br><span class="line">  <span class="keyword">join</span> dept_country dc <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">    <span class="keyword">and</span> e.deptno = dc.deptno</span><br><span class="line">;</span><br><span class="line"><span class="comment">-- 14 rows (invalid)</span></span><br></pre></td></tr></table></figure>
+<p>ANSI allows for brackets around joins to explicitly specify <code>inner</code> and then <code>outer</code> joins as shown below. I like this syntax as it’s very clear to write, read, and for others to understand. It’s also better than the Oracle inner <code>select</code> format as we don’t need to list out all the columns in a separate <code>select</code> statement.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> d.deptno, d.dname, e.ename, dc.country</span><br><span class="line"><span class="keyword">from</span> dual</span><br><span class="line">  <span class="keyword">join</span> dept d <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">left</span> <span class="keyword">join</span> (</span><br><span class="line">    dual</span><br><span class="line">    <span class="keyword">join</span> emp e <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">    <span class="keyword">join</span> dept_country dc <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">      <span class="keyword">and</span> e.deptno = dc.deptno</span><br><span class="line">  ) <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">    <span class="keyword">and</span> e.deptno = d.deptno</span><br><span class="line">;</span><br><span class="line"><span class="comment">-- 15 rows (correct)</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/" data-id="cjtq9uqot00g10mra5cws2kqs" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-oracle-constraint-so-only-one-of-several-columns-has-a-value" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/" class="article-date">
+  <time datetime="2018-08-20T17:15:19.000Z" itemprop="datePublished">2018-08-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/">Oracle constraint so only one of several columns has a value</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Suppose you had a <code>users</code> table that was generated with the following script:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> <span class="keyword">users</span>(</span><br><span class="line">  user_id <span class="built_in">number</span> <span class="keyword">generated</span> <span class="keyword">by</span> <span class="keyword">default</span> <span class="keyword">on</span> <span class="literal">null</span> <span class="keyword">as</span> <span class="keyword">identity</span>,</span><br><span class="line">  home_phone varchar2(<span class="number">100</span>) <span class="literal">null</span>,</span><br><span class="line">  work_phone varchar2(<span class="number">100</span>) <span class="literal">null</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>User’s must have either a work or home phone but not both. I’ve seen some constraints to represent this requirement written as follows:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">add</span> <span class="keyword">constraint</span> users_ck1 <span class="keyword">check</span>(</span><br><span class="line">  <span class="number">1</span>=<span class="number">2</span></span><br><span class="line">  <span class="keyword">or</span> (home_phone <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">and</span> work_phone <span class="keyword">is</span> <span class="literal">null</span>)</span><br><span class="line">  <span class="keyword">or</span> (home_phone <span class="keyword">is</span> <span class="literal">null</span> <span class="keyword">and</span> work_phone <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">null</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p><code>users_ck1</code> works fine but is open developer error when creating or modifying. For example, suppose <code>cell_phone</code> was added to the table. The script to modify the constraint to include the new column would be:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">drop</span> <span class="keyword">constraint</span> users_ck1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">add</span> <span class="keyword">constraint</span> users_ck1 <span class="keyword">check</span>(</span><br><span class="line">  <span class="number">1</span>=<span class="number">2</span></span><br><span class="line">  <span class="keyword">or</span> (home_phone <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">and</span> work_phone <span class="keyword">is</span> <span class="literal">null</span> <span class="keyword">and</span> cell_phone <span class="keyword">is</span> <span class="literal">null</span>)</span><br><span class="line">  <span class="keyword">or</span> (home_phone <span class="keyword">is</span> <span class="literal">null</span> <span class="keyword">and</span> work_phone <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">and</span> cell_phone <span class="keyword">is</span> <span class="literal">null</span>)</span><br><span class="line">  <span class="keyword">or</span> (home_phone <span class="keyword">is</span> <span class="literal">null</span> <span class="keyword">and</span> work_phone <span class="keyword">is</span> <span class="literal">null</span> <span class="keyword">and</span> cell_phone <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">null</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>A different approach that is easier to write and maintain is to use the <code>decode</code> function to apply a number (<code>0</code> or <code>1</code>) to represent if the column has a value or not. </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">drop</span> <span class="keyword">constraint</span> users_ck1;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- <span class="doctag">Note:</span> could use nvl2 instead of decode as well</span></span><br><span class="line"><span class="comment">-- nvl2(home_phone, 1, 0) + ....</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">add</span> <span class="keyword">constraint</span> users_ck1 <span class="keyword">check</span>(</span><br><span class="line">  <span class="keyword">decode</span>(home_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) + </span><br><span class="line">  <span class="keyword">decode</span>(work_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">  = <span class="number">1</span></span><br><span class="line">)</span><br><span class="line">;</span><br></pre></td></tr></table></figure>
+<p>Updating the constraint to handle a new column is very simple. Using the previous example, the following snippet shows how easy it is to add <code>cell_phone</code> to the constraint:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">drop</span> <span class="keyword">constraint</span> users_ck1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">add</span> <span class="keyword">constraint</span> users_ck1 <span class="keyword">check</span>(</span><br><span class="line">  <span class="keyword">decode</span>(home_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) + </span><br><span class="line">  <span class="keyword">decode</span>(work_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) +</span><br><span class="line">  <span class="keyword">decode</span>(cell_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">  = <span class="number">1</span></span><br><span class="line">)</span><br><span class="line">;</span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/" data-id="cjtq9uqom00fs0mral41qllnk" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-exporting-apex-application-in-sqlcl-with-build-status-override" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" class="article-date">
@@ -103,7 +213,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" data-id="cjtisop4w00dvf6vftmb8vdik" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" data-id="cjtq9uqol00fq0mrachk3priu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -150,7 +260,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" data-id="cjtisop4v00dtf6vf94k2qhtj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" data-id="cjtq9uqon00fu0mray1l0psu4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -211,7 +321,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="cjtisop5c00euf6vfspakodnr" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="cjtq9uqog00fj0mra1twu5ttz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -269,7 +379,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="cjtisop5b00esf6vfd3odsrhm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="cjtq9uqoh00fl0mra559fk5oh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/docker-as-a-micro-service/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -321,7 +431,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="cjtisop4t00drf6vf3v8t3iqt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="cjtq9uqof00fh0mra7vza4p0u" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -396,7 +506,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="cjtisop4s00dof6vfm0j94ycv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="cjtq9uqoj00fo0mraoqvgypf3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -447,7 +557,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="cjtisopbs00j3f6vfvggx9zq1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="cjtq9uqoe00fe0mraolko0b47" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/custom-apex-notification-messages/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -518,7 +628,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="cjtisop4q00dmf6vfug1jqwn5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="cjtq9uqod00fc0mra6tpdd4dj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -532,103 +642,11 @@
 
 
   
-    <article id="post-how-to-develop-with-multiple-apex-developer-tabs-in-firefox" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" class="article-date">
-  <time datetime="2017-11-20T03:35:42.000Z" itemprop="datePublished">2017-11-19</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/">How to Develop with Multiple APEX Developer Tabs in Firefox</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Eventually all APEX developers need to have multiple versions of the development environment open at the same time. A simple example of this is if you’re working with two pages (Page 1 and Page 2) that are dependant on one another. You constantly have to toggle between them as you can’t have two tabs open for development (one for P1 and one for P2).</p>
-<p>Most people either open a different browser or open a new browser tab in Private or Incognito mode. Now <a href="https://www.mozilla.org/" target="_blank" rel="noopener">Firefox</a> allows you to get around this issue by having <a href="https://blog.mozilla.org/firefox/introducing-firefox-multi-account-containers/" target="_blank" rel="noopener">Multi-Account Containers</a>. </p>
-<img src="/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/firefox-multi-account-containers.png">
-<p>Multi-Account Containers segregate your cookies by containers. Aside from APEX development you can also have multiple instances of Gmail or Office 365 opened in different container tabs.</p>
-<p>For now you must install the <a href="https://addons.mozilla.org/en-US/firefox/addon/multi-account-containers/?src=userprofile" target="_blank" rel="noopener">Multi-Account Containers Plugin</a> (built by Mozilla) as it’s not included by default. Note I use the plugin on <a href="https://www.mozilla.org/en-US/firefox/developer/" target="_blank" rel="noopener">Firefox Developer Edition</a> with no issues.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="cjtisop4k00dbf6vfkao2od26" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" class="article-date">
-  <time datetime="2017-11-19T14:31:49.000Z" itemprop="datePublished">2017-11-19</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/">How to Setup Multiple APEX Environments using Docker and Oracle 12c</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’ve written a few posts on how to Dockerize your Oracle and APEX setup (<a href="/2017/10/how-to-setup-oracle-db-12-2-docker-container/" title="post 1">post 1</a>, <a href="/2017/10/docker-oracle-and-apex/" title="post 2">post 2</a>). I’m constantly refining the process as I learn new things and different Docker images become available.</p>
-<p>I was writing a third post on setting up multiple APEX environments using Docker and Oracle 12c. The post was getting long and included many steps. I decided to move the instructions to Github as it solves two problems:</p>
-<ul>
-<li>I can easily keep it up to date with the latest steps I do to create my Docker containers</li>
-<li>Others can contribute to the instructions (and/or include scripts) by making pull requests (PR)</li>
-</ul>
-<p>To view my latest Docker setup you can view my <a href="https://github.com/martindsouza/docker-oracle-setup" target="_blank" rel="noopener">docker-oracle-setup</a> page on Github. If you have any corrections, suggestions, or enhancements please create issues or submit a PR on the repository.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="cjtisop4n00dgf6vfbtd5og2m" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-12c/">oracle-12c</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/28/">28</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
   </nav>
 
 </section>
@@ -662,7 +680,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">147</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">12</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">23</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -699,7 +717,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
