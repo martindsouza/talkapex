@@ -18,7 +18,7 @@
 <meta property="og:image" content="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/cascade-lov-dup.gif">
 <meta property="og:image" content="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/da-condition.png">
 <meta property="og:image" content="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/cascade-lov-fix.gif">
-<meta property="og:updated_time" content="2019-03-26T21:07:45.690Z">
+<meta property="og:updated_time" content="2019-03-28T14:36:14.107Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="How to Refresh a Report Only Once With Multiple Dependant Cascading LOVs">
 <meta name="twitter:description" content="Suppose you have a region with a set of cascading LOVs and report that references both of these items. When either of these items is refreshed, the report should be refreshed. When the parent item is">
@@ -104,19 +104,19 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> d.dname d, d.deptno r</span><br><span class="line"><span class="keyword">from</span> dept d</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> dname</span><br></pre></td></tr></table></figure>
 <p><strong>p2_empno:</strong></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> e.ename d, e.empno r</span><br><span class="line"><span class="keyword">from</span> emp e</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> e.deptno = nvl(:p2_deptno, e.deptno)</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> e.ename</span><br></pre></td></tr></table></figure>
-<p><em>Cascading LOV Parent Item(s)</em>: <code>P2_DEPTNO</code></p>
+<p><em>Cascading LOV Parent Item(s)</em>: <code>p2_deptno</code></p>
 <p><strong>Report Region</strong></p>
 <p><em>Type</em>: <code>Classic Report</code></p>
 <p><em>SQL Query</em>:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> empno, ename, deptno</span><br><span class="line"><span class="keyword">from</span> emp e</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> e.deptno = nvl(:p2_deptno, e.deptno)</span><br><span class="line">  <span class="keyword">and</span> e.empno = nvl(:p2_empno, e.empno)</span><br></pre></td></tr></table></figure>
-<p><em>Page Items to Submit</em>: <code>P2_DEPTNO,P2_EMPNO</code></p>
+<p><em>Page Items to Submit</em>: <code>p2_deptno,p2_empno</code></p>
 <p>Next, create a Dynamic Action (DA) that will trigger a refresh on the <code>Report</code> region each time any item has changed:</p>
 <img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/dynamic-action.png">
 <p>When <code>p2_deptno</code> is changed, 3 Ajax requests occur:</p>
 <ol>
-<li><code>Report</code> region is refreshed (reason: Page items to Submit contains <code>P2_DEPTNO</code>)</li>
-<li><code>p2_empno</code> LOV is refreshed (reason: Cascading LOV Parent Item(s): <code>P2_DEPTNO</code>). This triggers another refresh to the <code>Report</code> region (see next step)</li>
-<li><code>Report</code> region is refreshed (reason: Page items to Submit contains <code>P2_EMPNO</code>)</li>
+<li><code>Report</code> region is refreshed (reason: Page items to Submit contains <code>p2_deptno</code>)</li>
+<li><code>p2_empno</code> LOV is refreshed (reason: Cascading LOV Parent Item(s): <code>p2_deptno</code>). This triggers another refresh to the <code>Report</code> region (see next step)</li>
+<li><code>Report</code> region is refreshed (reason: Page items to Submit contains <code>p2_empno</code>)</li>
 </ol>
 <p>The following demo highlights this problem. The report refreshes so quickly the only way to see the problem is to look at the differnet Ajax calls. <em>Note: the order of the Ajax responses may change since it’s asynchronous.</em></p>
 <img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/cascade-lov-dup.gif">
