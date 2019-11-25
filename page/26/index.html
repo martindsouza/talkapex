@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html>
-<head><meta name="generator" content="Hexo 3.8.0">
+<head>
   <meta charset="utf-8">
   
   <title>TalkApex</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta property="og:type" content="website">
 <meta property="og:title" content="TalkApex">
-<meta property="og:url" content="http://www.talkapex.com/page/26/index.html">
+<meta property="og:url" content="http:&#x2F;&#x2F;www.talkapex.com&#x2F;page&#x2F;26&#x2F;index.html">
 <meta property="og:site_name" content="TalkApex">
 <meta property="og:locale" content="default">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="TalkApex">
 <meta name="twitter:creator" content="@martindsouza">
   
     <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
@@ -24,7 +23,7 @@
   
   <link rel="stylesheet" href="/css/style.css">
 </head>
-</html>
+
 <body>
   <div id="container">
     <div id="wrap">
@@ -32,7 +31,7 @@
   <!-- <div id="banner"></div> -->
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
-      <img src="/images/header-banner.png" alt>
+      <img src="/images/header-banner.png" alt="" />
       <!-- <h1 id="logo-wrap">
         <a href="/" id="logo">TalkApex</a>
       </h1> -->
@@ -67,6 +66,114 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-apex-saving-item-values-for-each-user" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/07/apex-saving-item-values-for-each-user/" class="article-date">
+  <time datetime="2009-07-02T15:00:00.000Z" itemprop="datePublished">2009-07-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/07/apex-saving-item-values-for-each-user/">APEX: Saving item values for each user</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Someone asked me today if APEX could remember input values for specific page items. For example if you have a page with report parameters could APEX remember the report parameters that the user last used the next time they logged in?</p>
+<p><span style="font-style:italic; color:red;">Note: Please read comments below as APEX does support this out of the box on an individual item basis. This solution is to make the option configurable for large applications.</span></p>
+<p>APEX doesn’t support this out of the box, however it does have some great features which can enable you to do this. <span style="font-style=italic;">You can use cookies for this but I wanted to make the solution work no matter where the user was accessing the application from.</span></p>
+<p>To make things a bit more difficult, I don’t want to remember all item values on a page so I must be able to control which items are “remembered” and which items aren’t. I can do this by using a naming convention in my items, however I don’t want to rename all my page items (I already have a lot of them). Instead I decided to create a table which will list all the items a user can remember.</p>
+<p>You can try the demo <a href="http://apex.oracle.com/pls/otn/f?p=20195:1800" target="_blank" rel="noopener">here</a> (follow the instructions on the page).</p>
+<pre class="brush: sql">
+CREATE TABLE tapex_remember_page_item(
+application_id NUMBER NOT NULL,
+page_id NUMBER NOT NULL,
+item_name VARCHAR2(255) NOT NULL);
+
+-- You don't need to add a UK, however it may be a good idea.
+ALTER TABLE tapex_remember_page_item ADD(
+  CONSTRAINT tapex_remember_page_item_uk1
+  UNIQUE (application_id, page_id, item_name));
+
+-- Since I name all my APEX items in uppercase, just do this as an extra precaution
+CREATE OR REPLACE TRIGGER trg_tapex_remember_pg_itm_buir
+  BEFORE UPDATE OR INSERT
+  ON tapex_remember_page_item
+  FOR EACH ROW
+BEGIN
+  :NEW.item_name := UPPER (:NEW.item_name);
+END;
+/
+
+INSERT INTO tapex_remember_page_item
+            (application_id, page_id, item_name)
+     VALUES (20195, 1800, 'P1800_DEPTNO');
+
+INSERT INTO tapex_remember_page_item
+            (application_id, page_id, item_name)
+     VALUES (20195, 1800, 'P1800_MIN_SAL');            
+</pre>
+
+<p>For this example we’ll store the values as APEX Preferences, however you could easily create your own preferences table to manage your data. I think they’re several advantages to managing the preferences in your own table, however if you have a small application with a limited number of users then I’d recommend using the APEX_UTIL preference options            </p>
+<p>Create 2 Application Processes:</p>
+<p>AP_GET_PAGE_ITEM_PREFS<br>On Load: Before Header (page template header)</p>
+<pre class="brush: sql">
+DECLARE
+BEGIN
+  FOR x IN (SELECT item_name
+              FROM tapex_remember_page_item
+             WHERE :app_page_id = page_id
+               AND :app_id = application_id) LOOP
+    apex_util.set_session_state (p_name      => x.item_name,
+                                 p_value     => apex_util.get_preference (p_preference     => x.item_name,
+                                                                          p_user           => :app_user
+                                                                         )
+                                );
+  END LOOP;
+END;
+</pre>
+
+<p>AP_SET_PAGE_ITEM_PREFS<br>On Submit: After Page Submission - After Computations and Validations</p>
+<pre class="brush: sql">
+DECLARE
+BEGIN
+  FOR x IN (SELECT item_name
+              FROM tapex_remember_page_item
+             WHERE :app_page_id = page_id
+               AND :app_id = application_id) LOOP
+    apex_util.set_preference (p_preference => x.item_name, p_value => v (x.item_name), p_user => :app_user);
+  END LOOP;
+END;
+</pre>
+
+<p><span style="font-style=italic;">For those of you that are curious APEX Preferences are stored in : apex_030200.wwv_flow_preferences$ where apex_030200 is the schema name for APEX (could also be called flows_xxxxxx)</span></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/07/apex-saving-item-values-for-each-user/" data-id="ck3dzyyf60025h9qu7ta703cv" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/07/apex-saving-item-values-for-each-user/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-odtug-kaleidoscope-2009-summary" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/06/odtug-kaleidoscope-2009-summary/" class="article-date">
@@ -89,7 +196,7 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><a href="http://www.odtugkaleidoscope.com/?utm_source=speake" target="_blank" rel="noopener"><img src="http://www.odtugkaleidoscope.com/webbutton.jpg" alt></a></p>
+        <p><a href="http://www.odtugkaleidoscope.com/?utm_source=speake" target="_blank" rel="noopener"><img src="http://www.odtugkaleidoscope.com/webbutton.jpg" alt=""></a></p>
 <p>I just got back from <a href="http://www.odtugkaleidoscope.com/" target="_blank" rel="noopener">ODTUG Kaleidoscope 2009</a>. I met a lot of great people and saw many excellent presentations. My biggest regret was not being able to see everyone’s presentations! Here are some highlights from the conference:</p>
 <p><span style="font-weight:bold;">Sunday APEX Symposium</span>: Saw some excellent presentations on how APEX was used in other organizations.</p>
 <ul>
@@ -100,7 +207,7 @@
 <li><p><a href="http://apex-smb.blogspot.com/2009/06/odtug-kaleidoscope-twitter.html" target="_blank" rel="noopener">My presentation</a>: Mike Kinahan did a great job filling in for Frank Hoogendoorn on short notice, however my camera man wasn’t as good (see picture below). <span style="font-style:italic">If anyone has some pictures of the presentation can you please let me know?</span></p>
 </li>
 </ul>
-<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Skd-2tH1nSI/AAAAAAAADpo/0t45FGdA2LQ/s1600-h/IMG_3863.JPG" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Skd-2tH1nSI/AAAAAAAADpo/0t45FGdA2LQ/s400/IMG_3863.JPG" alt>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Skd-2tH1nSI/AAAAAAAADpo/0t45FGdA2LQ/s1600-h/IMG_3863.JPG" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Skd-2tH1nSI/AAAAAAAADpo/0t45FGdA2LQ/s400/IMG_3863.JPG" alt="">
 </a></p>
 <ul>
 <li><p>Dennis Vanill (PAETEC Software): Using page 0 to cut down on common task for many pages.</p>
@@ -137,12 +244,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/odtug-kaleidoscope-2009-summary/" data-id="cjtqa7q180024bura9holb8h5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/06/odtug-kaleidoscope-2009-summary/" data-id="ck3dzyyf90029h9qu7onm0azy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/06/odtug-kaleidoscope-2009-summary/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">kscope</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/" rel="tag">kscope</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/" rel="tag">odtug</a></li></ul>
 
     </footer>
   </div>
@@ -173,18 +280,18 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p><a href="http://www.odtugkaleidoscope.com/?utm_source=speake" target="_blank" rel="noopener"><img src="http://www.odtugkaleidoscope.com/webbutton.jpg" alt></a><br>I’ve broken down and created a Twitter account <a href="http://twitter.com/martindsouza" target="_blank" rel="noopener">http://twitter.com/martindsouza</a>. I wasn’t planning on joining Twitter however it seems like it will be an excellent communication tool for the upcoming <a href="http://www.odtugkaleidoscope.com/" target="_blank" rel="noopener">ODTUG Kaleidoscope</a> conference.</p>
+        <p><a href="http://www.odtugkaleidoscope.com/?utm_source=speake" target="_blank" rel="noopener"><img src="http://www.odtugkaleidoscope.com/webbutton.jpg" alt=""></a><br>I’ve broken down and created a Twitter account <a href="http://twitter.com/martindsouza" target="_blank" rel="noopener">http://twitter.com/martindsouza</a>. I wasn’t planning on joining Twitter however it seems like it will be an excellent communication tool for the upcoming <a href="http://www.odtugkaleidoscope.com/" target="_blank" rel="noopener">ODTUG Kaleidoscope</a> conference.</p>
 <p>On that note, our <a href="http://www.odtugkaleidoscope.com/apexsymposium.html" target="_blank" rel="noopener">presentation’s</a> “Twitter Tag” (I’m new to Twitter so I don’t know all the terminology) is: <a href="http://twitter.com/#search?q=%23odtug%20S299" target="_blank" rel="noopener">#ODTUG S299</a>. Feel free to post something on Twitter or this blog during the conference.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/odtug-kaleidoscope-twitter/" data-id="cjtqa7q180022buramhog9lkm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/06/odtug-kaleidoscope-twitter/" data-id="ck3dzyyf30020h9quho1w8net" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/06/odtug-kaleidoscope-twitter/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/">kscope</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/">odtug</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/" rel="tag">kscope</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/" rel="tag">meta</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/" rel="tag">odtug</a></li></ul>
 
     </footer>
   </div>
@@ -280,12 +387,12 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/how-to-quickly-append-varchar2-to-clob/" data-id="cjtqa7q16001yburazc7a21bl" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/06/how-to-quickly-append-varchar2-to-clob/" data-id="ck3dzyyf50022h9qu6oa5h4jo" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/06/how-to-quickly-append-varchar2-to-clob/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
 
     </footer>
   </div>
@@ -330,12 +437,12 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/apex-static-files-not-for-secure-files/" data-id="cjtqa7q15001wbura9b09s15l" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/06/apex-static-files-not-for-secure-files/" data-id="ck3dzyyf0001th9qu3ncme606" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/06/apex-static-files-not-for-secure-files/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -370,7 +477,7 @@ END;
 <p>Since APEX resides within the database there’s a quick way to manage all of your IRs. <span style="color:red; font-style=italic;">Please note this is not supported by Oracle so please be aware of this.</span></p>
 <p>First login to the database as SYS or SYSTEM.</p>
 <p>Update Interactive Report options: <span style="font-style: italic;">You can modify more options by looking at the table definition for wwv_flow_worksheets</span></p>
-<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Si3Q3CeFohI/AAAAAAAADpY/sPTJxC7mV6Q/s1600-h/24_ir_options.bmp" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Si3Q3CeFohI/AAAAAAAADpY/sPTJxC7mV6Q/s400/24_ir_options.bmp" alt></a></p>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Si3Q3CeFohI/AAAAAAAADpY/sPTJxC7mV6Q/s1600-h/24_ir_options.bmp" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Si3Q3CeFohI/AAAAAAAADpY/sPTJxC7mV6Q/s400/24_ir_options.bmp" alt=""></a></p>
 <pre class="brush: sql">
 UPDATE apex_030200.wwv_flow_worksheets -- Where apex_030200 is your current APEX instance
    SET allow_report_saving = 'Y', -- Configure options as required
@@ -396,7 +503,7 @@ UPDATE apex_030200.wwv_flow_worksheets -- Where apex_030200 is your current APEX
 </pre>
 
 <p>Update Interactive Report Columns:</p>
-<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/Si3Q8jhgbPI/AAAAAAAADpg/BuXPQH8UR80/s1600-h/24_ir_col_options.bmp" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/Si3Q8jhgbPI/AAAAAAAADpg/BuXPQH8UR80/s400/24_ir_col_options.bmp" alt></a></p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/Si3Q8jhgbPI/AAAAAAAADpg/BuXPQH8UR80/s1600-h/24_ir_col_options.bmp" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/Si3Q8jhgbPI/AAAAAAAADpg/BuXPQH8UR80/s400/24_ir_col_options.bmp" alt=""></a></p>
 <pre class="brush: sql">
 UPDATE apex_030200.wwv_flow_worksheet_columns
    SET allow_sorting = 'Y',
@@ -412,12 +519,12 @@ UPDATE apex_030200.wwv_flow_worksheet_columns
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/quickly-modify-apex-interactive-report/" data-id="cjtqa7q170020buratbdvzbq4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/06/quickly-modify-apex-interactive-report/" data-id="ck3dzyyf2001wh9qub3jp8yi2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/06/quickly-modify-apex-interactive-report/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -454,17 +561,17 @@ UPDATE apex_030200.wwv_flow_worksheet_columns
 <li>Home / Manage Service / Security</li>
 <li>Change the Account Password Lifetime (days) to whatever you need.</li>
 </ul>
-<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Si3QI1QG_7I/AAAAAAAADpQ/4oa2ZyXsEvY/s1600-h/account_password_lifetime.bmp" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Si3QI1QG_7I/AAAAAAAADpQ/4oa2ZyXsEvY/s400/account_password_lifetime.bmp" alt></a></p>
+<p><a href="http://1.bp.blogspot.com/_33EF80fk9sM/Si3QI1QG_7I/AAAAAAAADpQ/4oa2ZyXsEvY/s1600-h/account_password_lifetime.bmp" target="_blank" rel="noopener"><img src="http://1.bp.blogspot.com/_33EF80fk9sM/Si3QI1QG_7I/AAAAAAAADpQ/4oa2ZyXsEvY/s400/account_password_lifetime.bmp" alt=""></a></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/extend-apex-workspace-password/" data-id="cjtqa7q14001ubura6ox301pg" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/06/extend-apex-workspace-password/" data-id="ck3dzyyf3001yh9qu9gn86w9q" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/06/extend-apex-workspace-password/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/security/">security</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/security/" rel="tag">security</a></li></ul>
 
     </footer>
   </div>
@@ -496,7 +603,7 @@ UPDATE apex_030200.wwv_flow_worksheet_columns
     <div class="article-entry" itemprop="articleBody">
       
         <p>APEX can create “Percentage Bars” within a report. They’re probably a lot of 3rd party tools you can use for fancy percentage bars, however if you want a basic display to the user here’s a quick way to do it. Click <a href="http://apex.oracle.com/pls/otn/f?p=20195:1600" target="_blank" rel="noopener">here</a> for a demo.</p>
-<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Sh9QMdwQ5PI/AAAAAAAADpI/cnJJTKr2r38/s1600-h/22_pct_bar.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Sh9QMdwQ5PI/AAAAAAAADpI/cnJJTKr2r38/s400/22_pct_bar.bmp" alt></a></p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/Sh9QMdwQ5PI/AAAAAAAADpI/cnJJTKr2r38/s1600-h/22_pct_bar.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Sh9QMdwQ5PI/AAAAAAAADpI/cnJJTKr2r38/s400/22_pct_bar.bmp" alt=""></a></p>
 <p><span style="font-weight: bold">1- Create your report</span><br><span style="font-style: italic">In this report we’re using the employees percentage of salary within their department</span></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> e.ename,</span><br><span class="line">       e.job,</span><br><span class="line">       d.dname,</span><br><span class="line">       e.sal,</span><br><span class="line">       <span class="keyword">ROUND</span> (e.sal / <span class="keyword">SUM</span> (e.sal) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> e.deptno) * <span class="number">100</span>, <span class="number">0</span>) pct_dep_sal,</span><br><span class="line">       <span class="keyword">ROUND</span> (e.sal / <span class="keyword">SUM</span> (e.sal) <span class="keyword">OVER</span> (<span class="keyword">PARTITION</span> <span class="keyword">BY</span> e.deptno) * <span class="number">100</span>, <span class="number">0</span>) bar</span><br><span class="line">  <span class="keyword">FROM</span> emp e,</span><br><span class="line">       dept d</span><br><span class="line"> <span class="keyword">WHERE</span> e.deptno = d.deptno</span><br></pre></td></tr></table></figure>
 <p><span style="font-weight: bold">2- Add Percentage Bar for the “bar” column</span></p>
@@ -509,12 +616,12 @@ UPDATE apex_030200.wwv_flow_worksheet_columns
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/06/displaying-percentage-bar-in-apex/" data-id="cjtqa7q11001rbura8qwiy10c" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/06/displaying-percentage-bar-in-apex/" data-id="ck3dzyyex001oh9quhkbq3vfy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/06/displaying-percentage-bar-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -591,12 +698,12 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/05/apexutiljsonfromsql-no-rows-bug-fix/" data-id="cjtqa7q10001pbura4t14w1cl" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/05/apexutiljsonfromsql-no-rows-bug-fix/" data-id="ck3dzyyeu001hh9qu6l80cvij" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/05/apexutiljsonfromsql-no-rows-bug-fix/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -710,57 +817,12 @@ INSERT INTO tapex_workspace_activity_log
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/05/apex-logs-storing-log-data/" data-id="cjtqa7q0y001mburatl690h9n" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/05/apex-logs-storing-log-data/" data-id="ck3dzyyew001mh9quhk0fbkh2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/05/apex-logs-storing-log-data/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-presenting-at-coug-calgary-oracle-user" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/05/presenting-at-coug-calgary-oracle-user/" class="article-date">
-  <time datetime="2009-05-25T03:02:00.000Z" itemprop="datePublished">2009-05-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/05/presenting-at-coug-calgary-oracle-user/">Presenting at COUG (Calgary Oracle User Group) this week</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><a href="http://www.coug.ab.ca/events/20090528.htm" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/Se0s5CljYQI/AAAAAAAADoQ/Jee6bufuoSQ/s400/coug.jpg" alt></a></p>
-<p>Frank Hoogendoorn and I will be giving a presentation on APEX at the Calgary Oracle User Group (COUG) on this Thursday, May 28th, at 8:00 am. For those of you that are thinking about implementing APEX within your organization this will be an excellent presentation as we will go over both the business and technical reasons why we are using APEX. We’ll also be demonstrating some of our newest APEX applications</p>
-<p>Thursday, May 28th<br>Registration: 8:00 am<br>Presentation: 8:30 am</p>
-<p><a href="http://maps.google.ca/maps?f=q&amp;source=s_q&amp;hl=en&amp;geocode=&amp;q=150+6+Avenue+SW,+calgary&amp;sll=51.048679,-114.064028&amp;sspn=0.007622,0.022745&amp;ie=UTF8&amp;ll=51.047923,-114.064071&amp;spn=0.007622,0.022745&amp;z=16&amp;iwloc=A" target="_blank" rel="noopener">PetroCanada Building - West Tower</a><br>150 6th Avenue S.W.<br>17th Floor, Meeting room B/C</p>
-<p>For more information, please go to: <a href="http://www.coug.ab.ca/events/20090528.htm" target="_blank" rel="noopener">http://www.coug.ab.ca/events/20090528.htm</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/05/presenting-at-coug-calgary-oracle-user/" data-id="cjtqa7q0x001kburasxz16tf1" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/05/presenting-at-coug-calgary-oracle-user/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/">meta</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -773,7 +835,7 @@ INSERT INTO tapex_workspace_activity_log
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/25/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><a class="page-number" href="/page/28/">28</a><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/27/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/25/">&amp;laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><a class="page-number" href="/page/28/">28</a><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/27/">Next &amp;raquo;</a>
   </nav>
 
 </section>
@@ -783,7 +845,7 @@ INSERT INTO tapex_workspace_activity_log
     <div class="widget-wrap">
   <h3 class="widget-title">Martin Giffy D'Souza</h3>
   <div class="widget aced">
-    <img src="/images/profile-martin.jpg" alt>&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt></a>
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra" target="_blank" rel="noopener"><img src="/images/aced-logo.gif" alt="" /></a>
   </div>
 </div>
 
@@ -795,7 +857,7 @@ INSERT INTO tapex_workspace_activity_log
       <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
       <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
       <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
-      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com" target="_blank" rel="noopener">Email me</a></li>
       <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
       <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
     </ul>
@@ -807,7 +869,7 @@ INSERT INTO tapex_workspace_activity_log
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -819,20 +881,20 @@ INSERT INTO tapex_workspace_activity_log
     <table class="books">
       <tbody>
         <tr>
-          <td><img src="/images/book-apex-plugins.jpeg" alt></td>
-          <td><img src="/images/book-expert-apex-5.jpeg" alt></td>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
         </tr>
         <tr>
-          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
-          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+          <td><a href="http://goo.gl/089zi" target="_blank" rel="noopener">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed" target="_blank" rel="noopener">Expert APEX 5</a></td>
         </tr>
         <tr>
-          <td><img src="/images/book-begin-apex-4.jpeg" alt></td>
-          <td><img src="/images/book-expert-apex-4.jpeg" alt></td>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
         </tr>
         <tr>
-          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
-          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+          <td><a href="http://goo.gl/NxHoF" target="_blank" rel="noopener">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P" target="_blank" rel="noopener">Expert APEX 4</a></td>
         </tr>
       </tbody>
     </table>
@@ -844,7 +906,7 @@ INSERT INTO tapex_workspace_activity_log
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

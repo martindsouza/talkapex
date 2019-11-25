@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html>
-<head><meta name="generator" content="Hexo 3.8.0">
+<head>
   <meta charset="utf-8">
   
   <title>TalkApex</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta property="og:type" content="website">
 <meta property="og:title" content="TalkApex">
-<meta property="og:url" content="http://www.talkapex.com/index.html">
+<meta property="og:url" content="http:&#x2F;&#x2F;www.talkapex.com&#x2F;index.html">
 <meta property="og:site_name" content="TalkApex">
 <meta property="og:locale" content="default">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="TalkApex">
 <meta name="twitter:creator" content="@martindsouza">
   
     <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
@@ -24,7 +23,7 @@
   
   <link rel="stylesheet" href="/css/style.css">
 </head>
-</html>
+
 <body>
   <div id="container">
     <div id="wrap">
@@ -32,7 +31,7 @@
   <!-- <div id="banner"></div> -->
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
-      <img src="/images/header-banner.png" alt>
+      <img src="/images/header-banner.png" alt="" />
       <!-- <h1 id="logo-wrap">
         <a href="/" id="logo">TalkApex</a>
       </h1> -->
@@ -67,6 +66,63 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-find-matching-sets-of-data-using-sql" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/11/how-to-find-matching-sets-of-data-using-sql/" class="article-date">
+  <time datetime="2019-11-24T05:20:59.000Z" itemprop="datePublished">2019-11-23</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/11/how-to-find-matching-sets-of-data-using-sql/">How to Find Matching Sets of Data Using SQL</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Suppose you have a set of data in Oracle, how can you find any other matching sets of data? This is different then most queries in SQL which just have “standard” predicates. For example most queries answer the question “<em>find me all cars that are red</em>“ (<code>where color = &#39;red&#39;</code>) whereas set comparison is answering the question “<em>find me all cars that are the same as a given set of cars</em>“.</p>
+<p>A good example of this problem is if you need to find orders that are <strong>exactly</strong> the same as a given order. An order can have multiple products in it. It’s not as easy as comparing one row to another, rather sets of rows to other sets of rows. </p>
+<h2 id="Set-Theory"><a href="#Set-Theory" class="headerlink" title="Set Theory"></a>Set Theory</h2><p>Before continuing it’s important to go over some basic set theory. One way to think of sets are as arrays of data. When comparing for equivalence of sets we need to ask two questions:</p>
+<ul>
+<li>Is everything in <code>A</code> in <code>B</code>? (i.e. <code>A - B = 0</code>)</li>
+<li>Is everything in <code>B</code> in <code>A</code>? (i.e. <code>B - A = 0</code>)</li>
+</ul>
+<p>At first glance, the second point may seem unnecessary but it isn’t as <code>A</code> may be a subset of <code>B</code>.</p>
+<p>Take for example the following arrays:</p>
+<ul>
+<li><code>A = 1,2,3</code></li>
+<li><code>B = 1,2,3,4</code></li>
+</ul>
+<p>In the above case, everything in <code>A</code> is in <code>B</code>, however everything in <code>B</code> (i.e. <code>4</code>) is not in <code>A</code>.</p>
+<h2 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h2><p>Suppose we have a table (<code>tab_a</code>) and we want to find any other tables with the exact same column definition.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Base table to be compared against</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> tab_a (</span><br><span class="line">  <span class="keyword">id</span> <span class="built_in">number</span>,</span><br><span class="line">  first_name varchar2(<span class="number">255</span>),</span><br><span class="line">  birth_date <span class="built_in">date</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Close to tab_a but has an additional column (last_name)</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> tab_b (</span><br><span class="line">  <span class="keyword">id</span> <span class="built_in">number</span>,</span><br><span class="line">  first_name varchar2(<span class="number">255</span>),</span><br><span class="line">  last_name varchar2(<span class="number">255</span>),</span><br><span class="line">  birth_date <span class="built_in">date</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Same as tab_a</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> tab_c (</span><br><span class="line">  <span class="keyword">id</span> <span class="built_in">number</span>,</span><br><span class="line">  first_name varchar2(<span class="number">255</span>),</span><br><span class="line">  birth_date <span class="built_in">date</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p>The above script will create three tables. If we start with <code>tab_a</code> only <code>tab_c</code> is the exact same. Using the set theory logic above, and the <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Set-Operators.html#GUID-5CB549AF-5A4F-453E-B164-49CAC8F94CBF" target="_blank" rel="noopener"><code>minus</code></a> set operator clause in Oracle you can find matching tables using the following query:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> at_match.table_name</span><br><span class="line"><span class="keyword">from</span> dual</span><br><span class="line">  <span class="comment">-- Using the all_tables view so we have a large data set to compare against</span></span><br><span class="line">  <span class="keyword">join</span> all_tables at_src <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">join</span> all_tables at_match <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">    <span class="comment">-- Exclude the same table</span></span><br><span class="line">    <span class="keyword">and</span> at_match.table_name != at_src.table_name</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> at_src.table_name = <span class="string">'TAB_A'</span></span><br><span class="line">  <span class="comment">-- A - B = 0</span></span><br><span class="line">  <span class="keyword">and</span> <span class="keyword">not</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> atc.column_name, atc.data_type</span><br><span class="line">    <span class="keyword">from</span> all_tab_columns atc</span><br><span class="line">    <span class="keyword">where</span> atc.table_name = at_src.table_name</span><br><span class="line">    <span class="keyword">minus</span></span><br><span class="line">    <span class="keyword">select</span> atc.column_name, atc.data_type</span><br><span class="line">    <span class="keyword">from</span> all_tab_columns atc</span><br><span class="line">    <span class="keyword">where</span> atc.table_name = at_match.table_name</span><br><span class="line">  )</span><br><span class="line">  <span class="comment">-- B - A = 0</span></span><br><span class="line">  <span class="keyword">and</span> <span class="keyword">not</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> atc.column_name, atc.data_type</span><br><span class="line">    <span class="keyword">from</span> all_tab_columns atc</span><br><span class="line">    <span class="keyword">where</span> atc.table_name = at_match.table_name</span><br><span class="line">    <span class="keyword">minus</span></span><br><span class="line">    <span class="keyword">select</span> atc.column_name, atc.data_type</span><br><span class="line">    <span class="keyword">from</span> all_tab_columns atc</span><br><span class="line">    <span class="keyword">where</span> atc.table_name = at_src.table_name</span><br><span class="line">  )</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">TABLE_NAME</span><br><span class="line"><span class="comment">----------</span></span><br><span class="line">TAB_C</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ck3dzyyts00gbh9qub6j965dh" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-validating-dates-and-numbers-in-oracle-12-2" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/03/validating-dates-and-numbers-in-oracle-12-2/" class="article-date">
@@ -98,12 +154,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="cjtqa7qc200gfburag9eskhyx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ck3dzyyub00gfh9qug1ocd93o" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-12c/">oracle-12c</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
 
     </footer>
   </div>
@@ -135,28 +191,28 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>APEX has the ability to easily have Read Only (RO) pages. The screen shot below shows how to define the page’s RO attribute. For this demo it’s set to <code>Always</code> but it could use any of the usual conditions in APEX.</p>
-<img src="/2019/03/apex-read-only-mode-page-processes/page-attribute.png">
+<img src="/2019/03/apex-read-only-mode-page-processes/page-attribute.png" class="">
 <p>When the page is loaded, all its page items are not editable:</p>
-<img src="/2019/03/apex-read-only-mode-page-processes/p2_name_ro.png">
+<img src="/2019/03/apex-read-only-mode-page-processes/p2_name_ro.png" class="">
 <p>They’re a few things to consider when using the Read Only attribute for a page:</p>
 <h2 id="Hacking-a-page-item-with-JavaScript"><a href="#Hacking-a-page-item-with-JavaScript" class="headerlink" title="Hacking a page item with JavaScript"></a>Hacking a page item with JavaScript</h2><p>In the previous image I can not modify the page item by standard means. I can still modify it using JavaScript (JS): <code>apex.item(&#39;P2_NAME&#39;).setValue(&#39;martin&#39;);</code> Submitting the page will trigger an error (which is good):</p>
-<img src="/2019/03/apex-read-only-mode-page-processes/js-modify-page-item.png">
+<img src="/2019/03/apex-read-only-mode-page-processes/js-modify-page-item.png" class="">
 <p>This information is relevant as you should probably disable any Dynamic Actions (DA) that modify page items when the page is in Read Only mode. Conditionally running DAs can easily be done by applying the declarative condition to a DA <code>Page/Region is Read Only</code>. You could also use the <a href="https://docs.oracle.com/database/apex-18.1/AEAPI/IS_READ_ONLY-Function.htm#AEAPI30179" target="_blank" rel="noopener"><code>apex_page.is_read_only</code></a> if you have additional server-side conditions for a DA.</p>
 <h2 id="Page-can-still-be-submitted"><a href="#Page-can-still-be-submitted" class="headerlink" title="Page can still be submitted"></a>Page can still be submitted</h2><p>In this demo, a page process has been created that logs a message using <a href="https://github.com/oraopensource/logger" target="_blank" rel="noopener">Logger</a>.</p>
 
 <p>If a user clicks the <code>Save</code> button the process is still run, despite the page being in Read Only mode. The next logical thing to do is to put a condition on the <code>Save</code> button so it does not appear when the page is in Read Only mode. Users can bypass this by running <code>apex.page.submit(&#39;SAVE&#39;);</code> in the console. The following demo highlights these concerns:</p>
-<img src="/2019/03/apex-read-only-mode-page-processes/demo-save-no-restrictions.gif">
+<img src="/2019/03/apex-read-only-mode-page-processes/demo-save-no-restrictions.gif" class="">
 <p>Similar to the previous section, if your page uses the Read Only attribute you should also apply conditions on the corresponding processes to restrict them when the page is in Read Only mode.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="cjtqa7qc100gdbura29bejcou" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="ck3dzyytp00g9h9qu5szm8dkz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -188,7 +244,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>Suppose you have a region with a set of cascading LOVs and report that references both of these items. When either of these items is refreshed, the report should be refreshed. When the parent item is changed it will trigger multiple refreshes of the report. The following example highlights this problem:</p>
-<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/overview.png">
+<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/overview.png" class="">
 <p><strong>p2_deptno:</strong> </p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> d.dname d, d.deptno r</span><br><span class="line"><span class="keyword">from</span> dept d</span><br><span class="line"><span class="keyword">order</span> <span class="keyword">by</span> dname</span><br></pre></td></tr></table></figure>
 <p><strong>p2_empno:</strong></p>
@@ -200,7 +256,7 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> empno, ename, deptno</span><br><span class="line"><span class="keyword">from</span> emp e</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> e.deptno = nvl(:p2_deptno, e.deptno)</span><br><span class="line">  <span class="keyword">and</span> e.empno = nvl(:p2_empno, e.empno)</span><br></pre></td></tr></table></figure>
 <p><em>Page Items to Submit</em>: <code>p2_deptno,p2_empno</code></p>
 <p>Next, create a Dynamic Action (DA) that will trigger a refresh on the <code>Report</code> region each time any item has changed:</p>
-<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/dynamic-action.png">
+<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/dynamic-action.png" class="">
 <p>When <code>p2_deptno</code> is changed, 3 Ajax requests occur:</p>
 <ol>
 <li><code>Report</code> region is refreshed (reason: Page items to Submit contains <code>p2_deptno</code>)</li>
@@ -208,24 +264,24 @@
 <li><code>Report</code> region is refreshed (reason: Page items to Submit contains <code>p2_empno</code>)</li>
 </ol>
 <p>The following demo highlights this problem. The report refreshes so quickly the only way to see the problem is to look at the differnet Ajax calls. <em>Note: the order of the Ajax responses may change since it’s asynchronous.</em></p>
-<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/cascade-lov-dup.gif">
+<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/cascade-lov-dup.gif" class="">
 <p>If your report runs relatively quick you may not even notice the duplicate refresh. I had a situation where we had five cascading LOVs and the underlying report was refreshed five times and was very noticeable to the users.</p>
 <p>Thankfully there’s a simple fix to this problem. When a JavaScript (JS) <code>change</code> event occurs and is triggered “by a user” the JS event <code>e.originalEvent</code> contains a value. In the above example step 3 was not really triggered by a user, rather triggered by a cascading LOV. In this case the JS event attribute <code>originalEvent</code> is null.</p>
 <p>Using the event attribute <code>originalEvent</code> we can solve the problem by adding the following Client-side Condition to the DA: <code>this.browserEvent.originalEvent !== undefined</code></p>
-<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/da-condition.png">
+<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/da-condition.png" class="">
 <p>Now when <code>p2_deptno</code> is modified only two Ajax calls occur (which is correct):</p>
-<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/cascade-lov-fix.gif">
+<img src="/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/cascade-lov-fix.gif" class="">
 <p>Thanks to <a href="https://twitter.com/fuzziebrain" target="_blank" rel="noopener">Adrian Png</a> for helping me with this.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="cjtqa7qc300ghburaid8vxqyn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="ck3dzyytu00gdh9qu340scu04" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li></ul>
 
     </footer>
   </div>
@@ -258,7 +314,7 @@
       
         <p>While developing standard reports in APEX I usually do the following repetitive steps. Modify something to do with the report (query, setting, attributes, source data, etc). After saving or committing my changes I refresh the page to see how it looks. This gets frustrating when doing a lot of small edits as a full page refresh is not required.</p>
 <p>I recently created a script to solve this problem. The script adds a small refresh icon in the first column header of each standard report. Clicking it will refresh the current report. The following demo shows it in action and how you don’t need a full page refresh to view changes to a report: <em>(note: you don’t need to run this in the console, which will be discussed at the end of the post)</em></p>
-<img src="/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/standard-report-refresh.gif">
+<img src="/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/standard-report-refresh.gif" class="">
 <p>The following steps outline how to integrate this directly in your application:</p>
 <ul>
 <li>On Page 0, create a new Dynamic Action (DA)<ul>
@@ -271,7 +327,7 @@
 </ul>
 <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> buttonHtml = <span class="string">'&lt;span aria-hidden="true" class="apex-dev-refresh fa fa-refresh fa-anim-spin"&gt;&lt;/span&gt;'</span>;</span><br><span class="line"></span><br><span class="line">$(<span class="string">'.t-Report'</span>).each(<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  <span class="keyword">var</span> $<span class="keyword">this</span> = $(<span class="keyword">this</span>);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Add button to screen</span></span><br><span class="line">  $<span class="keyword">this</span>.find(<span class="string">'th:first'</span>).prepend(buttonHtml);</span><br><span class="line"></span><br><span class="line">  <span class="comment">// Regenerate the refresh button after a region refresh</span></span><br><span class="line">  $(<span class="string">'#'</span> + $<span class="keyword">this</span>.data(<span class="string">'regionId'</span>)).on(<span class="string">'apexafterrefresh'</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">    $(<span class="keyword">this</span>).find(<span class="string">'th:first'</span>).prepend(buttonHtml);</span><br><span class="line">  &#125;)</span><br><span class="line"></span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="comment">// Register event listener</span></span><br><span class="line">$(<span class="built_in">document</span>).on(<span class="string">'click'</span>, <span class="string">".apex-dev-refresh"</span>, <span class="function"><span class="keyword">function</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">  $(<span class="keyword">this</span>).closest(<span class="string">'.t-Report'</span>).trigger(<span class="string">'apexrefresh'</span>);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>The DA should look like this:</p>
-<img src="/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/p0-da-setup.png">
+<img src="/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/p0-da-setup.png" class="">
 <p>You can change the icon and its settings to anything you want (i.e. by modifying the <code>buttonHtml</code>). You can use the <a href="https://apex.oracle.com/pls/apex/f?p=42:4000:::NO:::" target="_blank" rel="noopener">APEX Icon Generator</a> tool to generate the code for a new icon.</p>
 <p>Though not required, I <strong>highly recommend</strong> you add a Build Option (read <a href="https://twitter.com/swesley_perth" target="_blank" rel="noopener">Scott Wesley’s</a> <a href="http://www.grassroots-oracle.com/2010/06/oracle-apex-build-options.html" target="_blank" rel="noopener">article</a> - I have a Build Option called <code>DEV_ONLY</code>) to restrict the DA to development only.</p>
 <p>You could add the code to a JavaScript file and include it with your application or create a Dynamic Action plugin. <em>(If you create a plugin for this please let me know and I’ll be sure to refreence it.</em></p>
@@ -279,12 +335,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="cjtqa7qbz00gbburavmhos0uy" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="ck3dzyytb00g7h9qu24trb78j" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -317,10 +373,10 @@
       
         <p>They’re certain things in life that absolutely drive me crazy. I can probably start an entire blog on this topic but instead will focus on something I see many developers do in <a href="https://www.oracle.com/database/technologies/appdev/sql-developer.html" target="_blank" rel="noopener">SQL Developer</a>.</p>
 <p>Unfortunately I’ve see a lot of developers run their queries using a mouse instead of a keyboard shortcut (note no semicolon between queries) as demonstrated below:</p>
-<img src="/2019/02/how-to-execute-queries-in-sql-developer/sqldev-inefficient.gif">
+<img src="/2019/02/how-to-execute-queries-in-sql-developer/sqldev-inefficient.gif" class="">
 <p>You’ll notice that my second query had an error with it so I had to select it again, then click the run button to execute it.</p>
 <p>At first glance this may not seem like a big deal however if you run hundreds of queries a day that are much longer than two lines the inefficiencies really start to add up. With the use of the right syntax you can execute everything in SQL Developer via keyboard shortcuts. In the example below everything is run using <code>ctrl+enter</code></p>
-<img src="/2019/02/how-to-execute-queries-in-sql-developer/sqldev-correct.gif">
+<img src="/2019/02/how-to-execute-queries-in-sql-developer/sqldev-correct.gif" class="">
 <p>The syntax structure that you need to use is very simple:</p>
 <ul>
 <li>After every query have a semicolon (<code>;</code>)</li>
@@ -332,12 +388,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="cjtqa7qbv00g7bura4mbcuce9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="ck3dzyyt400g3h9qu6i7y0orp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql-developer/">sql-developer</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a></li></ul>
 
     </footer>
   </div>
@@ -370,9 +426,9 @@
       
         <p>All my releases are done via scripts. In other words I don’t deploy APEX applications from the browser, rather straight from <a href="https://www.oracle.com/ca-en/database/technologies/appdev/sqlcl.html" target="_blank" rel="noopener">SQLcl</a>. Since some of my releases can take a while and puts the code in an unstable state I usually disable the application for the duration of the release. This article will show how to disable an APEX application in PL/SQL.</p>
 <p>You can manually disable an application via <code>Shared Components &gt; Application Definition &gt; Availability &gt; Status</code>:</p>
-<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/status-options.png">
+<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/status-options.png" class="">
 <p>When setting the <code>Status</code> to <code>Unavailable</code> it will look like this for users:</p>
-<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/disabled-app.png">
+<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/disabled-app.png" class="">
 <p>Note: they’re various status options which allow you to determine how to define the status message.</p>
 <p>Going back to releases, the overall order things occur in are:</p>
 <ol>
@@ -384,18 +440,18 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_app_id apex_applications.application_id%<span class="keyword">type</span> := <span class="number">102</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="comment">-- Pre APEX 18.x</span></span><br><span class="line">  <span class="comment">-- oos_util_apex.create_session(</span></span><br><span class="line">  <span class="comment">--   p_app_id =&gt; l_app_id,</span></span><br><span class="line">  <span class="comment">--   p_user_name =&gt; 'RELEASE'</span></span><br><span class="line">  <span class="comment">-- );</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">-- APEX 18.x +</span></span><br><span class="line">  apex_session.create_session (</span><br><span class="line">    p_app_id =&gt; l_app_id,</span><br><span class="line">    p_page_id =&gt; <span class="number">1</span>,</span><br><span class="line">    p_username =&gt; <span class="string">'RELEASE'</span>);</span><br><span class="line"></span><br><span class="line">  apex_util.set_application_status(</span><br><span class="line">    p_application_id =&gt; l_app_id,</span><br><span class="line">    p_application_status =&gt; 'UNAVAILABLE',</span><br><span class="line">    p_unavailable_value =&gt; 'Updating application');</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">commit</span>;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
 <p>If using a version lower than APEX 18.x you’ll need to install <a href="https://github.com/OraOpenSource/oos-utils" target="_blank" rel="noopener">OOS Utils</a> to create an APEX session in SQL. </p>
 <p>Before running the above code you’ll need to enable the runtime API by going to <code>Shared Components &gt; Security Attributes &gt; Database Session &gt; Runtime API Usage</code> and check <code>Modify This Application</code>.</p>
-<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/runtime-api.png">
+<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/runtime-api.png" class="">
 <p>Documention for <a href="https://docs.oracle.com/database/apex-18.1/AEAPI/SET_APPLICATION_STATUS-Procedure.htm#AEAPI-GUID-59E0FE99-8911-41B3-823A-36D4C705ACA4" target="_blank" rel="noopener"><code>apex_util.set_application_status</code></a>.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="cjtqa7qbu00g5buraenjhew7l" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="ck3dzyyt300g1h9qu9j5aerz0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -432,17 +488,17 @@
 <figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">$(<span class="built_in">document</span>).ready(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  $.widget(<span class="string">"apex.interactiveReport"</span>, $.apex.interactiveReport, &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Saving a Default report</span></span><br><span class="line">    _saveDefault: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">"_saveDefault"</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>._getId(<span class="string">"report_name"</span>));</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'stopping'</span>);</span><br><span class="line">      <span class="comment">// return this._super();</span></span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Saving a Public or Private reports</span></span><br><span class="line">    _save: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'_save'</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>._getId(<span class="string">"report_name"</span>));</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'stopping'</span>);</span><br><span class="line">      <span class="comment">// return this._super();</span></span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Deleting a report (user clicking the "X")</span></span><br><span class="line">    _remove: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'_remove'</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>._getId(<span class="string">"report_name"</span>));</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'stopping'</span>);</span><br><span class="line">      <span class="comment">// return this._super();</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
 <p>I’ve commented out <code>return this._super();</code>. Re-enabling it will continue the function (save, remove, etc) as expected. In most cases you would wrap it in an <code>if</code> condition based on your requirements.</p>
 <p>The following demo shows this code in action. Both the save and delete requests don’t complete as the JS code intercepts the requests and logs some information.</p>
-<img src="/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/intercept-ir.gif">
+<img src="/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/intercept-ir.gif" class="">
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="cjtqa7qbx00g9buralg0bw09v" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="ck3dzyyt700g5h9qu0gw56hfr" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/">javascript</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li></ul>
 
     </footer>
   </div>
@@ -485,12 +541,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="cjtqa7qbs00g2burazp8gzhow" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="ck3dzyyst00fuh9qubj7mfuz5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
 
     </footer>
   </div>
@@ -522,84 +578,22 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>By default Oracle does case sensitive sorting, which means that ascending order goes from <code>A-Z</code> then <code>a-z</code>. This is reflected in APEX when creating reports and sorting on them.</p>
-<img src="/2019/02/case-insensitive-sorting-in-apex/before.png">
+<img src="/2019/02/case-insensitive-sorting-in-apex/before.png" class="">
 <p>They’re various workarounds to enable case insensitive sorting. The simplest is to change the entire application by modifying the following setting in <code>Shared Components &gt; Globalization &gt; Character Value Comparison</code> to <code>BINARY_CI</code>:</p>
-<img src="/2019/02/case-insensitive-sorting-in-apex/settings.png">
+<img src="/2019/02/case-insensitive-sorting-in-apex/settings.png" class="">
 <p>Once set, all your reports will be sorted case insensitive. The first report now looks like this:</p>
-<img src="/2019/02/case-insensitive-sorting-in-apex/after.png">
+<img src="/2019/02/case-insensitive-sorting-in-apex/after.png" class="">
 <p><em>Thanks to <a href="https://twitter.com/rimblas" target="_blank" rel="noopener">Jorge Rimblas</a> for showing me this!</em></p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/" data-id="cjtqa7qbq00g0burauw97igfv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/" data-id="ck3dzyyt100fyh9qudcbca36i" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-5-chrome-dev-tools-for-apex-developers" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/02/5-chrome-dev-tools-for-apex-developers/" class="article-date">
-  <time datetime="2019-02-25T01:00:32.000Z" itemprop="datePublished">2019-02-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/02/5-chrome-dev-tools-for-apex-developers/">5 Chrome Dev Tools For APEX Developers</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><a href="https://www.google.com/chrome/" target="_blank" rel="noopener">Google Chrome</a> has a lot of great <a href="https://developers.google.com/web/tools/chrome-devtools/" target="_blank" rel="noopener">DevTools</a>. Here are 5 tools that may help with your APEX development.</p>
-<h1 id="Live-Expressions"><a href="#Live-Expressions" class="headerlink" title="Live Expressions"></a>Live Expressions</h1><p>If you had a hidden APEX page item that you wanted to monitor you constantly had to go into the console and type in write out <code>console.log(...)</code> to view its value. This can be annoying if the value will change multiple times as you test the page. <a href="https://developers.google.com/web/updates/2018/08/devtools#watch" target="_blank" rel="noopener">Live Expressions</a> (introduced in Chrome 70) resolves this issue by being able to track output by updating the value every 250 milliseconds.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/live-expressions.gif">
-<p>The nice thing is that Live Expressions are preserved when you refresh a page. It’s hard to tell in the example above but I refreshed the page at one point.</p>
-<h1 id="Command-Menu"><a href="#Command-Menu" class="headerlink" title="Command Menu"></a>Command Menu</h1><p>Chrome DevTools have a lot of settings and features that you may not know about, let alone know where to access. Thankfully it has the Command Menu which is like Spotlight in MacOS. Anywhere in the DevTools type <code>Cmd+Shift+P</code> (Windows users <code>Ctrl+Shift+P</code>) to enable them. These shortcut keys are the same in <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">Visual Studio Code</a> so developers that use VSC will be very familiar with the behavior.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/command-menu.gif">
-<p>In the last part of the above demo I typed in <code>Cmd+P</code> (Windows users <code>Ctrl+P</code>). This will open a file that the webpage loaded or that you have in your workspace (shown below)</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/command-menu-workspace.png">
-<h1 id="Dark-Mode"><a href="#Dark-Mode" class="headerlink" title="Dark Mode"></a>Dark Mode</h1><p>A long time ago I changed my editor to a dark theme. Since then a lot of applications (including APEX 19.1 and MacOS Mojave) support dark themes. Chrome DevTools now supports dark mode.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/dark-mode.gif">
-<h1 id="Persist-CSS-Changes"><a href="#Persist-CSS-Changes" class="headerlink" title="Persist CSS Changes"></a>Persist CSS Changes</h1><p>A lot of times when doing basic UI / CSS debugging you may inspect an element and modify its CSS properties. When you refresh the page you lose all your changes. This is especially frustrating if doing live-CSS edits with end users to do quick proof of concepts.</p>
-<p>You can persist CSS changes using the Chrome Overrides feature. To enable this go to <code>Sources &gt; Overrides &gt; +</code> to add a folder. This can be any empty folder you want.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/overrides-config.png">
-<p>When you do this you’ll get the following warning message. Be sure to <code>Allow</code> Chrome to access the folder. You’ll only need to do this setup once.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/overrides-permission.png">
-<p>Now when you modify a CSS property and refresh the page it’ll persist even after you reload the page:</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/overrides-demo.gif">
-<p>If you want to quickly reset all the changes you’ve made just delete everything in your <code>overrides</code> folder.</p>
-<h1 id="Adding-Breakpoints-in-Code"><a href="#Adding-Breakpoints-in-Code" class="headerlink" title="Adding Breakpoints in Code"></a>Adding Breakpoints in Code</h1><p>They’re various ways to add <a href="https://developers.google.com/web/tools/chrome-devtools/javascript/breakpoints" target="_blank" rel="noopener">breakpoints</a> to help you debug. Sometimes you know exactly where in you JS code you want to add breakpoints but don’t want to manage it via the UI. In this case you can add breakpoints directly in your code by adding the <code>debugger;</code> command.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/breakpoints.gif">
-<h1 id="Offline-Fun"><a href="#Offline-Fun" class="headerlink" title="Offline Fun"></a>Offline Fun</h1><p>This won’t exactly help you with your APEX development, nor is it a DevTool feature. If you’re ever offline and really bored Chrome’s got you covered. Simply hit the <code>spacebar</code> when you see the dinosaur to start and use the <code>up</code> and <code>down</code> arrows to move it around.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/chrome-fun.gif">
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/" data-id="cjtqa7qbo00fyburaglzriz8t" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/chrome/">chrome</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -612,7 +606,7 @@
 
   <nav id="page-nav">
     
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
   </nav>
 
 </section>
@@ -622,7 +616,7 @@
     <div class="widget-wrap">
   <h3 class="widget-title">Martin Giffy D'Souza</h3>
   <div class="widget aced">
-    <img src="/images/profile-martin.jpg" alt>&nbsp;&nbsp;<a href="http://goo.gl/IOHra"><img src="/images/aced-logo.gif" alt></a>
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra" target="_blank" rel="noopener"><img src="/images/aced-logo.gif" alt="" /></a>
   </div>
 </div>
 
@@ -634,7 +628,7 @@
       <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
       <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
       <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
-      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com" target="_blank" rel="noopener">Email me</a></li>
       <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
       <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
     </ul>
@@ -646,7 +640,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/">sql</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -658,20 +652,20 @@
     <table class="books">
       <tbody>
         <tr>
-          <td><img src="/images/book-apex-plugins.jpeg" alt></td>
-          <td><img src="/images/book-expert-apex-5.jpeg" alt></td>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
         </tr>
         <tr>
-          <td><a href="http://goo.gl/089zi">APEX Plugins</a></td>
-          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed">Expert APEX 5</a></td>
+          <td><a href="http://goo.gl/089zi" target="_blank" rel="noopener">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed" target="_blank" rel="noopener">Expert APEX 5</a></td>
         </tr>
         <tr>
-          <td><img src="/images/book-begin-apex-4.jpeg" alt></td>
-          <td><img src="/images/book-expert-apex-4.jpeg" alt></td>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
         </tr>
         <tr>
-          <td><a href="http://goo.gl/NxHoF">Beginning APEX 4</a></td>
-          <td><a href="http://goo.gl/tXm3P">Expert APEX 4</a></td>
+          <td><a href="http://goo.gl/NxHoF" target="_blank" rel="noopener">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P" target="_blank" rel="noopener">Expert APEX 4</a></td>
         </tr>
       </tbody>
     </table>
@@ -683,7 +677,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
