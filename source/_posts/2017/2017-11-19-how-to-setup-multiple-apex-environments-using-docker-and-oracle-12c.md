@@ -2,7 +2,7 @@
 title: How to Setup Multiple APEX Environments using Docker and Oracle 12c
 tags:
   - docker
-  - 12c
+  - oracle-12c
   - apex
 date: 2017-11-19 07:31:49
 alias:

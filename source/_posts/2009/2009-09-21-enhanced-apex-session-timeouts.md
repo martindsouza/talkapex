@@ -7,9 +7,9 @@ date: 2009-09-21 09:00:00
 alias:
 ---
 
-APEX has built in logic to set the lifetime of a session. <span style="font-style:italic;">To configure this option go to Shared Components / Edit Security Attributes / Maximum Session Idle Time in Seconds and set the time in seconds</span>
+APEX has built in logic to set the lifetime of a session. _To configure this option go to Shared Components / Edit Security Attributes / Maximum Session Idle Time in Seconds and set the time in seconds._
 
-This essentially terminates the user's session in the database and the next time they submit the page they'll be redirected to the login screen. <span style="font-weight:bold;font-style:italic">The user will only know that they are logged out once they submit the page</span>. If you have an Interactive Report (IR), or use Partial Page Refresh (PPR) the users won't know they're logged out. Instead it will look as though the report is still trying to load.
+This essentially terminates the user's session in the database and the next time they submit the page they'll be redirected to the login screen. **_The user will only know that they are logged out once they submit the page_**. If you have an Interactive Report (IR), or use Partial Page Refresh (PPR) the users won't know they're logged out. Instead it will look as though the report is still trying to load.
 
 [![](http://2.bp.blogspot.com/_33EF80fk9sM/SrZjdKYpklI/AAAAAAAADqs/GPxkwVTc1Ow/s400/apex_session_timeout_ir_ex.PNG)](http://2.bp.blogspot.com/_33EF80fk9sM/SrZjdKYpklI/AAAAAAAADqs/GPxkwVTc1Ow/s1600-h/apex_session_timeout_ir_ex.PNG)
 Another situation that may happen is that the user is filling out a long form on your page, their session timesout, then they click "submit". They'll be redirected to the login page and they'll lose all the information that they entered.
@@ -19,7 +19,7 @@ What if a user wants to extend their session? i.e. they haven't done anything to
 [![](http://3.bp.blogspot.com/_33EF80fk9sM/SrZjlS8xbPI/AAAAAAAADq0/GlyvVtBhr2Y/s400/ac_session_timeout.PNG)](http://3.bp.blogspot.com/_33EF80fk9sM/SrZjlS8xbPI/AAAAAAAADq0/GlyvVtBhr2Y/s1600-h/ac_session_timeout.PNG)
 The following solution will allow you to use APEX's session timeout and resolve the issues listed above. You can view the demo here: [http://apex.oracle.com/pls/otn/f?p=20195:2600](http://apex.oracle.com/pls/otn/f?p=20195:2600)
 
-<span style="font-style:italic">Please note that since the demo page is set to public you can refresh after the session is supposed to have timedout and it will still work. If you set the Idle Session in APEX, this will work for pages that require authentication</span>
+_Please note that since the demo page is set to public you can refresh after the session is supposed to have timedout and it will still work. If you set the Idle Session in APEX, this will work for pages that require authentication._
 
 [![](http://2.bp.blogspot.com/_33EF80fk9sM/SrZkYgKz7_I/AAAAAAAADrM/U8se-ZIHyIw/s400/apex_session_extend.PNG)](http://2.bp.blogspot.com/_33EF80fk9sM/SrZkYgKz7_I/AAAAAAAADrM/U8se-ZIHyIw/s1600-h/apex_session_extend.PNG)
 [![](http://2.bp.blogspot.com/_33EF80fk9sM/SrZj0SLARDI/AAAAAAAADrE/0ywt1wBNUNA/s400/apex_session_ended.PNG)](http://2.bp.blogspot.com/_33EF80fk9sM/SrZj0SLARDI/AAAAAAAADrE/0ywt1wBNUNA/s1600-h/apex_session_ended.PNG)
@@ -29,7 +29,7 @@ Here's a high level overview of what this solution does:
 *   Start a timer (idleTimer) to detect movement on the page.
 *   If the idleTimer times out, give the user the option to extend session
 *   If the user does not extend their session, terminate their session
-<span style="font-style:italic">I haven't put this code into a production application yet. As I mention below, I plan to make a jQuery plugin for this, so if you please send me any feedback that would be useful fur the plugin.</span>
+_I haven't put this code into a production application yet. As I mention below, I plan to make a jQuery plugin for this, so if you please send me any feedback that would be useful fur the plugin._
 
 This solution uses [jQuery](http://jquery.com) and the following plugins:
 
@@ -38,60 +38,62 @@ This solution uses [jQuery](http://jquery.com) and the following plugins:
 *   [jApex](http://tylermuth.wordpress.com/2009/08/19/japex-a-jquery-plugin-for-apex/)
 *   [jQuery Countdown](http://keith-wood.name/countdown.html)
 
-<span style="font-weight:bold">- Create Application Process: AP_NULL</span>
+## Create Application Process: AP_NULL
 - Process Point: On Demand
 - Name: AP_NULL
 - Type: PL/SQL Anonymous Block
 - Process Text: NULL;
 
-<span style="font-weight:bold">- Create Application Process: AP_LOGOUT</span>
+## Create Application Process: AP_LOGOUT
 - Process Point: On Demand
 - Name: AP_LOGOUT
 - Type: PL/SQL Anonymous Block
 - Process Text:
-<pre class="brush: sql">
-BEGIN
-  apex_custom_auth.LOGOUT (p_this_app                   => :app_id,
-                           p_next_app_page_sess         => :app_id || ':1');
-END;
-</pre>
 
-<span style="font-weight:bold">- Create Region: "Extend Session" on Page 0</span>
+```sql
+begin
+  apex_custom_auth.logout(
+    p_this_app => :app_id,
+    p_next_app_page_sess => :app_id || ':1');
+end;
+```
+
+## Create Region: "Extend Session" on Page 0
 - Title: Extend Session
 - Type: HTML Text
 - Static ID: P0_REG_EXTEND_SESSION
 - Region Attributes: style="display:none"
-- Region Source: Your session will timeout in: &lt;span id="timeoutCountdownDisplay" style="font-weight:bold"&gt;&lt;/span&gt;
-<span style="font-style:italic">You can put whatever message you want. Just make sure the span tags exist for the countdown timer</span>
+- Region Source: `Your session will timeout in: <span id="timeoutCountdownDisplay" style="font-weight:bold"></span>`
+_You can put whatever message you want. Just make sure the span tags exist for the countdown timer._
 
-<span style="font-weight:bold">- Create Button: "Extend Session" on Page 0</span>
+## Create Button: "Extend Session" on Page 0
 - Button Name: EXTEND_SESSION
 - Text Label: Extend Session
 - Display in Region: Extend Session
 - Target is a: URL
 - URL Target: javascript:gTimeout.timers.killSession.liveFn();
 
-<span style="font-weight:bold">- Create Region: "Session Timedout" on Page 0</span>
+## Create Region: "Session Timedout" on Page 0
 - Title: Session Ended
 - Type: HTML Text
-- Static ID: P0_REG_SESSION_ENDED
-- Region Attributes: style="display:none"
+- Static ID: `P0_REG_SESSION_ENDED`
+- Region Attributes: `style="display:none"`
 - Region Source: Your session has ended. Please login.
 
-<span style="font-weight:bold">- Create Button: "Login" on Page 0</span>
+## Create Button: "Login" on Page 0
 - Button Name: LOGIN
 - Text Label: Login
 - Display in Region: Session Ended
 - Target is a: Page in this Application
 - Page: 1
 
-<span style="font-weight:bold">- Create Region: "JavaScript - Session Timeout" on Page 0</span>
+## Create Region: "JavaScript - Session Timeout" on Page 0
 - Title: JavaScript - Session Timeout
 - Type: HTML Text
 - Template: No Template
 - Region Source:
 
-<pre class="brush: html">
+```html
 <script src="#APP_IMAGES#jquery-1.3.2.min.js" type="text/javascript"></script>
 <script src="#APP_IMAGES#jquery.simplemodal-1.3.min.js" type="text/javascript"></script>
 <script src="#APP_IMAGES#idle-timer-0.7.080609.js" type="text/javascript"></script>
@@ -102,13 +104,15 @@ END;
   //*** Insert script from below ***/
   //Removed for display purposes
 </script>
-</pre>
-<span style="font-style:italic">You'll need to upload the JS files beforehand. Please see the list above to obtain the files</span>
+```
+
+_You'll need to upload the JS files beforehand. Please see the list above to obtain the files._
 
 Here's the script to put into the region above. I separated them for display purposes.
 
-<span style="font-style:italic">I probably should have created this as a jQuery plugin. I may convert it later on</span>
-<pre class="brush: js">
+I probably should have created this as a jQuery plugin. I may convert it later on.
+
+```js
 var gTimeout = {
   //debug
   debug: false, //Set to True to turn on debugging
@@ -274,4 +278,4 @@ $(document).ready(function(){
 
   gTimeout.loadFn();
 });
-</pre>
+```

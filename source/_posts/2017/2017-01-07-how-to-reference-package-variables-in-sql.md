@@ -3,7 +3,7 @@ title: How to Reference Package Variables in SQL
 tags:
   - sql
   - plsql
-  - 12c
+  - oracle-12c
 date: 2017-01-07 12:40:27
 alias:
 ---
