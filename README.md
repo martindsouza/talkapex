@@ -13,15 +13,18 @@ hexo publish FILENAME
 
 # Install
 
+Docker: See [docker-hexo](https://github.com/martindsouza/docker-hexo)
+
+
+Old: 
+
 ```bash
 npm install hexo-deployer-git --save
 npm install hexo-browsersync --save
+npm install -g hexo-cli
 ```
 
 # Testing
-`npm install -g hexo-cli`
-
-This uses the `npm install hexo-browsersync --save` plugin
 
 `hexo server --draft`
 
