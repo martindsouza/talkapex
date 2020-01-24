@@ -44,8 +44,26 @@ hexo clean
 # Generate content
 hexo generate
 
-# Deployment
+# Deployment (using hexo-deployer-git)
 hexo deploy -g
+
+
+
+# Manual Deployment
+# Do this once:
+git clone --single-branch --branch gh-pages git@github.com:martindsouza/talkapex.git .deploy_git
+
+# Deploy
+hexo clean
+hexo generate
+rm -rf .deploy_git/*
+cp -r public/* .deploy_git/
+cd .deploy_git
+git add *
+git commit -m "Site updated"
+git push
+
+# Deploy New
 ```
 
 ## Writing
