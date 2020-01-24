@@ -6,17 +6,18 @@
   <title>APEX Reports: No Limit Downloads | TalkApex</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="When configuring a standard report in APEX you can define the maximum number of rows that the query will return. This setting is called Max Row Count and can be configured in the Report Attributes tab">
-<meta name="keywords" content="apex">
 <meta property="og:type" content="article">
 <meta property="og:title" content="APEX Reports: No Limit Downloads">
-<meta property="og:url" content="http:&#x2F;&#x2F;www.talkapex.com&#x2F;2010&#x2F;10&#x2F;apex-reports-no-limit-downloads&#x2F;index.html">
+<meta property="og:url" content="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/index.html">
 <meta property="og:site_name" content="TalkApex">
 <meta property="og:description" content="When configuring a standard report in APEX you can define the maximum number of rows that the query will return. This setting is called Max Row Count and can be configured in the Report Attributes tab">
-<meta property="og:locale" content="default">
-<meta property="og:image" content="http:&#x2F;&#x2F;4.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;TMBHWaM0ypI&#x2F;AAAAAAAAD1M&#x2F;qQI-dhYYyuM&#x2F;s400&#x2F;max_row_count.jpg">
-<meta property="og:updated_time" content="2017-01-07T15:38:36.000Z">
+<meta property="og:image" content="http://4.bp.blogspot.com/_33EF80fk9sM/TMBHWaM0ypI/AAAAAAAAD1M/qQI-dhYYyuM/s400/max_row_count.jpg">
+<meta property="article:published_time" content="2010-10-21T15:00:00.000Z">
+<meta property="article:modified_time" content="2017-01-07T15:38:36.000Z">
+<meta property="article:author" content="Martin Giffy D&#39;Souza">
+<meta property="article:tag" content="apex">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http:&#x2F;&#x2F;4.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;TMBHWaM0ypI&#x2F;AAAAAAAAD1M&#x2F;qQI-dhYYyuM&#x2F;s400&#x2F;max_row_count.jpg">
+<meta name="twitter:image" content="http://4.bp.blogspot.com/_33EF80fk9sM/TMBHWaM0ypI/AAAAAAAAD1M/qQI-dhYYyuM/s400/max_row_count.jpg">
 <meta name="twitter:creator" content="@martindsouza">
   
     <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
@@ -27,8 +28,10 @@
   
     <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
   
-  <link rel="stylesheet" href="/css/style.css">
-</head>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
 
 <body>
   <div id="container">
@@ -97,43 +100,89 @@
 <p>What if the user wants to retrieve all the data when they download the report? From the end users perspective this makes sense since they may want to extract all the data to do some custom analysis.</p>
 <p>My first thought was to use a page item for the Maximum Row Count. I quickly discovered that it only takes a numeric value. As a work around you can control the rows returned directly from the SQL statement. Here’s an example of this:</p>
 <p><span style="font-weight:bold;">- Create a large table:</span></p>
-<p><pre class="brush: sql"><br>CREATE TABLE large_emp<br>AS<br>      SELECT *<br>        FROM emp<br>  CONNECT BY LEVEL &lt;= 5;</pre><span style="font-weight:bold;">- Create standard report</span><br>Create a standard report using the following query. Set the Max Row Count to 999999999 (i.e. some very large number)</p>
-<p><pre class="brush: sql; highlight: 6;"><br>SELECT ename,<br>       job,<br>       sal,<br>       comm<br>  FROM large_emp<br> WHERE ROWNUM &lt;= CASE WHEN :request LIKE (‘FLOW_EXCEL_OUTPUT%’) THEN ROWNUM ELSE 500 END;</pre>You are manually defining the Max Row Count by adding in ROWNUM predicate.</p>
+<pre class="brush: sql">
+CREATE TABLE large_emp
+AS
+      SELECT *
+        FROM emp
+  CONNECT BY LEVEL <= 5;</pre><span style="font-weight:bold;">- Create standard report</span>
+<p>Create a standard report using the following query. Set the Max Row Count to 999999999 (i.e. some very large number)</p>
+<pre class="brush: sql; highlight: 6;">
+SELECT ename,
+       job,
+       sal,
+       comm
+  FROM large_emp
+ WHERE ROWNUM <= CASE WHEN :request LIKE ('FLOW_EXCEL_OUTPUT%') THEN ROWNUM ELSE 500 END;</pre>You are manually defining the Max Row Count by adding in ROWNUM predicate.
+
 <p>When users <span style="font-weight:bold;">views</span> the report in APEX it will only display a maximum of 500 rows. When they <span style="font-weight:bold;">download</span> the report the csv file will contain all the rows.</p>
 <p>A caveat with this approach is that if your report has more than 500 rows you won’t see the “<span style="font-style:italic;">… of more than 500</span>“ rows message as part of the pagination. Instead users will see “<span style="font-style:italic;">rows … of 500</span>“ in the pagination. Users may be misled to think that the report only has 500 rows of data.</p>
 <p>When I reviewed this technique I was concerned about performance issues when viewing the report in APEX. Here are the TKPROF outputs of the original query (with Max Row Count = 500) and the alternate query with the ROWNUM predicate (Max Row Count = 999999999):</p>
-<p><pre class="brush: sql; highlight: 42;"></p>
-<h2 id="–-Both-outputs-are-for-VIEWING-the-report-not-downloading-it"><a href="#–-Both-outputs-are-for-VIEWING-the-report-not-downloading-it" class="headerlink" title="– Both outputs are for VIEWING the report (not downloading it)"></a>– Both outputs are for VIEWING the report (not downloading it)</h2><p>– Original Query<br>– Max Row Count = 500<br>– Run for displaying rows 1~15<br>SELECT ename, job, sal, comm<br>  FROM large_emp<br> order by 3 – Automatically added by APEX</p>
-<p>call     count       cpu    elapsed       disk      query    current        rows</p>
-<hr>
-<p>Parse        1      0.00       0.00          0          1          0           0<br>Execute      2      0.00       0.00          0          0          0           0<br>Fetch      501      0.65       1.42         14       3417          3         501</p>
-<hr>
-<p>total      504      0.65       1.42         14       3418          3         501</p>
-<p>Misses in library cache during parse: 1<br>Optimizer mode: ALL_ROWS<br>Parsing user id: 40     (recursive depth: 2)</p>
-<p>Rows     Row Source Operation</p>
-<hr>
-<pre><code>501  SORT ORDER BY (cr=3417 pr=14 pw=2053 time=1417580 us)
-</code></pre><p> 579194   TABLE ACCESS FULL LARGE_EMP (cr=3417 pr=0 pw=0 time=1158549 us)</p>
-<p>Elapsed times include waiting on following events:<br>  Event waited on                             Times   Max. Wait  Total Waited<br>  —————————————-   Waited  ———-  ————<br>  direct path write temp                         70        0.00          0.00<br>  direct path read temp                           2        0.00          0.00</p>
-<p>– <strong><strong><strong><strong><strong><strong><strong><strong><strong>*</strong></strong></strong></strong></strong></strong></strong></strong></strong></p>
-<p>– New Query<br>– Max Row Count = 9999999999<br>– Run for displaying rows 1~15<br>SELECT ename, job, sal, comm<br>  FROM large_emp<br> WHERE ROWNUM &lt;= CASE WHEN :request LIKE (‘FLOW_EXCEL_OUTPUT%’) THEN ROWNUM ELSE 500 END<br> order by 3 – Automatically added by APEX</p>
-<p>call     count       cpu    elapsed       disk      query    current        rows</p>
-<hr>
-<p>Parse        2      0.00       0.00          0          0          0           0<br>Execute      2      0.00       0.00          0          0          1           0<br>Fetch      501      0.38       0.53          0       3417          0         500</p>
-<hr>
-<p>total      505      0.38       0.54          0       3417          1         500</p>
-<p>Misses in library cache during parse: 1<br>Parsing user id: 40     (recursive depth: 2)</p>
-<p>Rows     Row Source Operation</p>
-<hr>
-<pre><code>500  SORT ORDER BY (cr=3417 pr=0 pw=0 time=535125 us)
-500   COUNT  (cr=3417 pr=0 pw=0 time=3376 us)
-500    FILTER  (cr=3417 pr=0 pw=0 time=2298 us)
-</code></pre><p> 579194     TABLE ACCESS FULL LARGE_EMP (cr=3417 pr=0 pw=0 time=5212959 us)</pre>I’m not a performance guru and I can’t comment too much on these outputs. If you think this will have negative effects on performance please add your feedback as a comment on this post.</p>
+<pre class="brush: sql; highlight: 42;">
+-- Both outputs are for VIEWING the report (not downloading it)
+--
+-- Original Query
+-- Max Row Count = 500
+-- Run for displaying rows 1~15
+SELECT ename, job, sal, comm
+  FROM large_emp
+ order by 3 -- Automatically added by APEX
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        1      0.00       0.00          0          1          0           0
+Execute      2      0.00       0.00          0          0          0           0
+Fetch      501      0.65       1.42         14       3417          3         501
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total      504      0.65       1.42         14       3418          3         501
+
+Misses in library cache during parse: 1
+Optimizer mode: ALL_ROWS
+Parsing user id: 40     (recursive depth: 2)
+
+Rows     Row Source Operation
+-------  ---------------------------------------------------
+    501  SORT ORDER BY (cr=3417 pr=14 pw=2053 time=1417580 us)
+ 579194   TABLE ACCESS FULL LARGE_EMP (cr=3417 pr=0 pw=0 time=1158549 us)
+
+Elapsed times include waiting on following events:
+  Event waited on                             Times   Max. Wait  Total Waited
+  ----------------------------------------   Waited  ----------  ------------
+  direct path write temp                         70        0.00          0.00
+  direct path read temp                           2        0.00          0.00
+
+-- *************************************
+
+-- New Query
+-- Max Row Count = 9999999999
+-- Run for displaying rows 1~15
+SELECT ename, job, sal, comm
+  FROM large_emp
+ WHERE ROWNUM <= CASE WHEN :request LIKE ('FLOW_EXCEL_OUTPUT%') THEN ROWNUM ELSE 500 END
+ order by 3 -- Automatically added by APEX
+
+call     count       cpu    elapsed       disk      query    current        rows
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+Parse        2      0.00       0.00          0          0          0           0
+Execute      2      0.00       0.00          0          0          1           0
+Fetch      501      0.38       0.53          0       3417          0         500
+------- ------  -------- ---------- ---------- ---------- ----------  ----------
+total      505      0.38       0.54          0       3417          1         500
+
+Misses in library cache during parse: 1
+Parsing user id: 40     (recursive depth: 2)
+
+Rows     Row Source Operation
+-------  ---------------------------------------------------
+    500  SORT ORDER BY (cr=3417 pr=0 pw=0 time=535125 us)
+    500   COUNT  (cr=3417 pr=0 pw=0 time=3376 us)
+    500    FILTER  (cr=3417 pr=0 pw=0 time=2298 us)
+ 579194     TABLE ACCESS FULL LARGE_EMP (cr=3417 pr=0 pw=0 time=5212959 us)</pre>I'm not a performance guru and I can't comment too much on these outputs. If you think this will have negative effects on performance please add your feedback as a comment on this post.
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/" data-id="ck3dzyyhb0059h9qufzoo7bm9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/" data-id="ck5ro3bxo002r01mv1sl976f4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/10/apex-reports-no-limit-downloads/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -169,7 +218,7 @@
 
 <section id="comments">
   <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
   </div>
 </section>
 </section>
@@ -191,7 +240,7 @@
       <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
       <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
       <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
-      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com" target="_blank" rel="noopener">Email me</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
       <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
       <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
     </ul>
@@ -203,7 +252,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -240,7 +289,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -253,7 +302,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 Martin Giffy D&#39;Souza<br>
+      &copy; 2020 Martin Giffy D&#39;Souza<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
@@ -285,11 +334,17 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
 <!-- Google Analytics -->
 <script type="text/javascript">

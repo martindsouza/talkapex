@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Manually Creating a Tabular Form | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="When I first started developing in APEX (back when it was called HTMLDB) I had a requirement for a tabular form. I tried to use the standard tabular forms but it was very limited and I couldn’t custom">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Manually Creating a Tabular Form">
+<meta property="og:url" content="http://www.talkapex.com/2008/08/manually-creating-tabular-form/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="When I first started developing in APEX (back when it was called HTMLDB) I had a requirement for a tabular form. I tried to use the standard tabular forms but it was very limited and I couldn’t custom">
+<meta property="article:published_time" content="2008-08-01T03:11:00.000Z">
+<meta property="article:modified_time" content="2017-01-07T15:38:36.000Z">
+<meta property="article:author" content="Martin Giffy D&#39;Souza">
+<meta property="article:tag" content="apex">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Martin Giffy D&#39;Souza on Oracle APEX</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-manually-creating-tabular-form" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2008/08/manually-creating-tabular-form/" class="article-date">
+  <time datetime="2008-08-01T03:11:00.000Z" itemprop="datePublished">2008-07-31</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Manually Creating a Tabular Form
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When I first started developing in APEX (back when it was called HTMLDB) I had a requirement for a tabular form. I tried to use the standard tabular forms but it was very limited and I couldn’t customize it to meet my requirements. I had poked around on the APEX forum, but wasn’t able to find a reasonable solution.</p>
+<p>After several iterations, I have come up with a process that works extremely well. It is slightly labor intensive but it has met all the requirements each time. Please note that Patrick Wolf, <a href="http://www.inside-oracle-apex.com/" target="_blank" rel="noopener">http://www.inside-oracle-apex.com/</a>, has developed an open source framework to handle customized tabular forms. Though it is very good it does not allow for complete access. Marcie Young did a presentation at ODTUG 2008 which outlined a very similar method, this example is taking it a step further. A working example is available here: <a href="http://apex.oracle.com/pls/otn/f?p=20195:200" target="_blank" rel="noopener">http://apex.oracle.com/pls/otn/f?p=20195:200</a></p>
+<p>The process below will not only build a customized tabular form, but also handle the errors etc.</p>
+<p><span style="font-weight: bold;">Overview</span><br>Here’s an overview of the overall methodology</p>
+<ul>
+<li>Create 2 collections. One will handle data: <span style="font-style: italic;">DATA_COLLECTION</span> and one will handle the errors: <span style="font-style: italic;">ERROR_COLLECTION</span>.</li>
+<li>The <span style="font-style: italic;">DATA_COLLECTION</span> will be loaded on the first viewing of the page and will only be refreshed from the database when the changes have been sent to the database.</li>
+<li>The <span style="font-style: italic;">ERROR_COLLECTION</span> will contain errors specific for the corresponding entry in the <span style="font-style: italic;">DATA_COLLECTION</span>. We could keep this in the same collection, but I like to keep them separate. It makes things easier if we need to add or remove columns.</li>
+<li>In the <span style="font-style: italic;">ERROR_COLLECTION</span> I keep column 50 reserved for the row error. An example of when you’d need a row error is when you have a start and end date and the end date is before the start date.</li>
+<li>This application will allow users to modify the emp.ename and emp.salary fields</li>
+<li>In the data collection I keep column 1 reserved for the sequence id (seq_id). Note though I won’t use it in this example, it has come in handy (especially when hiding/delete rows in the front end then submitting the page)</li>
+</ul>
+<p><span style="font-weight: bold;">Getting Started</span></p>
+<p>Step 1: Create a PL/SQL Process <span style="font-style: italic;">On Load Before Header</span> called <span style="font-style:italic;">Create Collection</span></p>
+<pre class="brush: sql;">
+DECLARE
+BEGIN
+   IF NVL (:p200_reload_flag, 'N') = 'N'
+   THEN
+      -- IF error collection exists, delete
+      IF apex_collection.collection_exists
+                                     (p_collection_name      => 'ERROR_COLLECTION')
+      THEN
+         apex_collection.delete_collection
+                                     (p_collection_name      => 'ERROR_COLLECTION');
+      END IF;
+
+      -- Create New Collection
+      apex_collection.create_or_truncate_collection ('DATA_COLLECTION');
+
+      FOR rec IN (SELECT   e.empno, e.ename, e.sal
+                      FROM emp e
+                  ORDER BY e.ename)
+      LOOP
+         apex_collection.add_member (p_collection_name      => 'DATA_COLLECTION',
+                                     p_generate_md5         => 'NO',
+                                     p_c002                 => rec.empno,
+                                     p_c003                 => rec.ename,
+                                     p_c004                 => TO_CHAR
+                                                                      (rec.sal),
+                                     -- Remember the collection is only text
+                                     p_c049                 => 'Y',
+                                     -- Modifiable Flag
+                                     p_c050                 => 'U'
+                                    -- SQL Action (Insert, Update, Delete)
+                                    );
+      END LOOP;
+   --
+   END IF;
+
+-- Create Extra rows (if we wanted to add a new employee
+   FOR i IN 1 .. NVL (:p200_num_extra_rows, 0)
+   LOOP
+      apex_collection.add_member (p_collection_name      => 'DATA_COLLECTION',
+                                  p_generate_md5         => 'NO',
+                                  p_c002                 => -1,
+                                  -- use negative numbers for new employees
+                                  p_c049                 => 'Y',
+                                  p_c050                 => 'I'
+                                 );
+   END LOOP;
+
+   -- Insert seq_id
+   FOR rec IN (SELECT ac.seq_id
+                 FROM apex_collections ac
+                WHERE ac.collection_name = 'DATA_COLLECTION')
+   LOOP
+      apex_collection.update_member_attribute
+                                   (p_collection_name      => 'DATA_COLLECTION',
+                                    p_seq                  => rec.seq_id,
+                                    p_attr_number          => 1,
+                                    p_attr_value           => rec.seq_id
+                                   );
+   END LOOP;
+END;
+</pre>
+<p>Step 2: Create a <span style="font-style:italic;">Report / SQL Report</span> region for our custom tabular form called <span style="font-style:italic;">Employee Data</span></p>
+<pre class="brush: sql;">
+SELECT
+   -- Notice how I'm keeping the idx value the same as the column value in the collection. This helps to keep things organized
+   -- I also apply an id to each entry
+   -- I append the error value to the empname and sal
+   -- The Seq_id. Usefull when hiding rows (for delete) and then submitting from
+   apex_item.hidden(1,x.seq_id, null, x.seq_id || '_seq_id') ||
+   -- The Primary Key of the column
+   apex_item.hidden(2, x.empno, null, x.seq_id || '_empno_id') || x.empno empno,
+   -- Employee Name
+   apex_item.text(3,x.empname,null, null, null, x.seq_id || '_empname_id') || err.empname employee_name,
+   -- Employee Salary
+   apex_item.text(4,x.sal, null, null, null, x.seq_id || '_sal_id') || err.sal ||
+   -- Store the sql action type as well.
+   apex_item.hidden(50,x.sql_action_typ, null, x.seq_id || '_sql_action_typ_id') sal,
+   -- Last but not least the row error
+   err.row_error
+FROM   (SELECT  ac.c001 seq_id,
+                ac.c002 empno,
+                ac.c003 empname,
+                ac.c004 sal,
+                ac.c049 modifiable_flag,
+                ac.c050 sql_action_typ
+       FROM     apex_collections ac
+       WHERE    ac.collection_name = 'DATA_COLLECTION'
+       ORDER BY ac.seq_id) x,
+
+      -- Error Collection
+      (SELECT   ac.seq_id seq_id,
+                ac.c002 empno,
+                ac.c003 empname,
+                ac.c004 sal,
+                ac.c050 row_error -- Useful when individual data is correct, however the row of data is not. Ex: start/end dates
+       FROM     apex_collections ac
+       WHERE    ac.collection_name = 'ERROR_COLLECTION'
+       ORDER BY ac.seq_id) err
+WHERE x.seq_id = err.seq_id(+)         
+</pre>
+<p>Step 3: Add Region items and buttons</p>
+<p>All items/buttons should be added to the report region<br>Create Buttons:<br><span style="font-style:italic;">ADD</span>, submit page. Branch to <span style="font-style:italic;">&amp;APP_PAGE_ID.</span><br><span style="font-style:italic;">SUBMIT</span>, submit page. Branch to <span style="font-style:italic;">201</span><br>Note: Page <span style="font-style:italic;">201</span> is a simple sql report for <pre class="brush: sql;"><br>SELECT *<br>FROM EMP<br></pre><br>Create <span style="font-style:italic;">Hidden and Protected</span> Items:<br><span style="font-style:italic;">P200_DISPLAY_ROW_ERROR_FLAG</span></p>
+<ul>
+<li>Source value or expression: N</li>
+<li>Comment: Used to determine if the error column should be displayed<br><span style="font-style:italic;">P200_NUM_EXTRA_ROWS</span></li>
+<li>Source value or expression: 1</li>
+<li>Comment: Number of extra rows to add to the tabular form<br><span style="font-style:italic;">P200_RELOAD_FLAG</span></li>
+<li>Comment: If Y then we won’t refresh the collection with database values</li>
+</ul>
+<p>Computations (After Submit)<br><span style="font-style:italic;">P200_NUM_EXTRA_ROWS</span><br>Static: 1<br>Condition: Request = ADD</p>
+<p><span style="font-style:italic;">P200_NUM_EXTRA_ROWS</span><br>Static: 0<br>Condition: Request != ADD</p>
+<p><span style="font-style:italic;">P200_RELOAD_FLAG</span><br>Static: Y<br>Condition: None</p>
+<p><span style="font-style:italic;">P200_DISPLAY_ROW_ERROR_FLAG</span><br>Static: N<br>Condition: None</p>
+<p>Step 4: Store Collection<br>After submit, this will store the data from the form into the collection. No data validation is performed at this point</p>
+<p>Process: <span style="font-style:italic;">Store Collection</span><br>Type: PL/SQL Anonymous Block<br>Processing Point: On Submit: Before Computation and Validations<br>Source:</p>
+<pre class="brush: sql;">
+DECLARE
+BEGIN
+ FOR i IN 1 .. apex_application.g_f01.COUNT LOOP
+   apex_collection.update_member (p_collection_name            => 'DATA_COLLECTION',
+-- I know some of you are still wondering why were are still wondering why I stored the seq_id as a collection attribute. This is why. If you had hidden the row (i.e. let the user "delete" it) then it would not show up on this and your collection synchronization wouldn't be correct.
+          p_seq                        => apex_application.g_f01 (i), -- Sequence ID
+                                  p_c001                       => apex_application.g_f01 (i), -- Sequence ID
+                                  p_c002                       => apex_application.g_f02 (i), -- Empno
+                                  p_c003                       => apex_application.g_f03 (i), -- Empname
+                                  p_c004                       => apex_application.g_f04 (i), -- Sal
+                                  p_c049                       => 'Y',   -- Modifiable Flag
+                                  p_c050                       => UPPER(apex_application.g_f50 (i))
+                                 );
+ END LOOP;
+END;
+</pre>
+<p>Step 5: Validation</p>
+<p>Type: Page Level Validation<br>Type: PL/SQL - Function returning Error Text<br>Name: Validate Collection<br>Condition: When Button Pressed - SUBMIT<br>Validation Expression:</p>
+<pre class="brush: sql;">
+DECLARE
+   v_err_msg   VARCHAR2 (255);
+BEGIN
+   -- IF error collection exists, truncate. Else Create
+   IF apex_collection.collection_exists
+                                     (p_collection_name      => 'ERROR_COLLECTION')
+   THEN
+      apex_collection.truncate_collection
+                                     (p_collection_name      => 'ERROR_COLLECTION');
+   ELSE
+      -- Create Error Collection
+      apex_collection.create_or_truncate_collection ('ERROR_COLLECTION');
+   END IF;
+
+   -- Basic Check. Make sure the emp name is more than 5 chars long
+   FOR x IN (SELECT ac.c003 empname, ac.c004 sal, ac.seq_id
+               FROM apex_collections ac
+              WHERE ac.collection_name = 'DATA_COLLECTION')
+   LOOP
+      -- Always add a blank error
+      apex_collection.add_member (p_collection_name => 'ERROR_COLLECTION');
+
+      IF LENGTH (x.empname) < 5
+      THEN
+         apex_collection.update_member
+            (p_collection_name      => 'ERROR_COLLECTION',
+             p_seq                  => x.seq_id,
+             p_c003                 => '
+<span style="color:red">Name must be 5 Chars</span>'
+            );
+         v_err_msg := 'Error Occured';
+      END IF;
+
+      -- Add a "row level" check for demo purposes
+      IF LENGTH (x.empname) = LENGTH (x.sal)
+      THEN
+         apex_collection.update_member
+             (p_collection_name      => 'ERROR_COLLECTION',
+              p_seq                  => x.seq_id,
+              p_c050                 => '
+<span style="color:red">Row Level Error</span>'
+             );
+         apex_util.set_session_state (p_name       => 'P200_DISPLAY_ROW_ERROR_FLAG',
+                                      p_value      => 'Y'
+                                     );
+         v_err_msg := 'Error Occured';
+      END IF;
+   END LOOP;
+
+   RETURN v_err_msg;
+END;
+</pre>
+<p>Step 6: Finishing it off</p>
+<p>As you notice there’s a column called: <span style="font-style:italic;">row_error</span>. Set the condition where item: <span style="font-style:italic;">P200_DISPLAY_ROW_ERROR_FLAG = Y</span>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2008/08/manually-creating-tabular-form/" data-id="ck5ro3btk000c01mvgu2ffnqd" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2008/08/manually-creating-tabular-form/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2008/11/css-specificity/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          CSS Specificity
+        
+      </div>
+    </a>
+  
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra" target="_blank" rel="noopener"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi" target="_blank" rel="noopener">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed" target="_blank" rel="noopener">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF" target="_blank" rel="noopener">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P" target="_blank" rel="noopener">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2020 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'http://www.talkapex.com/2008/08/manually-creating-tabular-form/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-8016477-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+  </div>
+</body>
+</html>

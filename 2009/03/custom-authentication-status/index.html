@@ -6,19 +6,20 @@
   <title>Custom Authentication Status | TalkApex</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="When writing custom authentication scheme I noticed that invalid logins weren’t showing up properly in the apex logs (apex_workspace_access_log). Here’s how to re-create the problem along with the fix">
-<meta name="keywords" content="apex">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Custom Authentication Status">
-<meta property="og:url" content="http:&#x2F;&#x2F;www.talkapex.com&#x2F;2009&#x2F;03&#x2F;custom-authentication-status&#x2F;index.html">
+<meta property="og:url" content="http://www.talkapex.com/2009/03/custom-authentication-status/index.html">
 <meta property="og:site_name" content="TalkApex">
 <meta property="og:description" content="When writing custom authentication scheme I noticed that invalid logins weren’t showing up properly in the apex logs (apex_workspace_access_log). Here’s how to re-create the problem along with the fix">
-<meta property="og:locale" content="default">
-<meta property="og:image" content="http:&#x2F;&#x2F;3.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;ScZntp_wliI&#x2F;AAAAAAAADnQ&#x2F;PRaOCMBcJsc&#x2F;s400&#x2F;01_cust_auth_status.bmp">
-<meta property="og:image" content="http:&#x2F;&#x2F;3.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;ScZn4N5ScYI&#x2F;AAAAAAAADnY&#x2F;T6KZdkpFqyE&#x2F;s400&#x2F;02_cust_auth_status.bmp">
-<meta property="og:image" content="http:&#x2F;&#x2F;3.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;ScZoFSUVHOI&#x2F;AAAAAAAADng&#x2F;rusi5Cp0TTc&#x2F;s400&#x2F;03_cust_auth_status.bmp">
-<meta property="og:updated_time" content="2017-01-07T15:38:36.000Z">
+<meta property="og:image" content="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s400/01_cust_auth_status.bmp">
+<meta property="og:image" content="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s400/02_cust_auth_status.bmp">
+<meta property="og:image" content="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s400/03_cust_auth_status.bmp">
+<meta property="article:published_time" content="2009-03-22T16:27:00.000Z">
+<meta property="article:modified_time" content="2017-01-07T15:38:36.000Z">
+<meta property="article:author" content="Martin Giffy D&#39;Souza">
+<meta property="article:tag" content="apex">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http:&#x2F;&#x2F;3.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;ScZntp_wliI&#x2F;AAAAAAAADnQ&#x2F;PRaOCMBcJsc&#x2F;s400&#x2F;01_cust_auth_status.bmp">
+<meta name="twitter:image" content="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s400/01_cust_auth_status.bmp">
 <meta name="twitter:creator" content="@martindsouza">
   
     <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
@@ -29,8 +30,10 @@
   
     <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
   
-  <link rel="stylesheet" href="/css/style.css">
-</head>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
 
 <body>
   <div id="container">
@@ -97,12 +100,31 @@
         <p>When writing custom authentication scheme I noticed that invalid logins weren’t showing up properly in the apex logs (apex_workspace_access_log).</p>
 <p>Here’s how to re-create the problem along with the fix.</p>
 <p>First let’s create a custom authentication function:</p>
-<p><pre class="brush: sql;"><br>CREATE OR REPLACE FUNCTION blog_cust_auth (<br>  p_username IN VARCHAR2,<br>  p_password IN VARCHAR2<br>)<br>  RETURN BOOLEAN<br>AS<br>BEGIN<br>  IF     LOWER (p_username) = ‘pass’<br>     AND LOWER (p_password) = ‘123’ THEN<br>    RETURN TRUE;<br>  ELSE<br>    RETURN FALSE;<br>  END IF;<br>END;<br></pre><br>Let’s set the APEX authentication scheme to use this custom function:</p>
+<pre class="brush: sql;">
+CREATE OR REPLACE FUNCTION blog_cust_auth (
+  p_username IN VARCHAR2,
+  p_password IN VARCHAR2
+)
+  RETURN BOOLEAN
+AS
+BEGIN
+  IF     LOWER (p_username) = 'pass'
+     AND LOWER (p_password) = '123' THEN
+    RETURN TRUE;
+  ELSE
+    RETURN FALSE;
+  END IF;
+END;
+</pre>
+<p>Let’s set the APEX authentication scheme to use this custom function:</p>
 <p>Shared Components / Authentication Schemes:</p>
 <ul>
-<li>Create</li>
-<li>From Scratch</li>
-<li>Name: BLOG_TEST</li>
+<li><p>Create</p>
+</li>
+<li><p>From Scratch</p>
+</li>
+<li><p>Name: BLOG_TEST</p>
+</li>
 <li><p>Keep hitting “Next” until:</p>
 <ul>
 <li>Credentials Verification Method:<ul>
@@ -125,11 +147,17 @@
 </ul>
 </li>
 <li>On Page 0 Create a region<ul>
-<li>Report<br><pre class="brush: sql;"><br>SELECT   user_name,<pre><code>authentication_method,
-access_date,
-authentication_result,
-custom_status_text
-</code></pre>FROM apex_workspace_access_log<br>WHERE application_id = :APP_ID<br>ORDER BY access_date DESC<br></pre><br>Now let’s try to log in using a valid username and password:</li>
+<li>Report<pre class="brush: sql;">
+SELECT   user_name,
+     authentication_method,
+     access_date,
+     authentication_result,
+     custom_status_text
+FROM apex_workspace_access_log
+WHERE application_id = :APP_ID
+ORDER BY access_date DESC
+</pre>
+Now let’s try to log in using a valid username and password:</li>
 </ul>
 </li>
 <li>username: pass, password: 123</li>
@@ -143,7 +171,27 @@ custom_status_text
 <p>You’ll notice that the login failed, however it still logged it as a successful login attempt:</p>
 <p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s1600-h/02_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s400/02_cust_auth_status.bmp" alt=""></a></p>
 <p>Let’s update our authentication function to use the 2 authentication result customizations:<br>apex_util.set_authentication_result and apex_util.set_custom_auth_status</p>
-<p><pre class="brush: sql;"><br>CREATE OR REPLACE FUNCTION blog_cust_auth (<br>  p_username IN VARCHAR2,<br>  p_password IN VARCHAR2<br>)<br>  RETURN BOOLEAN<br>AS<br>BEGIN<br>  IF     LOWER (p_username) = ‘pass’<br>     AND LOWER (p_password) = ‘123’ THEN<br>    RETURN TRUE;<br>  ELSE<br>    – Set APEX authentication Codes<br>    apex_util.set_authentication_result (p_code =&gt; 3);<br>    – Set our own APEX custom text<br>    apex_util.set_custom_auth_status (p_status =&gt; ‘Bad Username’);<br>    RETURN FALSE;<br>  END IF;<br>END;<br></pre><br>Let’s now see what happens when we now login with invalid credentials:</p>
+<pre class="brush: sql;">
+CREATE OR REPLACE FUNCTION blog_cust_auth (
+  p_username IN VARCHAR2,
+  p_password IN VARCHAR2
+)
+  RETURN BOOLEAN
+AS
+BEGIN
+  IF     LOWER (p_username) = 'pass'
+     AND LOWER (p_password) = '123' THEN
+    RETURN TRUE;
+  ELSE
+    -- Set APEX authentication Codes
+    apex_util.set_authentication_result (p_code => 3);
+    -- Set our own APEX custom text
+    apex_util.set_custom_auth_status (p_status => 'Bad Username');
+    RETURN FALSE;
+  END IF;
+END;
+</pre>
+<p>Let’s now see what happens when we now login with invalid credentials:</p>
 <p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s1600-h/03_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s400/03_cust_auth_status.bmp" alt=""></a></p>
 <p>Notice that we now have proper error information in the logs? Here’s a list of some codes you can use for apex_util.set_authentication_result, taken from the view apex_workspace_access_log:</p>
 <p>0, ‘AUTH_SUCCESS’,<br>1, ‘AUTH_UNKNOWN_USER’,<br>2, ‘AUTH_ACCOUNT_LOCKED’,<br>3, ‘AUTH_ACCOUNT_EXPIRED’,<br>4, ‘AUTH_PASSWORD_INCORRECT’,<br>5, ‘AUTH_PASSWORD_FIRST_USE’,<br>6, ‘AUTH_ATTEMPTS_EXCEEDED’,<br>7, ‘AUTH_INTERNAL_ERROR’,    </p>
@@ -152,7 +200,7 @@ custom_status_text
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="ck3dzyyek000rh9qud1ihaloa" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="ck5ro3c0r004w01mvcdp1bmtf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/custom-authentication-status/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -188,7 +236,7 @@ custom_status_text
 
 <section id="comments">
   <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
   </div>
 </section>
 </section>
@@ -210,7 +258,7 @@ custom_status_text
       <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
       <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
       <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
-      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com" target="_blank" rel="noopener">Email me</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
       <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
       <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
     </ul>
@@ -222,7 +270,7 @@ custom_status_text
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -259,7 +307,7 @@ custom_status_text
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -272,7 +320,7 @@ custom_status_text
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 Martin Giffy D&#39;Souza<br>
+      &copy; 2020 Martin Giffy D&#39;Souza<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
@@ -304,11 +352,17 @@ custom_status_text
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
 <!-- Google Analytics -->
 <script type="text/javascript">

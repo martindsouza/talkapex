@@ -7,9 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta property="og:type" content="website">
 <meta property="og:title" content="TalkApex">
-<meta property="og:url" content="http:&#x2F;&#x2F;www.talkapex.com&#x2F;page&#x2F;23&#x2F;index.html">
+<meta property="og:url" content="http://www.talkapex.com/page/23/index.html">
 <meta property="og:site_name" content="TalkApex">
-<meta property="og:locale" content="default">
+<meta property="article:author" content="Martin Giffy D&#39;Souza">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:creator" content="@martindsouza">
   
@@ -21,8 +21,10 @@
   
     <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
   
-  <link rel="stylesheet" href="/css/style.css">
-</head>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
 
 <body>
   <div id="container">
@@ -65,6 +67,94 @@
 
       <div class="outer">
         <section id="main">
+  
+    <article id="post-how-to-only-display-column-when" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/06/how-to-only-display-column-when/" class="article-date">
+  <time datetime="2010-06-15T15:00:00.000Z" itemprop="datePublished">2010-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/06/how-to-only-display-column-when/">How to only Display Column when Downloading</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Sometimes you may have a column that contains inline HTML. A simple example of this is if you have a column called <code>color</code> and you want to display the color in the report. Your query would look like this:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="string">'&lt;span style="color:'</span> || color || <span class="string">'"&gt;"'</span> || color || <span class="string">'&lt;/span&gt;'</span> color</span><br><span class="line"><span class="keyword">FROM</span> my_colors</span><br></pre></td></tr></table></figure>
+<p><em>Note: That they’re ways to get around this simple example using Report Templates and Column Formatting. I’m just using it for demo purposes</em></p>
+<p>If you were to download this report the “color” column would contain all the html (i.e. <code>span</code> tags etc). This may confuse users since they expected to see “red, green, blue, etc…” in their download file, but instead see the colors wrapped in a lot of html.</p>
+<p>A workaround that I’ve used is to create 2 columns: color_html and color</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="string">'&lt;span style="color:'</span> || color || <span class="string">'"&gt;"'</span> || color || <span class="string">'&lt;/span&gt;'</span> color_html,</span><br><span class="line">            color color</span><br><span class="line">  <span class="keyword">FROM</span> my_colors</span><br></pre></td></tr></table></figure>
+<p>And modify each report column’s attributes:</p>
+<p><strong>Standard Reports</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Column Definition</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>color_html</code></td>
+<td>Include In Export</td>
+<td><code>No</code></td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td>PL/SQL Function Body Returning a Boolean</td>
+<td><code>return apex_application.g_excel_format</code></td>
+</tr>
+</tbody></table>
+<p><strong>Interactive Reports</strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Column Definition</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>color_html</code></td>
+<td>Conditional Display</td>
+<td>Request is NOT Contained within Expression 1: <code>CSV,HTMLD</code></td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td>Conditional Display</td>
+<td>Request is Contained within Expression 1: <code>CSV,HTMLD</code></td>
+</tr>
+</tbody></table>
+<p>Now when a user downloads the report they’ll get the non-html version of the column. This solution works in APEX 4.0 and APEX 3.x</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2010/06/how-to-only-display-column-when/" data-id="ck5ro3bvl001301mv6asp9ci7" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2010/06/how-to-only-display-column-when/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
   
     <article id="post-interactive-reports-with-over-100" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
@@ -114,7 +204,7 @@ CONNECT BY LEVEL <= 10
 <span style="font-weight:bold; font-style:italic">
 Get the COLUMN_ID</span>
 
-This is the column that you want to modify that isn't currently displayed on the Reports Attributes page
+<p>This is the column that you want to modify that isn’t currently displayed on the Reports Attributes page</p>
 <pre class="brush: sql;">
 SELECT column_id,
        column_alias,
@@ -124,11 +214,9 @@ SELECT column_id,
  WHERE application_id = :app_id
    AND page_id = :page_id
 </pre><span style="font-weight:bold; font-style:italic">
-Run</span>
-
-Go to the Reports Attributes screen (the screen that lists all the IR columns)
-
-Open Firebug and go to the Console Window. Enter the following:
+<p>Run</span></p>
+<p>Go to the Reports Attributes screen (the screen that lists all the IR columns)</p>
+<p>Open Firebug and go to the Console Window. Enter the following:</p>
 <pre class="brush: js;">
 apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID here
 </pre>
@@ -136,7 +224,7 @@ apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID he
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/interactive-reports-with-over-100/" data-id="ck3dzyyg8003ph9qu8dho1msd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/interactive-reports-with-over-100/" data-id="ck5ro3bv1000t01mv4n4jhecy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/interactive-reports-with-over-100/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -187,7 +275,7 @@ apex_p601_setColumnIDandSubmit('311507131164520006'); // Enter your column ID he
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/06/new-url-httptalkapexcom/" data-id="ck3dzyyg9003rh9qu9ib0f437" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/06/new-url-httptalkapexcom/" data-id="ck5ro3bur000o01mv0e9p7mn6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/06/new-url-httptalkapexcom/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -231,7 +319,7 @@ CREATE TABLE tapex_mail_log
 AS  SELECT * FROM apex_mail_log;
 </pre><span style="font-weight:bold;">2- Update the APEX Mail Log table</span>
 
-<span style="font-style:italic;">Note: You may want to store this in a procedure and run as a nightly scheduled job so you don't forget to update the tables</span>
+<p><span style="font-style:italic;">Note: You may want to store this in a procedure and run as a nightly scheduled job so you don’t forget to update the tables</span></p>
 <pre class="brush: sql">
 BEGIN
   -- apex_mail_log is linked to the workspace.
@@ -274,7 +362,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/" data-id="ck3dzyyg4003lh9qub6oycgm5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/" data-id="ck5ro3bu9000k01mvcv2z4m4v" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/04/apex-logs-storing-mail-log-data/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -312,13 +400,13 @@ END;
       
         <p><a href="http://4.bp.blogspot.com/_33EF80fk9sM/S6mfnc13b-I/AAAAAAAADwY/jKWUIeU-UEg/s1600/theme-roller.jpg" target="_blank" rel="noopener"><img src="http://4.bp.blogspot.com/_33EF80fk9sM/S6mfnc13b-I/AAAAAAAADwY/jKWUIeU-UEg/s320/theme-roller.jpg" alt=""></a><br>If you ever use <a href="http://jqueryui.com/themeroller/" target="_blank" rel="noopener">jQuery’s Theme Roller</a>, you may find it frustrating to alter a custom theme. For example, if you created a theme, downloaded it, then decided to change your colors you may not know how to restore your changes.</p>
 <p>Believe it or not there’s a pretty easy way to restore a Theme Roller theme. Before you download a theme copy, or bookmark, the URL at the top of the browser. All the changes you have made are stored in the URL! If you forget to copy the URL before downloading, the URL is stored in ..\css\custom-theme\jquery-ui-1.8.custom.css (where 1.8 is the version number).</p>
-<p>Here’s an example of a theme modification where I changed the header background to red: <a href="http://jqueryui.com/themeroller/#ffDefault=Verdana%2CArial%2Csans-serif&amp;fwDefault=normal&amp;fsDefault=1.1em&amp;cornerRadius=4px&amp;bgColorHeader=e10505&amp;bgTextureHeader=03_highlight_soft.png&amp;bgImgOpacityHeader=75&amp;borderColorHeader=aaaaaa&amp;fcHeader=222222&amp;iconColorHeader=222222&amp;bgColorContent=ffffff&amp;bgTextureContent=01_flat.png&amp;bgImgOpacityContent=75&amp;borderColorContent=aaaaaa&amp;fcContent=222222&amp;iconColorContent=222222&amp;bgColorDefault=e6e6e6&amp;bgTextureDefault=02_glass.png&amp;bgImgOpacityDefault=75&amp;borderColorDefault=d3d3d3&amp;fcDefault=555555&amp;iconColorDefault=888888&amp;bgColorHover=dadada&amp;bgTextureHover=02_glass.png&amp;bgImgOpacityHover=75&amp;borderColorHover=999999&amp;fcHover=212121&amp;iconColorHover=454545&amp;bgColorActive=ffffff&amp;bgTextureActive=02_glass.png&amp;bgImgOpacityActive=65&amp;borderColorActive=aaaaaa&amp;fcActive=212121&amp;iconColorActive=454545&amp;bgColorHighlight=fbf9ee&amp;bgTextureHighlight=02_glass.png&amp;bgImgOpacityHighlight=55&amp;borderColorHighlight=fcefa1&amp;fcHighlight=363636&amp;iconColorHighlight=2e83ff&amp;bgColorError=fef1ec&amp;bgTextureError=05_inset_soft.png&amp;bgImgOpacityError=95&amp;borderColorError=cd0a0a&amp;fcError=cd0a0a&amp;iconColorError=cd0a0a&amp;bgColorOverlay=aaaaaa&amp;bgTextureOverlay=01_flat.png&amp;bgImgOpacityOverlay=0&amp;opacityOverlay=30&amp;bgColorShadow=aaaaaa&amp;bgTextureShadow=01_flat.png&amp;bgImgOpacityShadow=0&amp;opacityShadow=30&amp;thicknessShadow=8px&amp;offsetTopShadow=-8px&amp;offsetLeftShadow=-8px&amp;cornerRadiusShadow=8px" target="_blank" rel="noopener">Red Header</a>.</p>
+<p>Here’s an example of a theme modification where I changed the header background to red: <a href="http://jqueryui.com/themeroller/#ffDefault=Verdana%2CArial%2Csans-serif&fwDefault=normal&fsDefault=1.1em&cornerRadius=4px&bgColorHeader=e10505&bgTextureHeader=03_highlight_soft.png&bgImgOpacityHeader=75&borderColorHeader=aaaaaa&fcHeader=222222&iconColorHeader=222222&bgColorContent=ffffff&bgTextureContent=01_flat.png&bgImgOpacityContent=75&borderColorContent=aaaaaa&fcContent=222222&iconColorContent=222222&bgColorDefault=e6e6e6&bgTextureDefault=02_glass.png&bgImgOpacityDefault=75&borderColorDefault=d3d3d3&fcDefault=555555&iconColorDefault=888888&bgColorHover=dadada&bgTextureHover=02_glass.png&bgImgOpacityHover=75&borderColorHover=999999&fcHover=212121&iconColorHover=454545&bgColorActive=ffffff&bgTextureActive=02_glass.png&bgImgOpacityActive=65&borderColorActive=aaaaaa&fcActive=212121&iconColorActive=454545&bgColorHighlight=fbf9ee&bgTextureHighlight=02_glass.png&bgImgOpacityHighlight=55&borderColorHighlight=fcefa1&fcHighlight=363636&iconColorHighlight=2e83ff&bgColorError=fef1ec&bgTextureError=05_inset_soft.png&bgImgOpacityError=95&borderColorError=cd0a0a&fcError=cd0a0a&iconColorError=cd0a0a&bgColorOverlay=aaaaaa&bgTextureOverlay=01_flat.png&bgImgOpacityOverlay=0&opacityOverlay=30&bgColorShadow=aaaaaa&bgTextureShadow=01_flat.png&bgImgOpacityShadow=0&opacityShadow=30&thicknessShadow=8px&offsetTopShadow=-8px&offsetLeftShadow=-8px&cornerRadiusShadow=8px" target="_blank" rel="noopener">Red Header</a>.</p>
 <p>APEX 4.0 will be using jQuery and some jQuery UI components, so I hope this helps when customizing the look and feel of your applications.</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/" data-id="ck3dzyyg2003jh9qu9hw7a5jk" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/" data-id="ck5ro3bva000w01mv0jmqgefy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/03/restoring-jquery-ui-theme-from/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -357,10 +445,11 @@ END;
         <p>When developing with PL/SQL you may store public variables in the package specification. This has many uses, none of which I will get into for this post. The only catch in Oracle is that you can not easily reference these values in SQL statements outside of PL/SQL. The following example demonstrates this:</p>
 <ul>
 <li><p>Create Package Spec with Variable</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">PACKAGE</span> pkg_var</span><br><span class="line"><span class="keyword">AS</span></span><br><span class="line">  c_my_var   <span class="keyword">CONSTANT</span> VARCHAR2 (<span class="number">5</span>) := <span class="string">'hello'</span>;</span><br><span class="line"><span class="keyword">END</span> pkg_var;</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">PACKAGE</span> pkg_var</span><br><span class="line"><span class="keyword">AS</span></span><br><span class="line">  c_my_var   <span class="keyword">CONSTANT</span> <span class="built_in">VARCHAR2</span> (<span class="number">5</span>) := <span class="string">'hello'</span>;</span><br><span class="line"><span class="keyword">END</span> pkg_var;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>Reference the variable in a SQL statement in SQL*Plus</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; SELECT pkg_var.c_my_var x</span><br><span class="line">  2    FROM DUAL;</span><br><span class="line"><span class="keyword">SELECT</span> pkg_var.c_my_var x</span><br><span class="line">       *</span><br><span class="line"><span class="keyword">ERROR</span> <span class="keyword">at</span> line <span class="number">1</span>:</span><br><span class="line">ORA<span class="number">-06553</span>: PLS<span class="number">-221</span>: <span class="string">'C_MY_VAR'</span> <span class="keyword">is</span> <span class="keyword">not</span> a <span class="keyword">procedure</span> <span class="keyword">or</span> <span class="keyword">is</span> undefined</span><br></pre></td></tr></table></figure>
+
 </li>
 </ul>
 <p><em>This results in an Oracle error.</em></p>
@@ -368,15 +457,18 @@ END;
 <li>Try the same code, but in an block of PL/SQL</li>
 </ul>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; DECLARE</span><br><span class="line">  2    v_x   VARCHAR2 (5);</span><br><span class="line">  3  <span class="keyword">BEGIN</span></span><br><span class="line">  <span class="number">4</span>    <span class="keyword">SELECT</span> pkg_var.c_my_var x</span><br><span class="line">  <span class="number">5</span>      <span class="keyword">INTO</span> v_x</span><br><span class="line">  <span class="number">6</span>      <span class="keyword">FROM</span> DUAL;</span><br><span class="line">  7</span><br><span class="line">  8    DBMS_OUTPUT.put_line (v_x);</span><br><span class="line">  9  <span class="keyword">END</span>;</span><br><span class="line"> 10  /</span><br><span class="line">hello</span><br><span class="line"></span><br><span class="line">PL/SQL procedure successfully completed.</span><br></pre></td></tr></table></figure>
+
 <p><em>As you can see this worked.</em></p>
 <p>So how can we reference package variables in a non-PL/SQL setting? I created the following function to do so. It will handle values that are of type <code>VARCHAR2</code>. I’ve also removed any spaces from the parameter (<code>pkg_name.var_name</code>) to ensure that no SQL injection will occur.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- **</span></span><br><span class="line"><span class="comment">-- * Returns Package Variable value</span></span><br><span class="line"><span class="comment">-- * <span class="doctag">Note:</span> for demo purposes I broke this function into various steps</span></span><br><span class="line"><span class="comment">-- *</span></span><br><span class="line"><span class="comment">-- * @param p_pkg_var_name fully qualified variable reference. Ex: pkg_x.var_y</span></span><br><span class="line"><span class="comment">-- * @return Varchar2 value</span></span><br><span class="line"><span class="comment">-- * @author Martin Giffy D'Souza: http://apex-smb.blogspot.com</span></span><br><span class="line"><span class="comment">-- **</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">FUNCTION</span> f_get_pkg_val_vc2 (p_pkg_var_name <span class="keyword">in</span> varchar2)</span><br><span class="line">  <span class="keyword">RETURN</span> VARCHAR2</span><br><span class="line"><span class="keyword">AS</span></span><br><span class="line">  v_string          VARCHAR2 (<span class="number">4000</span>);</span><br><span class="line">  <span class="comment">-- Full Variable Name (i.e. pkg.var)</span></span><br><span class="line">  v_var_full_name   VARCHAR2 (61);                             <span class="comment">-- Max of 61 chars since 30 + . + 30</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">  v_var_full_name := p_pkg_var_name;</span><br><span class="line">  <span class="comment">-- Remove any spaces to avoid SQL injections</span></span><br><span class="line">  v_var_full_name := REGEXP_REPLACE (v_var_full_name, '[[:space:]]', '');</span><br><span class="line"></span><br><span class="line">  <span class="keyword">EXECUTE</span> <span class="keyword">IMMEDIATE</span> <span class="string">'begin :v_string := '</span> || v_var_full_name || <span class="string">'; end;'</span></span><br><span class="line">              <span class="keyword">USING</span> <span class="keyword">OUT</span> v_string;</span><br><span class="line"></span><br><span class="line">  RETURN v_string;</span><br><span class="line"><span class="keyword">END</span> f_get_pkg_val_vc2;</span><br></pre></td></tr></table></figure>
-<p>Now when you run in SQL*Plus you get the following:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; SELECT f_get_pkg_val_vc2 ('pkg_var.c_my_var') x</span><br><span class="line">  2    FROM DUAL;</span><br><span class="line"></span><br><span class="line">X</span><br><span class="line"><span class="comment">-----------------------------------------------------</span></span><br><span class="line"></span><br><span class="line">hello</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- **</span></span><br><span class="line"><span class="comment">-- * Returns Package Variable value</span></span><br><span class="line"><span class="comment">-- * <span class="doctag">Note:</span> for demo purposes I broke this function into various steps</span></span><br><span class="line"><span class="comment">-- *</span></span><br><span class="line"><span class="comment">-- * @param p_pkg_var_name fully qualified variable reference. Ex: pkg_x.var_y</span></span><br><span class="line"><span class="comment">-- * @return Varchar2 value</span></span><br><span class="line"><span class="comment">-- * @author Martin Giffy D'Souza: http://apex-smb.blogspot.com</span></span><br><span class="line"><span class="comment">-- **</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> <span class="keyword">REPLACE</span> <span class="keyword">FUNCTION</span> f_get_pkg_val_vc2 (p_pkg_var_name <span class="keyword">in</span> <span class="built_in">varchar2</span>)</span><br><span class="line">  <span class="keyword">RETURN</span> <span class="built_in">VARCHAR2</span></span><br><span class="line"><span class="keyword">AS</span></span><br><span class="line">  v_string          <span class="built_in">VARCHAR2</span> (<span class="number">4000</span>);</span><br><span class="line">  <span class="comment">-- Full Variable Name (i.e. pkg.var)</span></span><br><span class="line">  v_var_full_name   VARCHAR2 (61);                             <span class="comment">-- Max of 61 chars since 30 + . + 30</span></span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">  v_var_full_name := p_pkg_var_name;</span><br><span class="line">  <span class="comment">-- Remove any spaces to avoid SQL injections</span></span><br><span class="line">  v_var_full_name := REGEXP_REPLACE (v_var_full_name, '[[:space:]]', '');</span><br><span class="line"></span><br><span class="line">  <span class="keyword">EXECUTE</span> <span class="keyword">IMMEDIATE</span> <span class="string">'begin :v_string := '</span> || v_var_full_name || <span class="string">'; end;'</span></span><br><span class="line">              <span class="keyword">USING</span> <span class="keyword">OUT</span> v_string;</span><br><span class="line"></span><br><span class="line">  RETURN v_string;</span><br><span class="line"><span class="keyword">END</span> f_get_pkg_val_vc2;</span><br></pre></td></tr></table></figure>
+
+<p>Now when you run in SQL*Plus you get the following:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; SELECT f_get_pkg_val_vc2 ('pkg_var.c_my_var') x</span><br><span class="line">  2    FROM DUAL;</span><br><span class="line"></span><br><span class="line">X</span><br><span class="line"><span class="comment">-----------------------------------------------------</span></span><br><span class="line"></span><br><span class="line">hello</span><br></pre></td></tr></table></figure>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="ck3dzyyg6003nh9queetc1e0s" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/03/how-to-reference-package-variables/" data-id="ck5ro3bu5000i01mv3pk11bh0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/03/how-to-reference-package-variables/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -435,7 +527,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="ck3dzyyfv003bh9qu6f0i44qc" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/" data-id="ck5ro3bvg000z01mv60e27lpz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/how-to-avoid-bot-spammers-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -482,7 +574,7 @@ SELECT 1
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="ck3dzyyg0003hh9qu24mvcw91" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/" data-id="ck5ro3bv3000u01mv3xmm3cs7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/02/presenting-at-odtug-kaleidoscope-2010/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -530,7 +622,8 @@ SELECT 1
 <ul>
 <li>Only 1 branch is defined on the page with no conditions etc.</li>
 <li>The branch only contains at most 1 clear cache</li>
-<li>The branch passes as most 1 item/value pair to the other page<br></span><br><span style="font-weight: bold">- Create page process: Remove URL Params</span></li>
+<li>The branch passes as most 1 item/value pair to the other page</span>
+<span style="font-weight: bold">- Create page process: Remove URL Params</span></li>
 <li>Branch Point: On Submit After Processing</li>
 </ul>
 <p><span style="font-style: italic">Note: You could easily turn this into an application process to be run throughout your application</span></p>
@@ -628,7 +721,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="ck3dzyyfw003dh9qu1qjk0tsz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/" data-id="ck5ro3buf000m01mv2bucegjs" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/01/how-to-automatically-remove-items-and/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -677,16 +770,10 @@ SELECT *
   FROM apex_application_files
  WHERE flow_id = 0 -- flow_id is the same as application_id
 </pre>
-All 3 situations listed above will result in the file uploaded with <span style="font-style:italic;">flow_id = 0</span>. The last 2 points, files uploaded from end users, can result in files that you may no longer need. I don't recommend that you keep uploaded files in the <span style="font-style:italic;">APEX_APPLICATION_FILES</span> view. Instead you should move them immediately to a custom table.
-
-The main problem comes from the third point. When a user uploads a file and a validation fails. In this situation the file is uploaded to <span style="font-style:italic;">APEX_APPLICATION_FILES</span> and then the validation fails. Even though the validation failed, the file still resides in <span style="font-style:italic;">APEX_APPLICATION_FILES</span>. The following screen shot demonstrates this issue.
-
-[![](http://2.bp.blogspot.com/_33EF80fk9sM/SwNsxYj7t_I/AAAAAAAADto/ALhY8Bl_mrU/s400/validation_fail.bmp)](http://2.bp.blogspot.com/_33EF80fk9sM/SwNsxYj7t_I/AAAAAAAADto/ALhY8Bl_mrU/s1600/validation_fail.bmp)
-To resolve this issue, I run the following application process which automatically "tags" uploaded files with a flow_id of -1\. By doing so you can run a nightly process to delete any files that have a flow_id of -1.
-
-Application Process: AP_TAG_APEX_FILES
-Sequence: -100
-Point: On Submit: After Page Submission - Before Computations and Validations
+<p>All 3 situations listed above will result in the file uploaded with <span style="font-style:italic;">flow_id = 0</span>. The last 2 points, files uploaded from end users, can result in files that you may no longer need. I don’t recommend that you keep uploaded files in the <span style="font-style:italic;">APEX_APPLICATION_FILES</span> view. Instead you should move them immediately to a custom table.</p>
+<p>The main problem comes from the third point. When a user uploads a file and a validation fails. In this situation the file is uploaded to <span style="font-style:italic;">APEX_APPLICATION_FILES</span> and then the validation fails. Even though the validation failed, the file still resides in <span style="font-style:italic;">APEX_APPLICATION_FILES</span>. The following screen shot demonstrates this issue.</p>
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SwNsxYj7t_I/AAAAAAAADto/ALhY8Bl_mrU/s1600/validation_fail.bmp" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SwNsxYj7t_I/AAAAAAAADto/ALhY8Bl_mrU/s400/validation_fail.bmp" alt=""></a><br>To resolve this issue, I run the following application process which automatically “tags” uploaded files with a flow_id of -1. By doing so you can run a nightly process to delete any files that have a flow_id of -1.</p>
+<p>Application Process: AP_TAG_APEX_FILES<br>Sequence: -100<br>Point: On Submit: After Page Submission - Before Computations and Validations</p>
 <pre class="brush: sql">
 -- AP_TAG_APEX_FILES
 BEGIN
@@ -706,53 +793,9 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="ck3dzyyfz003fh9quhi39f1sp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/12/apex-orphaned-application-files/" data-id="ck5ro3c3r007601mvdhch17dr" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/12/apex-orphaned-application-files/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-using-decimals-in-apex-page-numbers" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/11/using-decimals-in-apex-page-numbers/" class="article-date">
-  <time datetime="2009-11-16T16:30:00.000Z" itemprop="datePublished">2009-11-16</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/11/using-decimals-in-apex-page-numbers/">Using Decimals in APEX Page Numbers</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SwCbWN630kI/AAAAAAAADtg/G-w443rjVeQ/s1600/800px-999_Perspective.png" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SwCbWN630kI/AAAAAAAADtg/G-w443rjVeQ/s200/800px-999_Perspective.png" alt=""></a></p>
-<p>When creating an APEX page you can use decimals in the page number. If you logically group your pages by page numbers and run out of page numbers this may be useful. For example if you create pages 1 through 10 then realize you’d like a page right beside page 5, you could create Page 5.1.</p>
-<p>I don’t personally recommend using decimals in page numbers as you can’t use decimals in item names, so <span style="font-style:italic;">P5.1_X</span> won’t work. Of course you may find some other use for creating pages with decimals.</p>
-<p>If you’re concerned about logically grouping pages for your development try initially separating pages by increments of 100 or by using Page Groups. To configure Page Groups go to the main application development page and click on “Page Groups” on the right hand side. Once you’ve setup the group and assigned pages, go back to the main development page and under the “View” drop down select “Groups”.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/" data-id="ck3dzyyfu0039h9qu8ww62hop" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/11/using-decimals-in-apex-page-numbers/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
@@ -790,7 +833,7 @@ END;
       <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
       <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
       <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
-      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com" target="_blank" rel="noopener">Email me</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
       <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
       <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
     </ul>
@@ -802,7 +845,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -839,7 +882,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -852,7 +895,7 @@ END;
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 Martin Giffy D&#39;Souza<br>
+      &copy; 2020 Martin Giffy D&#39;Souza<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
@@ -882,11 +925,17 @@ END;
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
 <!-- Google Analytics -->
 <script type="text/javascript">

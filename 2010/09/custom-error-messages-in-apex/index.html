@@ -6,17 +6,19 @@
   <title>Custom Error Messages in APEX | TalkApex</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="As developers we try to prevent unhandled exceptions from occurring for end users. They can occur in any program or language, and APEX is no exception (pardon the pun). When an unhandled exception hap">
-<meta name="keywords" content="apex">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Custom Error Messages in APEX">
-<meta property="og:url" content="http:&#x2F;&#x2F;www.talkapex.com&#x2F;2010&#x2F;09&#x2F;custom-error-messages-in-apex&#x2F;index.html">
+<meta property="og:url" content="http://www.talkapex.com/2010/09/custom-error-messages-in-apex/index.html">
 <meta property="og:site_name" content="TalkApex">
 <meta property="og:description" content="As developers we try to prevent unhandled exceptions from occurring for end users. They can occur in any program or language, and APEX is no exception (pardon the pun). When an unhandled exception hap">
-<meta property="og:locale" content="default">
-<meta property="og:image" content="http:&#x2F;&#x2F;1.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;TI2y4xmOtWI&#x2F;AAAAAAAADz4&#x2F;FlxLvbSxVgg&#x2F;s400&#x2F;error_msg_example.jpg">
-<meta property="og:updated_time" content="2017-01-07T15:38:36.000Z">
+<meta property="og:image" content="http://1.bp.blogspot.com/_33EF80fk9sM/TI2y4xmOtWI/AAAAAAAADz4/FlxLvbSxVgg/s400/error_msg_example.jpg">
+<meta property="og:image" content="http://3.bp.blogspot.com/_33EF80fk9sM/TI201ohhIrI/AAAAAAAAD0A/gFQ-6Bcu7CI/s400/error_msg_friendly.jpg">
+<meta property="article:published_time" content="2010-09-13T05:32:00.000Z">
+<meta property="article:modified_time" content="2017-01-07T15:38:36.000Z">
+<meta property="article:author" content="Martin Giffy D&#39;Souza">
+<meta property="article:tag" content="apex">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http:&#x2F;&#x2F;1.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;TI2y4xmOtWI&#x2F;AAAAAAAADz4&#x2F;FlxLvbSxVgg&#x2F;s400&#x2F;error_msg_example.jpg">
+<meta name="twitter:image" content="http://1.bp.blogspot.com/_33EF80fk9sM/TI2y4xmOtWI/AAAAAAAADz4/FlxLvbSxVgg/s400/error_msg_example.jpg">
 <meta name="twitter:creator" content="@martindsouza">
   
     <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
@@ -27,8 +29,10 @@
   
     <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
   
-  <link rel="stylesheet" href="/css/style.css">
-</head>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
 
 <body>
   <div id="container">
@@ -178,49 +182,19 @@ BEGIN
   END IF;
 END sp_log_error_page;
 </pre>
-<span style="font-weight:bold;">- Create Error Page</span>
-This page will display a user friendly message to the user. For the purposes of this demo Page 200 will be created to handle error messages.
-
-<span style="font-style:italic;">Create Page</span>
-Create Page 200
-
-<span style="font-style:italic;">Create a HTML region</span>
-Region Name: Unknown Error
-Source: An unhandled error occurred. A notification has been sent to the system administrator.
-
-<span style="font-style:italic;">Create a Region Button:</span>
-Button Name: Back
-Action: Redirect to URL
-Execute Validations: No
-URL Target: javascript:window.history.go(-1);
-
-<span style="font-style:italic;">Add the following hidden items:</span>
-P200_PAGE_ID
-P200_ESCAPE
-P200_ORA_MSG
-P200_APEX_MSG
-
-<span style="font-style:italic;">Create Computation:</span>
-Item: P200_ORA_MSG
-Point: Before Header
-Type: PL/SQL Expression
-Computation: REPLACE(:p200_ora_msg,:p200_escape,':');
-
-<span style="font-style:italic;">Create Dynamic Action:</span>
-(select Advanced)
-Name: Show Error Message Modal
-Event: Page Load
-Action: Simple Modal - Show
- - Esc Close: No
- - Change Opacity and Background Color as desired
-Select Type: Region
- - Region: Unknown Error
-
-Create Page Process:
-Type: PL/SQL
-Name: Log Error
-Point: On Load - Before Header
-Source:
+<p><span style="font-weight:bold;">- Create Error Page</span><br>This page will display a user friendly message to the user. For the purposes of this demo Page 200 will be created to handle error messages.</p>
+<p><span style="font-style:italic;">Create Page</span><br>Create Page 200</p>
+<p><span style="font-style:italic;">Create a HTML region</span><br>Region Name: Unknown Error<br>Source: An unhandled error occurred. A notification has been sent to the system administrator.</p>
+<p><span style="font-style:italic;">Create a Region Button:</span><br>Button Name: Back<br>Action: Redirect to URL<br>Execute Validations: No<br>URL Target: javascript:window.history.go(-1);</p>
+<p><span style="font-style:italic;">Add the following hidden items:</span><br>P200_PAGE_ID<br>P200_ESCAPE<br>P200_ORA_MSG<br>P200_APEX_MSG</p>
+<p><span style="font-style:italic;">Create Computation:</span><br>Item: P200_ORA_MSG<br>Point: Before Header<br>Type: PL/SQL Expression<br>Computation: REPLACE(:p200_ora_msg,:p200_escape,’:’);</p>
+<p><span style="font-style:italic;">Create Dynamic Action:</span><br>(select Advanced)<br>Name: Show Error Message Modal<br>Event: Page Load<br>Action: Simple Modal - Show</p>
+<ul>
+<li>Esc Close: No</li>
+<li>Change Opacity and Background Color as desired<br>Select Type: Region</li>
+<li>Region: Unknown Error</li>
+</ul>
+<p>Create Page Process:<br>Type: PL/SQL<br>Name: Log Error<br>Point: On Load - Before Header<br>Source:</p>
 <pre class="brush: sql">
 DECLARE
 BEGIN
@@ -233,10 +207,7 @@ BEGIN
                                       );
 END;
 </pre>
-<span style="font-weight:bold;">- Change Error Template</span>
-Go to: Shared Components > Templates
-Select the default Page Template <span style="font-style:italic;">(for my demo mine was: One Level Tabs - Right Sidebar (optional / table-based)</span>
-Error Page Template:
+<p><span style="font-weight:bold;">- Change Error Template</span><br>Go to: Shared Components &gt; Templates<br>Select the default Page Template <span style="font-style:italic;">(for my demo mine was: One Level Tabs - Right Sidebar (optional / table-based)</span><br>Error Page Template:</p>
 <pre class="brush: html">
 <script type="text/javascript">
   $('body').hide();
@@ -246,11 +217,8 @@ Error Page Template:
   window.location.href='f?p=&APP_ID.:200:&APP_SESSION.::&DEBUG.:200:P200_PAGE_ID,P200_ESCAPE,P200_ORA_MSG,P200_APEX_MSG:&APP_PAGE_ID.,' + apexEscape + ',\\' + oraMsg + '\\,\\' + apexMsg + '\\'; // Add backslashes to avoid comma issue
 </script>
 </pre>
-<span style="font-weight:bold;">- End Result</span>
-When you have an unhandled exception the end users should see a message like:
-
-[![](http://3.bp.blogspot.com/_33EF80fk9sM/TI201ohhIrI/AAAAAAAAD0A/gFQ-6Bcu7CI/s400/error_msg_friendly.jpg)](http://3.bp.blogspot.com/_33EF80fk9sM/TI201ohhIrI/AAAAAAAAD0A/gFQ-6Bcu7CI/s1600/error_msg_friendly.jpg)
-You can view all the log information by running the following query:
+<p><span style="font-weight:bold;">- End Result</span><br>When you have an unhandled exception the end users should see a message like:</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/TI201ohhIrI/AAAAAAAAD0A/gFQ-6Bcu7CI/s1600/error_msg_friendly.jpg" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/TI201ohhIrI/AAAAAAAAD0A/gFQ-6Bcu7CI/s400/error_msg_friendly.jpg" alt=""></a><br>You can view all the log information by running the following query:</p>
 <pre class="brush: sql">
 SELECT *
   FROM logger_logs
@@ -260,7 +228,7 @@ SELECT *
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/custom-error-messages-in-apex/" data-id="ck3dzyz3j00jdh9qu4ivmfqku" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/09/custom-error-messages-in-apex/" data-id="ck5ro3bx1002701mv5ehmbofa" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/09/custom-error-messages-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -296,7 +264,7 @@ SELECT *
 
 <section id="comments">
   <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
   </div>
 </section>
 </section>
@@ -318,7 +286,7 @@ SELECT *
       <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
       <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
       <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
-      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com" target="_blank" rel="noopener">Email me</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
       <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
       <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
     </ul>
@@ -330,7 +298,7 @@ SELECT *
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -367,7 +335,7 @@ SELECT *
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -380,7 +348,7 @@ SELECT *
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 Martin Giffy D&#39;Souza<br>
+      &copy; 2020 Martin Giffy D&#39;Souza<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
@@ -412,11 +380,17 @@ SELECT *
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
 <!-- Google Analytics -->
 <script type="text/javascript">

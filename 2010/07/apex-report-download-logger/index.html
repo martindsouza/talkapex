@@ -6,17 +6,18 @@
   <title>APEX Report Download Logger | TalkApex</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="This solution was demoed at the  ODTUG APEX Open Mic night I developed a reporting application in APEX. The goal of the application is to help turn “data into information”. Users should be able to mak">
-<meta name="keywords" content="apex">
 <meta property="og:type" content="article">
 <meta property="og:title" content="APEX Report Download Logger">
-<meta property="og:url" content="http:&#x2F;&#x2F;www.talkapex.com&#x2F;2010&#x2F;07&#x2F;apex-report-download-logger&#x2F;index.html">
+<meta property="og:url" content="http://www.talkapex.com/2010/07/apex-report-download-logger/index.html">
 <meta property="og:site_name" content="TalkApex">
 <meta property="og:description" content="This solution was demoed at the  ODTUG APEX Open Mic night I developed a reporting application in APEX. The goal of the application is to help turn “data into information”. Users should be able to mak">
-<meta property="og:locale" content="default">
-<meta property="og:image" content="http:&#x2F;&#x2F;1.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;TDJYewihZFI&#x2F;AAAAAAAADxQ&#x2F;J6hgRy4E1wI&#x2F;s320&#x2F;1119379849_14860651001_History-Ax-Men-Logger-Advice-SF.jpg">
-<meta property="og:updated_time" content="2017-01-07T15:38:36.000Z">
+<meta property="og:image" content="http://1.bp.blogspot.com/_33EF80fk9sM/TDJYewihZFI/AAAAAAAADxQ/J6hgRy4E1wI/s320/1119379849_14860651001_History-Ax-Men-Logger-Advice-SF.jpg">
+<meta property="article:published_time" content="2010-07-06T15:00:00.000Z">
+<meta property="article:modified_time" content="2017-01-07T15:38:36.000Z">
+<meta property="article:author" content="Martin Giffy D&#39;Souza">
+<meta property="article:tag" content="apex">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http:&#x2F;&#x2F;1.bp.blogspot.com&#x2F;_33EF80fk9sM&#x2F;TDJYewihZFI&#x2F;AAAAAAAADxQ&#x2F;J6hgRy4E1wI&#x2F;s320&#x2F;1119379849_14860651001_History-Ax-Men-Logger-Advice-SF.jpg">
+<meta name="twitter:image" content="http://1.bp.blogspot.com/_33EF80fk9sM/TDJYewihZFI/AAAAAAAADxQ/J6hgRy4E1wI/s320/1119379849_14860651001_History-Ax-Men-Logger-Advice-SF.jpg">
 <meta name="twitter:creator" content="@martindsouza">
   
     <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
@@ -27,8 +28,10 @@
   
     <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
   
-  <link rel="stylesheet" href="/css/style.css">
-</head>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
 
 <body>
   <div id="container">
@@ -102,79 +105,48 @@ SELECT *
  WHERE application_id = :app_id
    AND page_id = :app_page_id
 </pre>
-<span style="font-style:italic;">Note: this approach is not 100% accurate since it only logs the page and not the individual regions, however for this purpose it should do. I have tinkered with "Region Logging" and may write about it soon.</span>
-
-I still needed a way to track report downloads. Here's how I did it. A working demo can be found here: [http://apex.oracle.com/pls/apex/f?p=20195:3120](http://apex.oracle.com/pls/apex/f?p=20195:3120)
-
-- Create Download Log table:
-<pre class="brush: sql;">
+<p><span style="font-style:italic;">Note: this approach is not 100% accurate since it only logs the page and not the individual regions, however for this purpose it should do. I have tinkered with “Region Logging” and may write about it soon.</span></p>
+<p>I still needed a way to track report downloads. Here’s how I did it. A working demo can be found here: <a href="http://apex.oracle.com/pls/apex/f?p=20195:3120" target="_blank" rel="noopener">http://apex.oracle.com/pls/apex/f?p=20195:3120</a></p>
+<ul>
+<li>Create Download Log table:<pre class="brush: sql;">
 CREATE TABLE TAPEX_WORKSPLACE_REPORT_DL_LOG
 (
-  WORKSPACE                  VARCHAR2 (255 BYTE) NOT NULL,
-  WORKSPACE_ID               NUMBER NOT NULL,
-  APPLICATION_ID             NUMBER NOT NULL,
-  APPLICATION_NAME           VARCHAR2 (255 BYTE) NOT NULL,
-  APPLICATION_SCHEMA_OWNER   VARCHAR2 (30 BYTE) NOT NULL,
-  PAGE_ID                    NUMBER NOT NULL,
-  PAGE_NAME                  VARCHAR2 (255 BYTE) NOT NULL,
-  REGION_ID                  NUMBER NOT NULL,
-  REGION_NAME                VARCHAR2 (255 BYTE) NOT NULL,
-  VIEW_DATE                  DATE NOT NULL,
-  APEX_USER                  VARCHAR2 (255 BYTE) NOT NULL,
-  APEX_SESSION_ID            NUMBER NOT NULL
+WORKSPACE                  VARCHAR2 (255 BYTE) NOT NULL,
+WORKSPACE_ID               NUMBER NOT NULL,
+APPLICATION_ID             NUMBER NOT NULL,
+APPLICATION_NAME           VARCHAR2 (255 BYTE) NOT NULL,
+APPLICATION_SCHEMA_OWNER   VARCHAR2 (30 BYTE) NOT NULL,
+PAGE_ID                    NUMBER NOT NULL,
+PAGE_NAME                  VARCHAR2 (255 BYTE) NOT NULL,
+REGION_ID                  NUMBER NOT NULL,
+REGION_NAME                VARCHAR2 (255 BYTE) NOT NULL,
+VIEW_DATE                  DATE NOT NULL,
+APEX_USER                  VARCHAR2 (255 BYTE) NOT NULL,
+APEX_SESSION_ID            NUMBER NOT NULL
 );
-</pre>
-- Create procedure to store APEX download record
-<pre class="brush: sql;">
+</pre></li>
+<li>Create procedure to store APEX download record<pre class="brush: sql;">
 /**
- * Insert Download Report Record
- * @param p_region_id Report Region ID
- */
+* Insert Download Report Record
+* @param p_region_id Report Region ID
+*/
 
-CREATE OR REPLACE PROCEDURE sp_log_apex_dl_report (
-  p_region_id IN apex_application_page_regions.region_id%TYPE)
-AS
-BEGIN
-  -- Insert into report download log table
-  INSERT INTO tapex_worksplace_report_dl_log (WORKSPACE,
-                                              WORKSPACE_ID,
-                                              APPLICATION_ID,
-                                              APPLICATION_NAME,
-                                              APPLICATION_SCHEMA_OWNER,
-                                              PAGE_ID,
-                                              PAGE_NAME,
-                                              REGION_ID,
-                                              REGION_NAME,
-                                              VIEW_DATE,
-                                              APEX_USER,
-                                              APEX_SESSION_ID)
-    SELECT aapr.workspace,
-           AA.WORKSPACE_ID,
-           aapr.application_id,
-           aapr.application_name,
-           aa.owner,
-           aapr.page_id,
-           AAPr.PAGE_NAME,
-           aapr.region_id,
-           aapr.region_name,
-           SYSDATE,
-           v ('APP_USER'),
-           v ('APP_SESSION')
-      FROM APEX_APPLICATION_PAGE_regionS aapr, APEX_APPLICATIONS aa
-     WHERE aapr.application_id = v ('APP_ID')
-       AND AAPr.PAGE_ID = v ('APP_PAGE_ID')
-       AND aapr.region_id = p_region_id
-       AND aapr.application_id = aa.application_id;
-END sp_log_apex_dl_report;
-</pre>
-- Trigger the above procedure every time a report is downloaded:
-
-Since Standard Reports (STD) and Interactive Reports (IR) download functionalities are handled differently I can't use an Applicatiobn Process to trigger the logging function. Instead, I'm going to leverage the VPD section in APEX. For those of you new to APEX, the Virtual Private Database (VPD) section in APEX is a section in APEX where you can put a block of PL/SQL code. This code gets run right at the beginning of the page, after the APP_USER is defined. The label of VPD is a bit misleading since the code doesn't have to do any VPD tasks. <span style="font-style:italic;">Initially I had planned to handle IRs and STD Reports using a different method but thanks to the guys at Purdue Pharma for reminding me that I can leverage the VPD section in APEX.</span>
-
-- Shared Components
-  - Security Attributes
-    - Virtual Private Database
-
+</li>
+</ul>
+<p>CREATE OR REPLACE PROCEDURE sp_log_apex_dl_report (<br>  p_region_id IN apex_application_page_regions.region_id%TYPE)<br>AS<br>BEGIN<br>  – Insert into report download log table<br>  INSERT INTO tapex_worksplace_report_dl_log (WORKSPACE,<br>                                              WORKSPACE_ID,<br>                                              APPLICATION_ID,<br>                                              APPLICATION_NAME,<br>                                              APPLICATION_SCHEMA_OWNER,<br>                                              PAGE_ID,<br>                                              PAGE_NAME,<br>                                              REGION_ID,<br>                                              REGION_NAME,<br>                                              VIEW_DATE,<br>                                              APEX_USER,<br>                                              APEX_SESSION_ID)<br>    SELECT aapr.workspace,<br>           AA.WORKSPACE_ID,<br>           aapr.application_id,<br>           aapr.application_name,<br>           aa.owner,<br>           aapr.page_id,<br>           AAPr.PAGE_NAME,<br>           aapr.region_id,<br>           aapr.region_name,<br>           SYSDATE,<br>           v (‘APP_USER’),<br>           v (‘APP_SESSION’)<br>      FROM APEX_APPLICATION_PAGE_regionS aapr, APEX_APPLICATIONS aa<br>     WHERE aapr.application_id = v (‘APP_ID’)<br>       AND AAPr.PAGE_ID = v (‘APP_PAGE_ID’)<br>       AND aapr.region_id = p_region_id<br>       AND aapr.application_id = aa.application_id;<br>END sp_log_apex_dl_report;<br></pre></p>
+<ul>
+<li>Trigger the above procedure every time a report is downloaded:</li>
+</ul>
+<p>Since Standard Reports (STD) and Interactive Reports (IR) download functionalities are handled differently I can’t use an Applicatiobn Process to trigger the logging function. Instead, I’m going to leverage the VPD section in APEX. For those of you new to APEX, the Virtual Private Database (VPD) section in APEX is a section in APEX where you can put a block of PL/SQL code. This code gets run right at the beginning of the page, after the APP_USER is defined. The label of VPD is a bit misleading since the code doesn’t have to do any VPD tasks. <span style="font-style:italic;">Initially I had planned to handle IRs and STD Reports using a different method but thanks to the guys at Purdue Pharma for reminding me that I can leverage the VPD section in APEX.</span></p>
+<ul>
+<li>Shared Components<ul>
+<li>Security Attributes<ul>
+<li>Virtual Private Database</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
 <pre class="brush: sql;">
 DECLARE
   v_region_id   APEX_APPLICATION_PAGE_REGIONS.REGION_ID%TYPE;
@@ -198,9 +170,10 @@ BEGIN
   END IF;
 END;
 </pre>
-- Comparison report:
-
-Here's the query that I used to compare the downloads to the report views
+<ul>
+<li>Comparison report:</li>
+</ul>
+<p>Here’s the query that I used to compare the downloads to the report views</p>
 <pre class="brush: sql;">
 SELECT AR.APPLICATION_ID,
        ar.application_name,
@@ -232,7 +205,7 @@ SELECT AR.APPLICATION_ID,
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/07/apex-report-download-logger/" data-id="ck3dzyygf0041h9qu3kckcd2c" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/07/apex-report-download-logger/" data-id="ck5ro3bw0001a01mv9zrggzbf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/07/apex-report-download-logger/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -268,7 +241,7 @@ SELECT AR.APPLICATION_ID,
 
 <section id="comments">
   <div id="disqus_thread">
-    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
   </div>
 </section>
 </section>
@@ -290,7 +263,7 @@ SELECT AR.APPLICATION_ID,
       <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
       <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
       <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
-      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com" target="_blank" rel="noopener">Email me</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
       <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
       <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
     </ul>
@@ -302,7 +275,7 @@ SELECT AR.APPLICATION_ID,
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -339,7 +312,7 @@ SELECT AR.APPLICATION_ID,
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -352,7 +325,7 @@ SELECT AR.APPLICATION_ID,
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 Martin Giffy D&#39;Souza<br>
+      &copy; 2020 Martin Giffy D&#39;Souza<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
@@ -384,11 +357,17 @@ SELECT AR.APPLICATION_ID,
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
 <!-- Google Analytics -->
 <script type="text/javascript">

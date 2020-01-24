@@ -7,9 +7,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta property="og:type" content="website">
 <meta property="og:title" content="TalkApex">
-<meta property="og:url" content="http:&#x2F;&#x2F;www.talkapex.com&#x2F;page&#x2F;4&#x2F;index.html">
+<meta property="og:url" content="http://www.talkapex.com/page/4/index.html">
 <meta property="og:site_name" content="TalkApex">
-<meta property="og:locale" content="default">
+<meta property="article:author" content="Martin Giffy D&#39;Souza">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:creator" content="@martindsouza">
   
@@ -21,8 +21,10 @@
   
     <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
   
-  <link rel="stylesheet" href="/css/style.css">
-</head>
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
 
 <body>
   <div id="container">
@@ -66,6 +68,81 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-setup-oracle-db-12-2-docker-container" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/10/how-to-setup-oracle-db-12-2-docker-container/" class="article-date">
+  <time datetime="2017-10-11T05:39:44.000Z" itemprop="datePublished">2017-10-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/10/how-to-setup-oracle-db-12-2-docker-container/">How to Setup Oracle DB 12.2 Docker Container</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>Update: I’ve moved my setup process to Dockerize Oracle and APEX to Github. It will be maintained with the latest steps I’m using it. The repository is <a href="https://github.com/martindsouza/docker-oracle-setup" target="_blank" rel="noopener">docker-oracle-setup</a>.</em></p>
+<p>I recently had a need to do a Proof of Concept (POC) on a new feature released in Oracle 12c R2 (12.2). My first instinct was to go to my DBAs and ask them to give me access to a 12.2 environment. Thankfully I was at the <a href="http://www.oracle.com/technetwork/community/oracle-ace/index.html" target="_blank" rel="noopener">Oracle ACE</a> annual Oracle Open World dinner and <a href="https://twitter.com/geraldvenzl?lang=en" target="_blank" rel="noopener">Gerald Venzl</a> (aka Mr.Oracle-Docker) was there and convinced me otherwise. I must thank Gerald for both pushing me to start using Docker again and also for some support when I ran into issues.</p>
+<p>The following post will cover how to get a 12.2 instance up and running using the Oracle Container Registry for your own personal instances</p>
+<h1 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h1><ul>
+<li>If you haven’t already done so, go install <a href="https://www.docker.com" target="_blank" rel="noopener">Docker</a>. If you’ve never heard of Docker before I suggest reading a bit about it so you have some understanding of what is and how it works.</li>
+<li>Go to <a href="https://container-registry.oracle.com" target="_blank" rel="noopener">container-registry.oracle.com</a> and use your Oracle Technology Network (OTN) login and register.<ul>
+<li>One logged in go to <code>Database &gt; Enterprise</code> and read and if you agree to the Terms and Conditions click the <code>Accept</code> button</li>
+</ul>
+</li>
+</ul>
+<h1 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h1><p>The following steps will pull the appropriate image(s) and setup your docker instance. I’ve added inline comments to describe each step. <em>If you’re new to Docker please read my comments rather than blindly running the code.</em></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Some Docker versions may complain about login credentials when calling the pull command</span></span><br><span class="line"><span class="comment"># If you aren't auto prompted for login credentials run the following and use your OTN credentials</span></span><br><span class="line"><span class="comment"># docker login container-registry.oracle.com</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># They're various docker 12c images. To help reduce the number (and size) of images on my laptop I only needed the 12.2 version</span></span><br><span class="line"><span class="comment"># This will take a while to run as the image size is around 3.5 GB</span></span><br><span class="line">docker pull container-registry.oracle.com/database/enterprise:12.2.0.1</span><br><span class="line"></span><br><span class="line"><span class="comment"># For all the examples below the name "OracleDB" was used.</span></span><br><span class="line"><span class="comment"># You can use any name you want or just use the docker container ID to reference it</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To run the image the documentation says to just use the -P option for something like:</span></span><br><span class="line"><span class="comment"># docker run -d -it --name OracleDB -P container-registry.oracle.com/database/enterprise:12.2.0.1</span></span><br><span class="line"><span class="comment"># This will auto map a local port on your laptop to the container's Oracle 1521 port.</span></span><br><span class="line"><span class="comment"># The problem with this approach is that each time you stop and start the container you may get a new local port</span></span><br><span class="line"><span class="comment"># To get around this restriction you can use the the "-p" option for a statically defined port.</span></span><br><span class="line"><span class="comment"># In this example I chose 32711</span></span><br><span class="line">docker run -d -it --name OracleDB -p 32711:1521 container-registry.oracle.com/database/enterprise:12.2.0.1</span><br><span class="line"></span><br><span class="line"><span class="comment"># It takes some time for the Oracle container to fully boot up. Before trying to connect to it check the container status by running:</span></span><br><span class="line">docker ps</span><br><span class="line"></span><br><span class="line"><span class="comment"># Look in the STATUS column for the container. During "boot" time it will say "... (health: starting)".</span></span><br><span class="line"><span class="comment"># Wait until it says (healthy) before trying anything else.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To review/confirm the port mapping run:</span></span><br><span class="line">docker port OracleDB</span><br><span class="line"><span class="comment"># Should result in something like: 1521/tcp -&gt; 0.0.0.0:32711</span></span><br></pre></td></tr></table></figure>
+
+<p>Your docker container should now be running. The following code shows how to connect to the instance using <a href="http://www.oracle.com/technetwork/developer-tools/sqlcl/overview/index.html" target="_blank" rel="noopener">SQLcl</a> along with creating a test account on the PDB. You can take the connection strings in the SQLcl demos and apply to <a href="http://www.oracle.com/technetwork/developer-tools/sql-developer/overview/index.html" target="_blank" rel="noopener">SQL Developer</a>.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Note on my laptop I renamed "sql" to "sqlcl". Adjust the scripts accordingly or call sqlplus</span></span><br><span class="line"><span class="comment"># The difference between : and / at the end of the connection strings is :SID /SERVICE_NAME</span></span><br><span class="line"><span class="comment"># Note: Oradoc_db1 is the default password for the image</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To connect to the CDB (you probably won't need to do this)</span></span><br><span class="line"><span class="comment"># sqlcl sys/Oradoc_db1@localhost:32711:orclcdb as sysdba</span></span><br><span class="line"><span class="comment"># You'd then need to connect to PDB in SQL: alter session set container = orclpdb1;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To connect to the PDB to create schema to develop with</span></span><br><span class="line">sqlcl sys/Oradoc_db1@localhost:32711/orclpdb1.localdomain as sysdba</span><br></pre></td></tr></table></figure>
+
+<p>In <code>SQL&gt;</code>:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Create account to develop with</span></span><br><span class="line">define new_user = 'martin'</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">user</span> &amp;new_user. <span class="keyword">identified</span> <span class="keyword">by</span> &amp;new_user. <span class="keyword">container</span> = <span class="keyword">current</span>;</span><br><span class="line"><span class="keyword">grant</span> <span class="keyword">connect</span>, <span class="keyword">resource</span>, <span class="keyword">create</span> <span class="keyword">any</span> <span class="keyword">context</span> <span class="keyword">to</span> &amp;new_user;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> &amp;new_user <span class="keyword">quota</span> <span class="keyword">unlimited</span> <span class="keyword">on</span> <span class="keyword">users</span>;</span><br><span class="line"></span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
+<p>Connect to the PDB</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlcl martin/martin@localhost:32711/orclpdb1.localdomain</span><br></pre></td></tr></table></figure>
+
+<p>Note: In SQL Developer this connection looks like:</p>
+<img src="/2017/10/how-to-setup-oracle-db-12-2-docker-container/docker-sql-developer.png" class="">
+
+<p>In <code>SQL&gt;</code></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Create the emp and dept tables (<span class="doctag">note:</span> only works in SQLcl / SQL Dev. Not SQL*Plus)</span></span><br><span class="line">@https://raw.githubusercontent.com/OraOpenSource/OXAR/master/oracle/emp_dept.sql</span><br><span class="line"><span class="keyword">commit</span>;</span><br><span class="line">exit;</span><br></pre></td></tr></table></figure>
+
+<p>You can now do/test whatever you want to do in your PDB!</p>
+<h1 id="Common-docker-commands"><a href="#Common-docker-commands" class="headerlink" title="Common docker commands"></a>Common docker commands</h1><p>So now that you’ve started your Docker instance, and established a working connection to the PDB how do you manage the Docker container? Here are some useful Docker commands:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># See all containers (running or otherwise)</span></span><br><span class="line">docker ps -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># Stop the docker image</span></span><br><span class="line"><span class="comment"># docker stop OracleDB</span></span><br><span class="line"><span class="comment"># From Gerald Venzl: By default docker will kill the container after just 10 seconds.</span></span><br><span class="line"><span class="comment"># That usually means that your database will die and has to run through recovery when it restarts.</span></span><br><span class="line"><span class="comment"># I always do a "docker stop -t 100 &lt;container name&gt;". That gives it a minute and 40 secs.</span></span><br><span class="line"><span class="comment"># It won't need that, usually 30 - 40 secs is enough.</span></span><br><span class="line"><span class="comment"># Docker will shutdown as soon as the database is down as well.</span></span><br><span class="line">docker stop -t 100 OracleDB</span><br><span class="line"></span><br><span class="line"><span class="comment"># Start the docker image</span></span><br><span class="line">docker start OracleDB</span><br><span class="line"></span><br><span class="line"><span class="comment"># *** Cleanup ***</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete container</span></span><br><span class="line">docker rm OracleDB</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete Image</span></span><br><span class="line">docker rmi container-registry.oracle.com/database/enterprise:12.2.0.1</span><br></pre></td></tr></table></figure>
+
+<h1 id="Final-Thoughts"><a href="#Final-Thoughts" class="headerlink" title="Final Thoughts"></a>Final Thoughts</h1><p>I’ve just started to use the Docker 12.2 image and may launch a 12.1 container as well (will blog instructions if I do it).</p>
+<p>If I run into any issues doing my tests and “learning” development (i.e. kicking the 12.2 tires) I’ll write another article and link below. I also plan to look into upgrading APEX on the 12.2 container along with creating a simple web server container to test APEX with some 12.2 features. If I get this working I’ll blog about it.</p>
+<p>*<em>Update: *</em> <a href="https://twitter.com/RoelH" target="_blank" rel="noopener">Role Hartman</a> wrote a followup <a href="http://roelhartman.blogspot.ca/2017/10/dockerize-your-apex-development.html" target="_blank" rel="noopener">post</a> to this article that I highly suggest reading. I will update this article with some of his suggestions on how he sets up his Docker Oracle DB container.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/" data-id="ck5ro3cm000i101mvcgae957m" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-montreal-oracle-dev-day-2017" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2017/10/montreal-oracle-dev-day-2017/" class="article-date">
@@ -104,7 +181,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/montreal-oracle-dev-day-2017/" data-id="ck3dzyys800fch9quektxdydh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/montreal-oracle-dev-day-2017/" data-id="ck5ro3cls00hu01mv2ekccyn5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/montreal-oracle-dev-day-2017/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -142,14 +219,14 @@
       
         <p>I’ll be attending <a href="https://www.oracle.com/openworld/index.html" target="_blank" rel="noopener">Oracle Open World 17</a> (OOW 17) next week. This year is going to be special for me as I’ll be giving a presentation at <a href="http://www.oaktable.net/blog/oak-table-world-2017-oracle-open-world" target="_blank" rel="noopener">Oak Table World</a> for the first time. I’m a bit nervous as I’ll be presenting alongside some of the biggest names in the Oracle DB community. Specifically I’m talking between lightening talks from Oak Table members and <a href="https://twitter.com/CaryMillsap" target="_blank" rel="noopener">Cary Millsap</a>!</p>
 <h2 id="My-Presentations"><a href="#My-Presentations" class="headerlink" title="My Presentations"></a>My Presentations</h2><p>Here are the presentations I’ll be giving at OOW 17:</p>
-<h3 id="Explore-Oracle-Application-Express-APIs"><a href="#Explore-Oracle-Application-Express-APIs" class="headerlink" title="Explore Oracle Application Express APIs"></a>Explore Oracle Application Express APIs</h3><p><strong>Date:</strong> Sunday, Oct 01, 3:45 p.m. - 4:30 p.m.<br><strong>Location:</strong> <a href="https://goo.gl/maps/Cz8YTBHQa1P2" target="_blank" rel="noopener">Marriott Marquis</a> (Yerba Buena Level) - Salon 4-6<br><strong>Session Code:</strong> <a href="https://events.rainfocus.com/catalog/oracle/oow17/catalogoow17?search=d%27souza&amp;showEnrolled=false" target="_blank" rel="noopener"><code>SUN6244</code></a></p>
+<h3 id="Explore-Oracle-Application-Express-APIs"><a href="#Explore-Oracle-Application-Express-APIs" class="headerlink" title="Explore Oracle Application Express APIs"></a>Explore Oracle Application Express APIs</h3><p><strong>Date:</strong> Sunday, Oct 01, 3:45 p.m. - 4:30 p.m.<br><strong>Location:</strong> <a href="https://goo.gl/maps/Cz8YTBHQa1P2" target="_blank" rel="noopener">Marriott Marquis</a> (Yerba Buena Level) - Salon 4-6<br><strong>Session Code:</strong> <a href="https://events.rainfocus.com/catalog/oracle/oow17/catalogoow17?search=d%27souza&showEnrolled=false" target="_blank" rel="noopener"><code>SUN6244</code></a></p>
 <p><strong>Abstract:</strong> Most developers new to Oracle Application Express aren’t aware that it comes with a plethora of very powerful APIs for both PL/SQL and JavaScript. This session highlights some of these APIs and explains how and when to use them to speed up and simplify developing your Oracle Application Express applications. New Oracle Application Express 5.1 APIs are also discussed.</p>
 <p>_ Note: This presentation was voted the best presentation at <a href="http://kscope17.com" target="_blank" rel="noopener">ODTUG Kscope 17</a>_</p>
-<h3 id="Open-Source-PL-SQL-Utility-Tools-for-Oracle"><a href="#Open-Source-PL-SQL-Utility-Tools-for-Oracle" class="headerlink" title="Open Source PL/SQL Utility Tools for Oracle"></a>Open Source PL/SQL Utility Tools for Oracle</h3><p><strong>Date</strong>: Tuesday, Oct 03, 12:30 p.m. - 1:30 p.m.<br><strong>Location: </strong> <a href="https://goo.gl/maps/1dnsnsT6saE2" target="_blank" rel="noopener">Children’s Creativity Museum</a> (221 4th St - corner of 4th ST and Howard).</p>
-<p><strong>Abstract: </strong> <a href="https://github.com/oraopensource/oos-utils" target="_blank" rel="noopener">OOS Utils</a> is a free open-source PL/SQL tool set for common utility functionality that developers use. Its goal is to prevent developers from having to rewrite the same code over and over again.</p>
+<h3 id="Open-Source-PL-SQL-Utility-Tools-for-Oracle"><a href="#Open-Source-PL-SQL-Utility-Tools-for-Oracle" class="headerlink" title="Open Source PL/SQL Utility Tools for Oracle"></a>Open Source PL/SQL Utility Tools for Oracle</h3><p><strong>Date</strong>: Tuesday, Oct 03, 12:30 p.m. - 1:30 p.m.<br>*<em>Location: *</em> <a href="https://goo.gl/maps/1dnsnsT6saE2" target="_blank" rel="noopener">Children’s Creativity Museum</a> (221 4th St - corner of 4th ST and Howard).</p>
+<p>*<em>Abstract: *</em> <a href="https://github.com/oraopensource/oos-utils" target="_blank" rel="noopener">OOS Utils</a> is a free open-source PL/SQL tool set for common utility functionality that developers use. Its goal is to prevent developers from having to rewrite the same code over and over again.</p>
 <p>This presentation will highlight some of the great features of OOS Utils and showcase some future plans for the project. All audience types (DBAs, PL/SQL and APEX developers, and development managers) are encouraged to attend, as all will see immediate benefits for themselves or their teams to use.</p>
 <h2 id="Other-Notes"><a href="#Other-Notes" class="headerlink" title="Other Notes:"></a>Other Notes:</h2><ul>
-<li>As usual we’ll be having our annual <strong>ODTUG APEX Meetup</strong> on Tuesday (Oct 3rd) night at <a href="https://www.google.com/maps?f=q&amp;hl=en&amp;q=243+O%27Farrell+St.,+San+Francisco,+CA,+us" target="_blank" rel="noopener">Johnny Foley’s</a>. There’s a slight twist to the event. Since this has been a huge hit we’ve opened it up and made it an ODTUG All Community event! This means that the entire ODTUG community at OOW will be in one place and no need to run around to all the different events. You can register (free) for the event on <a href="https://www.meetup.com/ODTUGers/events/242740673/" target="_blank" rel="noopener">meetup.com</a>. If you’ve never been to this event before here are few tips:<ul>
+<li>As usual we’ll be having our annual <strong>ODTUG APEX Meetup</strong> on Tuesday (Oct 3rd) night at <a href="https://www.google.com/maps?f=q&hl=en&q=243+O%27Farrell+St.,+San+Francisco,+CA,+us" target="_blank" rel="noopener">Johnny Foley’s</a>. There’s a slight twist to the event. Since this has been a huge hit we’ve opened it up and made it an ODTUG All Community event! This means that the entire ODTUG community at OOW will be in one place and no need to run around to all the different events. You can register (free) for the event on <a href="https://www.meetup.com/ODTUGers/events/242740673/" target="_blank" rel="noopener">meetup.com</a>. If you’ve never been to this event before here are few tips:<ul>
 <li>We’re downstairs (Johnny Foley’s has two levels) where all the action is at for the dueling pianos.</li>
 <li>We <strong>don’t</strong> have any special reservations.</li>
 <li>The earlier you show up the better as there’s always a lineup to get in as the night goes on.</li>
@@ -162,7 +239,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/09/oracle-open-world-17/" data-id="ck3dzyys600f9h9quhcp1fyo1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/09/oracle-open-world-17/" data-id="ck5ro3cla00hh01mv00ztabd6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/09/oracle-open-world-17/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -199,7 +276,8 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>I recently had a situation that running either <a href="http://www.oracle.com/technetwork/developer-tools/sql-developer/overview/index.html" target="_blank" rel="noopener">Oracle SQL Developer</a> or <a href="http://www.oracle.com/technetwork/developer-tools/datamodeler/overview/index.html" target="_blank" rel="noopener">SQL Developer Data Modeler</a> on a Windows 7 VM (more on this later) would randomly close (or crash depending on how you look at it). The log files didn’t produce anything substantial and after a lot of digging around it was due to the JVM and the video driver. <a href="https://twitter.com/thatjeffsmith" target="_blank" rel="noopener">Jeff Smith</a> confirmed this over Twitter:</p>
-<p><blockquote class="twitter-tweet" data-conversation="none" data-lang="en"><p lang="en" dir="ltr">So it&#39;s the jvm crashing because of the video driver…happens on Windows a decent amount, usually fixed with a driver update</p>&mdash; Jeff Smith 🥃 ☜ (@thatjeffsmith) <a href="https://twitter.com/thatjeffsmith/status/888428472326029315" target="_blank" rel="noopener">July 21, 2017</a></blockquote> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script></p>
+<blockquote class="twitter-tweet" data-conversation="none" data-lang="en"><p lang="en" dir="ltr">So it&#39;s the jvm crashing because of the video driver...happens on Windows a decent amount, usually fixed with a driver update</p>&mdash; Jeff Smith 🥃 ☜ (@thatjeffsmith) <a href="https://twitter.com/thatjeffsmith/status/888428472326029315" target="_blank" rel="noopener">July 21, 2017</a></blockquote> <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 <p>I was using windows on a VM and it had no available video driver updates. After reading <a href="https://stackoverflow.com/questions/40651162/sql-developer-crashes-randomly-every-time" target="_blank" rel="noopener">this post</a> on StackOverflow I found there is a configuration setting to get around the issue. It wasn’t very clear as to where to make the configuration change so here it is:</p>
 <ol>
 <li>Modify <code>datamodeler\ide\bin\jdk.conf</code></li>
@@ -215,7 +293,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/07/oracle-sql-developer-randomly-closes/" data-id="ck3dzyys400f7h9qu7jjjfge4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/07/oracle-sql-developer-randomly-closes/" data-id="ck5ro3clk00hn01mvhdxf9zom" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/07/oracle-sql-developer-randomly-closes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -252,9 +330,10 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>I’ll be attending and presenting at this year’s <a href="http://kscope17.com" target="_blank" rel="noopener">ODTUG Kscope 17</a>. Here are some things that I’m involved with and my personal highlights for the conference this year:</p>
-<h1 id="Conference-Planning-APEX-App"><a href="#Conference-Planning-APEX-App" class="headerlink" title="Conference Planning APEX App"></a>Conference Planning APEX App</h1><p>We (<a href="http://www.insum.ca" target="_blank" rel="noopener">Insum</a>) created a conference planning application built in APEX: <a href="https://bit.ly/insum-kscope17" target="_blank" rel="noopener">bit.ly/insum-kscope17</a>. The goal was to showcase APEX and some cool features we added into the application. If time permits I may give a brief demo into how we created the app during Monday’s <a href="APEX Open Mic Night">APEX Open Mic Night</a>. I made a short video to highlight this application:</p>
-<div class="video-container"><iframe src="//www.youtube.com/embed/DiV7Zt4LFSc" frameborder="0" allowfullscreen></iframe></div>
-<p>Note: This is an unofficial application. Official Kscope 17 mobile apps for <a href="https://itunes.apple.com/us/app/odtug-kscope17/id1228530832?mt=8&amp;utm_source=email&amp;utm_source=email&amp;utm_source=email&amp;utm_source=email&amp;utm_source=email&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;cmp=1&amp;cmp=1&amp;cmp=1&amp;cmp=1&amp;cmp=1&amp;utm_medium=HTMLEmail&amp;utm_medium=HTMLEmail&amp;utm_medium=HTMLEmail&amp;utm_medium=HTMLEmail&amp;utm_medium=HTMLEmail&amp;utm_source=email&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;cmp=1&amp;utm_medium=HTMLEmail" target="_blank" rel="noopener">Apple iOS</a> and <a href="https://play.google.com/store/apps/details?id=com.crowdcompass.appoYMYOqXoRT&amp;utm_source=email&amp;utm_source=email&amp;utm_source=email&amp;utm_source=email&amp;utm_source=email&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;cmp=1&amp;cmp=1&amp;cmp=1&amp;cmp=1&amp;cmp=1&amp;utm_medium=HTMLEmail&amp;utm_medium=HTMLEmail&amp;utm_medium=HTMLEmail&amp;utm_medium=HTMLEmail&amp;utm_medium=HTMLEmail&amp;utm_source=email&amp;utm_campaign=Mobile_app_and_Kscope_Go_&amp;cmp=1&amp;utm_medium=HTMLEmail" target="_blank" rel="noopener">Google Android</a>.</p>
+<h1 id="Conference-Planning-APEX-App"><a href="#Conference-Planning-APEX-App" class="headerlink" title="Conference Planning APEX App"></a>Conference Planning APEX App</h1><p>We (<a href="http://www.insum.ca" target="_blank" rel="noopener">Insum</a>) created a conference planning application built in APEX: <a href="https://bit.ly/insum-kscope17" target="_blank" rel="noopener">bit.ly/insum-kscope17</a>. The goal was to showcase APEX and some cool features we added into the application. If time permits I may give a brief demo into how we created the app during Monday’s [APEX Open Mic Night](APEX Open Mic Night ). I made a short video to highlight this application:</p>
+<div class="video-container"><iframe src="https://www.youtube.com/embed/DiV7Zt4LFSc" frameborder="0" loading="lazy" allowfullscreen></iframe></div>
+
+<p>Note: This is an unofficial application. Official Kscope 17 mobile apps for <a href="https://itunes.apple.com/us/app/odtug-kscope17/id1228530832?mt=8&utm_source=email&utm_source=email&utm_source=email&utm_source=email&utm_source=email&utm_campaign=Mobile_app_and_Kscope_Go_&utm_campaign=Mobile_app_and_Kscope_Go_&utm_campaign=Mobile_app_and_Kscope_Go_&utm_campaign=Mobile_app_and_Kscope_Go_&utm_campaign=Mobile_app_and_Kscope_Go_&cmp=1&cmp=1&cmp=1&cmp=1&cmp=1&utm_medium=HTMLEmail&utm_medium=HTMLEmail&utm_medium=HTMLEmail&utm_medium=HTMLEmail&utm_medium=HTMLEmail&utm_source=email&utm_campaign=Mobile_app_and_Kscope_Go_&cmp=1&utm_medium=HTMLEmail" target="_blank" rel="noopener">Apple iOS</a> and <a href="https://play.google.com/store/apps/details?id=com.crowdcompass.appoYMYOqXoRT&utm_source=email&utm_source=email&utm_source=email&utm_source=email&utm_source=email&utm_campaign=Mobile_app_and_Kscope_Go_&utm_campaign=Mobile_app_and_Kscope_Go_&utm_campaign=Mobile_app_and_Kscope_Go_&utm_campaign=Mobile_app_and_Kscope_Go_&utm_campaign=Mobile_app_and_Kscope_Go_&cmp=1&cmp=1&cmp=1&cmp=1&cmp=1&utm_medium=HTMLEmail&utm_medium=HTMLEmail&utm_medium=HTMLEmail&utm_medium=HTMLEmail&utm_medium=HTMLEmail&utm_source=email&utm_campaign=Mobile_app_and_Kscope_Go_&cmp=1&utm_medium=HTMLEmail" target="_blank" rel="noopener">Google Android</a>.</p>
 <h1 id="Presentations"><a href="#Presentations" class="headerlink" title="Presentations"></a>Presentations</h1><p>I’ll be giving / participating in the following presentations:</p>
 <h2 id="Explore-the-APEX-APIs"><a href="#Explore-the-APEX-APIs" class="headerlink" title="Explore the APEX APIs"></a>Explore the APEX APIs</h2><p><strong>When</strong>: Jun 26, 2017, Monday Session 5 , 4:45 pm - 5:45 pm<br><strong>Room</strong>: Cibolo Canyon 5</p>
 <p>Most developers new to APEX aren’t aware that APEX comes with a plethora of very powerful APIs for both PL/SQL and JavaScript. This presentation will highlight some of these APIs and explain how and when to use them to speed up and simplify developing your APEX applications. New 5.1 APIs will also be discussed.</p>
@@ -285,7 +364,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/06/kscope-17/" data-id="ck3dzyyro00f3h9qugrtz45d7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/06/kscope-17/" data-id="ck5ro3clf00hj01mv0g2l0iy3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/06/kscope-17/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -324,28 +403,42 @@
         <p>Last week <a href="https://twitter.com/connor_mc_d" target="_blank" rel="noopener">Connor McDonald</a> tweeted that he received the following question on <a href="https://asktom.oracle.com" target="_blank" rel="noopener">AskTom</a>: “<em>I hacked the Apex install scripts to get access to the APEX… schema..and now Apex doesnt work</em>“ The community had a few <a href="https://twitter.com/connor_mc_d/status/857771927842078721" target="_blank" rel="noopener">reactions on twitter</a> including my comment which stated that “<em>They’re some cases where it’s good. I use it to “inject” the version as part of the build process.</em>“</p>
 <p>I had mis-read Connor’s statement and interpreted “<em>hacked the APEX install scripts</em>“ as “<em>hacked an application install script</em>“. To correct my statement, you should NEVER modify the main APEX installation script. That said, I usually modify an application’s install script despite the fact that I shouldn’t. I have a good reason though which is described below.</p>
 <p>Each APEX application has a meta data property called <code>Version</code> and is usually displayed in the bottom of most applications by referencing the substitution string <code>APP_VERSION</code> in the page’s template as shown below.</p>
-<p><img src="/2017/04/automatically-update-application-version-number-in-apex/apex-version-number.png"></p>
+<img src="/2017/04/automatically-update-application-version-number-in-apex/apex-version-number.png">
+
 <p>The application’s version is statically defined in the application’s properties which can be set in Shared Components &gt; Application Definition: </p>
-<p><img src="/2017/04/automatically-update-application-version-number-in-apex/apex-version-property.png"></p>
+<img src="/2017/04/automatically-update-application-version-number-in-apex/apex-version-property.png">
+
 <p>Since the properly must be statically defined it requires a manual step to update the version number each time the application is released. This usually requires someone to update this value before exporting the application for each release. Personally I’m not a fan of this as I try to automate as much as possible for each build and it can easily lead to mistakes.</p>
 <p>To get around this I use a mnemonic string as the release version and replace it using a script as part of my build process. Here’s an example.</p>
 <p>Change the version number to <code>%RELEASE_VERSION%</code>:</p>
-<p><img src="/2017/04/automatically-update-application-version-number-in-apex/release-version.png"></p>
+<img src="/2017/04/automatically-update-application-version-number-in-apex/release-version.png">
+
 <p>As part of your build script you should be exporting the APEX application from command line. <a href="http://www.oracle.com/technetwork/developer-tools/sqlcl/overview/index.html" target="_blank" rel="noopener">SQLcl</a> has a built in command to easily do this that <a href="https://twitter.com/krisrice" target="_blank" rel="noopener">Kris Rice</a> blogged about <a href="http://krisrice.blogspot.ca/2016/10/export-apex-application-with-sqlcl.html" target="_blank" rel="noopener">here</a>.</p>
 <p>The export file will now look like:</p>
-<p><img src="/2017/04/automatically-update-application-version-number-in-apex/apex-export.png"></p>
+<img src="/2017/04/automatically-update-application-version-number-in-apex/apex-export.png">
+
 <p>You can now use a command like <a href="https://www.digitalocean.com/community/tutorials/the-basics-of-using-the-sed-stream-editor-to-manipulate-text-in-linux" target="_blank" rel="noopener"><code>sed</code></a> in Linux or Node.js to find and replace <code>%RELEASE_VERSION%</code> with your build release version. An example of a build script that both exports the application and sets the version number:</p>
 <p><code>build.sh</code>:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">VERSION=<span class="variable">$1</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="built_in">exit</span> | sqlcl giffy/giffy@localhost:1521/xe @apex_export.sql 123</span><br><span class="line"></span><br><span class="line">sed -i <span class="string">""</span> <span class="string">"s/%RELEASE_VERSION%/<span class="variable">$VERSION</span>/"</span> f123.sql</span><br></pre></td></tr></table></figure>
+
 <p><code>apex_export.sql</code>:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">set</span> termout <span class="keyword">off</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">define</span> APP_ID = &amp;<span class="number">1</span></span><br><span class="line"></span><br><span class="line">spool f&amp;APP_ID..sql</span><br><span class="line">apex <span class="keyword">export</span> &amp;APP_ID.</span><br><span class="line">spool <span class="keyword">off</span></span><br></pre></td></tr></table></figure>
+
 <p>Running:</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./build.sh 1.0.0</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/automatically-update-application-version-number-in-apex/" data-id="ck3dzyys200f5h9qu1wbp1jmf" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/04/automatically-update-application-version-number-in-apex/" data-id="ck5ro3ckx00h501mv1xqfdt0t" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/04/automatically-update-application-version-number-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -384,19 +477,24 @@
         <p>When I first started using Oracle many years ago one of the most frustrating things was the amount of code and complexity required to parse/query CSV data (or any delimited data). As time passed I was able to leverage new features and techniques to help but they all had their issues. APEX 5.1 introduced a new API that may help simplify a lot of the headaches. The following example highlights this.</p>
 <p>Suppose I had the following CSV data:</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">First Name, Last Name, Dept</span><br><span class="line">Martin, DSouza, IT</span><br><span class="line">John, Doe, Sales</span><br><span class="line">Sally, Smith, Sales</span><br></pre></td></tr></table></figure>
+
 <p>The first thing to do is break each of the rows of text into rows of a query. This can be done using the new APEX 5.1 <a href="https://docs.oracle.com/database/apex-5.1/AEAPI/SPLIT-Function-Signature-1.htm#AEAPI-GUID-3BE7FF37-E54F-4503-91B8-94F374E243E6" target="_blank" rel="noopener"><code>apex_string.split</code></a> API</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> *</span><br><span class="line"><span class="keyword">from</span> <span class="keyword">table</span>(apex_string.split(:<span class="keyword">data</span>,<span class="keyword">chr</span>(<span class="number">10</span>)))</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Results in</span></span><br><span class="line">COLUMN_VALUE                                </span><br><span class="line"><span class="comment">------------------------------</span></span><br><span class="line">First Name, Last Name, Dept</span><br><span class="line">Martin, DSouza, IT</span><br><span class="line">john, doe, Sales</span><br><span class="line">Sally, Smith, Sales</span><br></pre></td></tr></table></figure>
+
 <p>Where <code>:data</code> is the CSV data above. <em>Note I’m using a Mac and the EOL character is a <code>LF</code> (<code>chr(10)</code>). Windows users use <code>CR + LF</code> (<code>chr(13) || chr(10)</code>). More info on this <a href="https://en.wikipedia.org/wiki/Newline" target="_blank" rel="noopener">here</a></em></p>
 <p>Now that each line of data is on it’s own row we need to create columns. This can be done using regular expressions:</p>
-<p>_Update: originally I used _<code>regexp_substr(column_value, &#39;[^,]+&#39;, 1, 1)</code> <em>as the regexp which caused issues with <code>null</code> values (ex <code>abc,,def</code>). I’ve since updated the code samples to handle nulls.</em></p>
+<p><em>Update: originally I used _<code>regexp_substr(column_value, &#39;[^,]+&#39;, 1, 1)</code> _as the regexp which caused issues with <code>null</code> values (ex <code>abc,,def</code>). I’ve since updated the code samples to handle nulls.</em></p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">  <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">1</span>), <span class="string">','</span>) fname,</span><br><span class="line">  <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">2</span>), <span class="string">','</span>) lname,</span><br><span class="line">  <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">3</span>), <span class="string">','</span>) dept</span><br><span class="line"><span class="keyword">from</span> <span class="keyword">table</span>(apex_string.split(:<span class="keyword">data</span>,<span class="keyword">chr</span>(<span class="number">10</span>)))</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Results in</span></span><br><span class="line">FNAME        LNAME       DEPT  </span><br><span class="line">First Name   Last Name	 Dept               </span><br><span class="line">Martin	     DSouza      IT                       </span><br><span class="line">john         doe         Sales</span><br><span class="line">Sally        Smith       Sales</span><br></pre></td></tr></table></figure>
+
 <p>To remove the header row change the query to:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> fname, lname, dept</span><br><span class="line"><span class="keyword">from</span> </span><br><span class="line">  (</span><br><span class="line">    <span class="keyword">select</span> </span><br><span class="line">      <span class="keyword">rownum</span> rn,</span><br><span class="line">      <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">1</span>), <span class="string">','</span>) fname,</span><br><span class="line">      <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">2</span>), <span class="string">','</span>) lname,</span><br><span class="line">      <span class="keyword">rtrim</span>(regexp_substr(<span class="keyword">column_value</span>, <span class="string">'([^,])*(,)?'</span>, <span class="number">1</span>, <span class="number">3</span>), <span class="string">','</span>) dept</span><br><span class="line">    <span class="keyword">from</span> <span class="keyword">table</span>(apex_string.split(:<span class="keyword">data</span>,<span class="keyword">chr</span>(<span class="number">10</span>)))</span><br><span class="line">  )</span><br><span class="line"><span class="keyword">where</span> rn &gt; <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/" data-id="ck3dzyyrm00f1h9qucxvz2pe9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/" data-id="ck5ro3cl800hf01mv2hi9edjn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/04/query-csv-data-using-apex-5-1-apis/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -435,9 +533,12 @@
         <p>Starting in APEX 5.1, pages are submitted via AJAX by default instead of the traditional post and refresh. I recorded a short video for <a href="www.insum.ca">Insum</a> a while back on this and suggest that you <a href="https://www.youtube.com/watch?v=yF58mPBLxX0" target="_blank" rel="noopener">watch it</a> before continuning.</p>
 <p>Last week <a href="https://twitter.com/vincentmorneau" target="_blank" rel="noopener">Vincent Morneau</a> and I had a discussion that lead to the following question: What happens when an <code>After Submit</code> computation or process changes a page item’s value in session state and a validation fails? The short answer is that the value in session state is modified but not reflected on the page afterwards. I created the following test case to demonstrate this behavior:</p>
 <p>On Page 2 (P2) I have an text item called <code>P2_NAME</code>. I then have an <code>After Submit</code> computation that always sets the value to <code>Set from Computation</code> and a validation that always fails as shown below.</p>
-<p><img src="/2017/04/apex-5-1-validations-and-session-state/page-processing.png"></p>
+<img src="/2017/04/apex-5-1-validations-and-session-state/page-processing.png">
+
 <p>If I enter <code>martin</code> as a value in <code>P2_NAME</code> and submit the page I’ll get an error message, yet the session state value is now <code>Set from Computation</code>. The following animation shows this.</p>
-<p><img src="/2017/04/apex-5-1-validations-and-session-state/ajax-page-submission.gif"></p>
+<img src="/2017/04/apex-5-1-validations-and-session-state/ajax-page-submission.gif">
+
+
 <h2 id="What-does-this-mean"><a href="#What-does-this-mean" class="headerlink" title="What does this mean?"></a>What does this mean?</h2><p>Before analyzing this behavior it’s important to understand when commits occur in APEX. After each computation or process an implicit <code>commit</code> may occur. <a href="https://twitter.com/dmcghan" target="_blank" rel="noopener">Dan McGhan</a> wrote an excellent <a href="http://www.danielmcghan.us/2012/08/implicit-commits-in-apex.html" target="_blank" rel="noopener">blog post</a> about this several years ago that I highly suggest reading it.</p>
 <p>I can’t speak for the APEX development team but it appears they had a few options when introducing the new AJAX submission functionality: </p>
 <ol>
@@ -450,10 +551,13 @@
 <h3 id="What-to-do-about-it"><a href="#What-to-do-about-it" class="headerlink" title="What to do about it?"></a>What to do about it?</h3><p>This is one thing that I think develoeprs will just need to be aware of and analyze their code to see if there may be any impacts. The following query will identify pages where computations or processes exist before validations.</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">distinct</span></span><br><span class="line">  pv.application_id,</span><br><span class="line">  pv.page_id,</span><br><span class="line">  pv.page_name</span><br><span class="line"><span class="keyword">from</span> apex_application_page_val pv</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> pv.application_id = :app_id</span><br><span class="line">  <span class="keyword">and</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">from</span> apex_application_page_proc pp</span><br><span class="line">    <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">      <span class="keyword">and</span> pp.application_id = pv.application_id</span><br><span class="line">      <span class="keyword">and</span> pp.page_id = pv.page_id</span><br><span class="line">      <span class="keyword">and</span> pp.process_point_code = <span class="string">'ON_SUBMIT_BEFORE_COMPUTATION'</span></span><br><span class="line">    <span class="keyword">union</span></span><br><span class="line">    <span class="keyword">select</span> <span class="number">1</span></span><br><span class="line">    <span class="keyword">from</span> apex_application_page_comp pc</span><br><span class="line">    <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">      <span class="keyword">and</span> pc.application_id = pv.application_id</span><br><span class="line">      <span class="keyword">and</span> pc.page_id = pv.page_id</span><br><span class="line">      <span class="keyword">and</span> pc.computation_point = <span class="string">'After Submit'</span>   </span><br><span class="line">  )</span><br></pre></td></tr></table></figure>
 
+
+
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/" data-id="ck3dzyyrj00exh9qu0kp10iou" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/" data-id="ck5ro3clh00hl01mv3a2c9uho" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/04/apex-5-1-validations-and-session-state/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -491,10 +595,13 @@
       
         <p>The ability to rollback transactionsin PL/SQL is very helpful when something goes wrong and you want to <em>undo</em> what was just done. At a very high level, most code that use <code>rollback</code> look like the following:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span></span><br><span class="line">  ...</span><br><span class="line"><span class="keyword">exception</span></span><br><span class="line">  <span class="keyword">when</span> others <span class="keyword">then</span></span><br><span class="line">    <span class="keyword">rollback</span>;</span><br><span class="line">    raise;</span><br><span class="line"><span class="keyword">end</span>;</span><br></pre></td></tr></table></figure>
+
 <p>The above code makes sense as the <code>rollback</code> occurs when an error happens. (<em>Note for APEX users, an implicit <code>rollback</code> occurs in processes if an exception occurs</em>) The caveat is that it rollsback the entire transaction (i.e. from the start). What if the code is part of a larger block of code and you only want to <code>rollback</code> to the previous step? The following pseudo code is an example:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span></span><br><span class="line">  do_step_1;</span><br><span class="line">  do_step_2;</span><br><span class="line">  <span class="comment">-- Step 3 may error out and if it does, still want to preserve the work of steps 1 and 2.</span></span><br><span class="line">  do_step_3;</span><br><span class="line">  do_step_4;</span><br><span class="line"><span class="keyword">end</span>;</span><br></pre></td></tr></table></figure>
+
 <p>In <code>do_step_3</code> if a generic <code>rollback</code> was used in the exception block it would undo any chnages that were done in step’s 1 and 2 which is not the desired outcome. Thankfully PL/SQL rollback functionality supports this by using <code>savepoint</code>. If we want <code>do_step_3</code> to work as intented this is what it should look like:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">procedure</span> do_step_3 <span class="keyword">as</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="keyword">savepoint</span> start_step_3;</span><br><span class="line"></span><br><span class="line">  ...</span><br><span class="line"></span><br><span class="line">exception</span><br><span class="line">  when some_expected_error then</span><br><span class="line">    <span class="comment">-- This will rollback all changes to the start of do_step_3</span></span><br><span class="line">    <span class="keyword">rollback</span> <span class="keyword">to</span> <span class="keyword">savepoint</span> start_step_3;</span><br><span class="line">    <span class="comment">-- no raise as this was an expected error</span></span><br><span class="line">  when others then</span><br><span class="line">    raise;</span><br><span class="line"><span class="keyword">end</span> do_step_3;</span><br></pre></td></tr></table></figure>
+
 <p>A few things to note about <code>savepoint</code>s:</p>
 <ul>
 <li>The <code>rollback to savepoint x</code> doesn’t need to be called in the <code>exception</code> block. I’ve used it in other places as well. Ex: <code>if &lt;&gt; then rollback to savepoint...</code></li>
@@ -506,7 +613,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/04/partial-rollbacks/" data-id="ck3dzyyrl00ezh9qu4zyg8267" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/04/partial-rollbacks/" data-id="ck5ro3cl100h901mvcbfp0g83" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/04/partial-rollbacks/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -549,56 +656,11 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/02/heug-alliance-2017/" data-id="ck3dzyyri00evh9qug22k0xcm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/02/heug-alliance-2017/" data-id="ck5ro3ckv00h301mv3syc1s2p" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/02/heug-alliance-2017/#disqus_thread" class="article-comment-link">Comments</a>
       
       
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-custom-calendar-css-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/02/custom-calendar-css-in-apex/" class="article-date">
-  <time datetime="2017-02-19T02:11:20.000Z" itemprop="datePublished">2017-02-18</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/02/custom-calendar-css-in-apex/">Custom Calendar CSS in APEX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>The new (<em>not legacy calendar</em>) in APEX 5 comes with a set of default calendar CSS classes to style calendar events. The following screenshot is from the inline help for the calendar <code>CSS Class</code> attribute:</p>
-<img src="/2017/02/custom-calendar-css-in-apex/calendar-help.png" class="">
-<p>I couldn’t find how to create a custom class in the documents (as the help suggests). Using the pre-defined classes as an example I was able to create a custom class for a new color for my calendar. The following is an example of a custom APEX calendar class:</p>
-<figure class="highlight css"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="selector-class">.fc</span> <span class="selector-class">.fc-event</span><span class="selector-class">.apex-cal-demo</span> &#123;</span><br><span class="line">  <span class="attribute">background-color</span>: <span class="number">#F0F8FF</span>;</span><br><span class="line">  <span class="attribute">border-color</span>: <span class="number">#000000</span>;</span><br><span class="line">  <span class="attribute">color</span>: <span class="number">#FFFFFF</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>In the calendar query this class can now be referenced as <code>apex-cal-demo</code>.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/02/custom-calendar-css-in-apex/" data-id="ck3dzyyrf00esh9qu2d167san" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/02/custom-calendar-css-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/css/" rel="tag">css</a></li></ul>
-
     </footer>
   </div>
   
@@ -632,7 +694,7 @@
       <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
       <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
       <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
-      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com" target="_blank" rel="noopener">Email me</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
       <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
       <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
     </ul>
@@ -644,7 +706,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">24</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -681,7 +743,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
@@ -694,7 +756,7 @@
   
   <div class="outer">
     <div id="footer-info" class="inner">
-      &copy; 2019 Martin Giffy D&#39;Souza<br>
+      &copy; 2020 Martin Giffy D&#39;Souza<br>
       Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
@@ -724,11 +786,17 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
 <!-- Google Analytics -->
 <script type="text/javascript">
