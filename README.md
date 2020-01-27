@@ -54,6 +54,8 @@ hexo deploy -g
 git clone --single-branch --branch gh-pages git@github.com:martindsouza/talkapex.git .deploy_git
 
 # Deploy
+
+# Deploy (via Docker CLI)
 hexo clean
 hexo generate
 rm -rf .deploy_git/*
@@ -63,7 +65,6 @@ git add *
 git commit -m "Site updated"
 git push
 
-# Deploy New
 ```
 
 ## Writing
@@ -86,7 +87,7 @@ git push
 // <a href="/2015/01/16/hello-world/example.jpg">example.jpg</a>
 {% asset_link example.jpg Example %}
 // <a href="/2015/01/16/hello-world/example.jpg">Example</a>
-{% asset_img slug %}
+{% asset_img example.png %}
 // <img src="/2015/01/16/hello-world/example.jpg">
 ```
 
