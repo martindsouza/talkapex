@@ -68,6 +68,125 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-nodatafound-exceptions-in-plsql" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/nodatafound-exceptions-in-plsql/" class="article-date">
+  <time datetime="2012-08-16T13:00:00.000Z" itemprop="datePublished">2012-08-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/nodatafound-exceptions-in-plsql/">NO_DATA_FOUND Exceptions in PL/SQL Functions Called in Queries</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Functions in PL/SQL can be a tricky thing as they don’t always raise an exception when one occurs. You may be asking yourself: <em>How, I thought functions and procedures always raise exceptions when one occurs</em>? This is true except in some very specific situations.</p>
+<p>First lets look at a very simple function which is then executed in both PL/SQL and in a query. It should (and does) raise an exception in both cases since we have a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">1/0</span> in it.</p>
+<pre class="brush: sql;">SQL> CREATE OR REPLACE FUNCTION f_generate_error RETURN VARCHAR2
+  2  AS
+  3    l_x pls_integer;
+  4  BEGIN
+  5    SELECT 1 INTO l_x FROM dual WHERE 1/0 = 0;
+  6    RETURN 'No exception raised';
+  7  END;
+  8  /
+
+Function created.
+
+SQL> EXEC dbms_output.put_line(f_generate_error);
+BEGIN dbms_output.put_line(f_generate_error); END;
+
+*
+ERROR at line 1:
+ORA-01476: divisor is equal to zero
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 5
+ORA-06512: at line 1
+
+SQL> SELECT f_generate_error FROM dual;
+SELECT f_generate_error FROM dual
+       *
+ERROR at line 1:
+ORA-01476: divisor is equal to zero
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 5
+</pre>What if we change the query slightly so that the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">SELECT INTO</span> statement doesn't return any rows (by applying a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">1=0</span> predicate) and raises a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception?
+<pre class="brush: sql; highlight: [22,23,24,25,26,27]">SQL> CREATE OR REPLACE FUNCTION f_generate_error RETURN VARCHAR2
+  2  AS
+  3    l_x pls_integer;
+  4  BEGIN
+  5    SELECT 1 INTO l_x FROM dual WHERE 1=0;
+  6    RETURN 'No exception raised';
+  7  END;
+  8  /
+
+Function created.
+
+SQL> EXEC dbms_output.put_line(f_generate_error);
+BEGIN dbms_output.put_line(f_generate_error); END;
+
+*
+ERROR at line 1:
+ORA-01403: no data found
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 5
+ORA-06512: at line 1
+
+SQL> SELECT f_generate_error FROM dual;
+
+F_GENERATE_ERROR
+----------------------------------------------------------------
+
+1 row selected.</pre>When we run it in PL/SQL it raises an exception but when we run it in a query it doesn't. It just returns a null value which doesn't really tell the calling query that an exception was raised. This can obviously cause issues and unexpected behavior in your application.
+
+<p>According to the <a href="http://docs.oracle.com/cd/B13789_01/appdev.101/b10807/07_errs.htm" target="_blank" rel="noopener">Oracle documentation</a> the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception will not propagate the exception if run in a query: “<em>Because this exception is used internally by some SQL functions to signal that they are finished, you should not rely on this exception being propagated if you raise it within a function that is called as part of a query.</em>“</p>
+<p>To get around this issue you can raise a custom exception when you encounter a <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">NO_DATA_FOUND</span> exception in functions so that it will propagate when called via a SQL query. In the example below a custom exception is raised and the exception is propagated when called from a query.</p>
+<pre class="brush: sql; highlight: [7,8,9]">SQL> CREATE OR REPLACE FUNCTION f_generate_error RETURN VARCHAR2
+  2  AS
+  3    l_x pls_integer;
+  4  BEGIN
+  5    SELECT 1 INTO l_x FROM dual WHERE 1=0;
+  6    RETURN 'No exception raised';
+  7  EXCEPTION
+  8    WHEN NO_DATA_FOUND THEN
+  9      raise_application_error(-20001, 'Custom NO_DATA_FOUND');
+ 10  END;
+ 11  /
+
+Function created.
+
+SQL> SELECT f_generate_error FROM dual;
+SELECT f_generate_error FROM dual
+       *
+ERROR at line 1:
+ORA-20001: Custom NO_DATA_FOUND
+ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="ck6mj19nv001e01qgb2sthmou" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-how-to-create-apex-session-in-plsql" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/08/how-to-create-apex-session-in-plsql/" class="article-date">
@@ -105,7 +224,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="ck6maeykm00b901mac87bejqy" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="ck6mj19nx001g01qgejfgb7ih" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -152,7 +271,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="ck6maeyjq00b101ma89736b6w" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="ck6mj19nr001b01qg4qz38sxu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/odtug-apexposed-2012/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -194,7 +313,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="ck6maeyj000at01mae9scaz90" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="ck6mj19o4001j01qg0pwz6542" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -236,7 +355,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="ck6maeyjd00ax01maegy23td2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="ck6mj19n0001401qg2e6bd1i4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/building-better-team-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -286,7 +405,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="ck6maeyjv00b301magbsh3q2m" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="ck6mj19nl001901qgflq71oo0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -335,7 +454,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="ck6maeyj900av01ma62xrftus" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="ck6mj19mw001201qgg25pf3ex" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/select-into-techinques/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -419,7 +538,7 @@ ACCOUNTING     MILLER           1300              2450
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="ck6maeyjy00b501mahxn4cbua" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="ck6mj19nb001601qghltmbff3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -590,7 +709,7 @@ RESEARCH       SMITH             800              3
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="ck6maeyiv00ap01mahv38gsra" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="ck6mj19mb000u01qgfcbs3aqw" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -633,140 +752,12 @@ RESEARCH       SMITH             800              3
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/" data-id="ck6maeyix00ar01ma0t0fa7su" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/" data-id="ck6mj19mq000z01qg4w5r9vyd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-command-line-backups-for-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/04/command-line-backups-for-apex/" class="article-date">
-  <time datetime="2012-04-28T23:25:00.000Z" itemprop="datePublished">2012-04-28</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/04/command-line-backups-for-apex/">Command Line Backups for APEX Applications</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><span style="color: red;">*<em>Update 21-Apr-2015: *</em>This script will no longer be supported. Instead please use the new script (for Mac/Linux) available on <a href="https://github.com/OraOpenSource/apexbackup" target="_blank" rel="noopener">Github</a>. New article:&nbsp;<a href="http://www.talkapex.com/2015/04/apex-backup-script.html">http://www.talkapex.com/2015/04/apex-backup-script.html</a></span></p>
-<p>One thing developers like to do is keep local backup copies of their development work. Sometimes they’ll copy files and suffix them with <em>.bak</em> or they’ll store them in a version control repository. With APEX you don’t copy a file to back it up. Either you have to copy the application (within the workspace) or export the application and save it locally. For one-off backups this can be ok, but as you develop with more and more applications in larger environments it can be tedious work and will slow down your development time.</p>
-<p>Thankfully APEX has a tool, that comes as part of the install zip file, which allows for command line exports. It’s one of the lesser known tools that is extremely useful.</p>
-<p>Below is a simplified copy of a batch file which will automatically backup all the APEX applications on a given database using the APEX backup tool. I usually recommend that organizations run such a script on their development environments to store hourly backups of their development environments. The example is a very simple example which should be modified to tag the backup with the date/time or zip and store the backups in version control. I’ve also appended an extra script which lists all the APEX applications, workspaces, and IDs and stores this information as part of the backup in a <em>.html</em> file.</p>
-<p>To use the script, create the files listed below in the same directory and make the appropriate modifications in <em>apex_backup.bat</em></p>
-<p><strong>apex_backup.bat</strong><br><em>Backups all the applications in the database</em></p>
-<pre class="brush: bash;">REM ***** START MODIFICATIONS ******
-
-REM ***** Parameters ******
-REM Oracle information
-REM To find SID name: select * from v$instance;
-set oracleSID=XE
-set oracleSystemPass=oracle
-set oraclePort=1526
-set oracleHost=localhost
-REM Root directory where oracle\apex\*class files are stored
-REM These is a sub directory from the extracted APEX install zip file
-set apexExportJavaDir=C:\temp\apex_4.1.1_en\apex\utilities
-REM File that contains names of applications and workspaces
-set apexHtmlFileName=apex_info.html
-REM Directory where backups will be stored
-set backupLocation=C:\temp\apexbackup
-
-REM ****** PATHS *********
-REM Note: You may not need to explicitly define these as they may already be set in OS.
-set ORACLE_HOME=C:\oracle\product\11.2.0\client_1
-set CLASSPATH=%CLASSPATH%;.\;%ORACLE_HOME%\jdbc\lib\ojdbc5.jar;%apexExportJavaDir%
-set PATH=%PATH%;.\;C:\Program Files (x86)\Java\jre6\bin
-
-REM ***** END MODIFICATIONS ******
-
-REM ****** Other *********
-set startRunLocation=%CD%
-
-REM ****** Directory Setup ******
-REM Create temp bacpkup location
-mkdir %backupLocation%
-
-REM ****** APEX BACKUP *******
-REM Go to backup location to run backups in
-cd %backupLocation%
-
-REM Export all applications
-java oracle.apex.APEXExport -db %oracleHost%:%oraclePort%:%oracleSID% -user system -password %oracleSystemPass% -instance
-
-REM Export all Workspaces
-java oracle.apex.APEXExport -db %oracleHost%:%oraclePort%:%oracleSID% -user system -password %oracleSystemPass% -expWorkspace
-
-REM Generate listing of Workspaces and Applications
-sqlplus system/%oracleSystemPass%@%oracleHost%:%oraclePort%/%oracleSID% @%startRunLocation%\apex_backup_info.sql %apexHtmlFileName%
-
-REM Back to start location
-cd %startRunLocation%
-</pre>**apex_backup_info.sql**
-<p><em>Stores all the application names, workspaces, and IDs</em></p>
-<pre class="brush: sql;">-- Parameters
--- 1 = File Name
-
--- http://forums.devshed.com/oracle-development-96/sql-plus-column-width-format-185085.html
--- http://download.oracle.com/docs/cd/B10501_01/server.920/a90842/ch13.htm#1012748
-SET NUMFORMAT 9999999999999999999999999999999999999
-SET MARKUP HTML ON SPOOL ON HEAD "<title>APEX Export</title>"
-
-SET ECHO OFF
-SPOOL &amp;1
-
--- Current Date
-select to_char(sysdate, 'DD-MON-YYYY HH24:MI:SS') current_date
-from dual;
-
--- Applications
-SELECT application_id, workspace, application_name, owner
-FROM apex_applications
-WHERE workspace != 'INTERNAL'
-ORDER BY application_id;
-
--- Workspaces
-SELECT workspace_id, workspace
-FROM apex_workspaces
-WHERE workspace != 'INTERNAL'
-ORDER BY workspace_id;
-
-SPOOL OFF
-SET MARKUP HTML OFF
-SET ECHO ON  
-
-EXIT;
-</pre>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/04/command-line-backups-for-apex/" data-id="ck6maeyir00an01maftpw6zf7" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/04/command-line-backups-for-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -813,7 +804,7 @@ EXIT;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">149</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -850,7 +841,7 @@ EXIT;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
