@@ -45,3 +45,4 @@ alias dummycommand='docker run -it --rm \
 In the next few articles I'll write about some of the CLI tools I use and how I've moved them to Docker.
 
 - {% post_link docker-image-for-oracle-sqlcl %}
+- {% post_link docker-for-oracle-sql-plus %}
