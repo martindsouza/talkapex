@@ -68,6 +68,74 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-oracle-xe-and-apex-where-is-my-trace" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2010/10/oracle-xe-and-apex-where-is-my-trace/" class="article-date">
+  <time datetime="2010-10-20T15:00:00.000Z" itemprop="datePublished">2010-10-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2010/10/oracle-xe-and-apex-where-is-my-trace/">Oracle XE and APEX: Where is my Trace File?</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>In APEX you trace your session by adding <span style="font-style:italic;">&amp;p_trace=YES</span> at the end of your URL. For example: <a href="http://fcapex40:8080/apex/f?p=101:1:2603384364125271::NO&amp;p_trace=YES" target="_blank" rel="noopener">http://fcapex40:8080/apex/f?p=101:1:2603384364125271::NO&amp;p_trace=YES</a> Please refer to the <a href="http://download.oracle.com/docs/cd/E17556_01/doc/user.40/e15517/debug.htm#BABGDGEH" target="_blank" rel="noopener">APEX documentation</a> for more information regarding traces in APEX.</p>
+<p>The documentation states that the trace file is located in the following directory:</p>
+<pre class="brush: sql; highlight: 2">
+SQL> -- Run as SYSTEM
+SQL>  SHOW PARAMETERS user_dump_dest
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+user_dump_dest                       string      /usr/lib/oracle/xe/app/oracle/
+                                                 admin/XE/udump
+</pre>
+<p>This isn’t the case if you’re using the Embedded PL/SQL Gateway, which is how APEX is run on Oracle XE. Thanks to Jari for answering my question on the APEX forum about this: <a href="http://forums.oracle.com/forums/thread.jspa?forumID=137&threadID=1771547" target="_blank" rel="noopener">http://forums.oracle.com/forums/thread.jspa?forumID=137&amp;threadID=1771547</a></p>
+<p>For APEX installations that use the PL/SQL Embedded Gateway (i.e. Oracle XE) the trace file is located in the following directory:</p>
+<pre class="brush: sql: highlight: 1">
+SQL> SHOW PARAMETER background_dump_dest
+
+NAME                                 TYPE        VALUE
+------------------------------------ ----------- ------------------------------
+background_dump_dest                 string      /usr/lib/oracle/xe/app/oracle/
+                                                 admin/XE/bdump
+</pre>
+<p>To find the trace file that was created for your session:</p>
+<pre class="brush: shell;">
+$ cd /usr/lib/oracle/xe/app/oracle/admin/XE/bdump
+$ grep -l "APP_SESSION" *.trc
+#example
+$ grep -l "2603384364125271" *.trc
+</pre>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2010/10/oracle-xe-and-apex-where-is-my-trace/" data-id="ck6nauf2f008y01s16gk4deuu" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2010/10/oracle-xe-and-apex-where-is-my-trace/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/" rel="tag">oracle</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apex-region-errors-part-2" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2010/10/apex-region-errors-part-2/" class="article-date">
@@ -159,7 +227,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/10/apex-region-errors-part-2/" data-id="ck6mkajxd004i01o8b93vcgfu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/10/apex-region-errors-part-2/" data-id="ck6nauf2h009001s1a5eg4jb6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/10/apex-region-errors-part-2/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -234,7 +302,7 @@ SELECT apex_user,
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/10/apex-region-errors-part-1/" data-id="ck6mkajxc004g01o8c7k212ts" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/10/apex-region-errors-part-1/" data-id="ck6nauf2e008w01s13at63qr9" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/10/apex-region-errors-part-1/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -287,7 +355,7 @@ ORDER BY lock_page, action_date
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/apex-page-locks/" data-id="ck6mkajx7004a01o83z8qb49a" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/09/apex-page-locks/" data-id="ck6nauf29008s01s17vx68aw9" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/09/apex-page-locks/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -331,7 +399,7 @@ ORDER BY lock_page, action_date
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/demo-apex-right-out-of-box/" data-id="ck6mkajxa004e01o8elfg97w6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/09/demo-apex-right-out-of-box/" data-id="ck6nauf22008m01s1fryz46v1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/09/demo-apex-right-out-of-box/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -384,7 +452,7 @@ SELECT *
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/apex-ir-subscriptions-with-bind/" data-id="ck6mkajx9004c01o88l6156h1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/09/apex-ir-subscriptions-with-bind/" data-id="ck6nauf2c008u01s17ri7bjtf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/09/apex-ir-subscriptions-with-bind/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -434,7 +502,7 @@ SELECT *
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/apexposed-2010/" data-id="ck6mkajx6004801o80b05ddth" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/09/apexposed-2010/" data-id="ck6nauf24008o01s13fqkbmd0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/09/apexposed-2010/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -483,7 +551,7 @@ SELECT *
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/odtug-how-to-be-creative/" data-id="ck6mkajx4004601o8g7bzbxud" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/09/odtug-how-to-be-creative/" data-id="ck6nauf26008q01s1hrzq5e5t" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/09/odtug-how-to-be-creative/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -651,7 +719,7 @@ SELECT *
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/custom-error-messages-in-apex/" data-id="ck6mkajwz004001o81pyc760n" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/09/custom-error-messages-in-apex/" data-id="ck6nauf2x009i01s1cgb2fg26" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/09/custom-error-messages-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -707,72 +775,9 @@ SELECT ap.page_id,
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/09/apex-ir-column-help/" data-id="ck6mkajx2004401o8avebfwxl" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2010/09/apex-ir-column-help/" data-id="ck6nauf1o008a01s11xga3g3x" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2010/09/apex-ir-column-help/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-spring-cleaning" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2010/08/apex-spring-cleaning/" class="article-date">
-  <time datetime="2010-08-31T14:55:00.000Z" itemprop="datePublished">2010-08-31</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2010/08/apex-spring-cleaning/">APEX Spring Cleaning</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Each time you do a major upgrade APEX creates a new schema. It does not remove the older schemas, which allows you to roll back to previous versions in case something happens.</p>
-<p>I was upgrading some older instances of APEX and realized that I still had some of these older schemas lying around and decide that it was time to do some spring cleaning <span style="font-style:italic;">(I realize that isn’t exactly spring time, unless you live in Australia)</span>.</p>
-<p>From the APEX installation guide (<a href="http://download.oracle.com/docs/cd/E17556_01/doc/install.40/e15513/otn_install.htm#CBHBABCC" target="_blank" rel="noopener">http://download.oracle.com/docs/cd/E17556_01/doc/install.40/e15513/otn_install.htm#CBHBABCC</a>) here’s how to identify and remove older versions of APEX.</p>
-<p><span style="font-style:italic;color:red;">Please read the documentation and understand what exactly you’re doing before you do this!</span></p>
-<p><span style="font-weight:bold;">- Identify old APEX schemas</span></p>
-<pre class="brush: sql">
-SELECT username
-   FROM dba_users
- WHERE (username LIKE 'FLOWS_%' OR USERNAME LIKE 'APEX_%')
-   AND USERNAME NOT IN (
-        SELECT 'FLOWS_FILES'
-          FROM DUAL
-         UNION
-        SELECT 'APEX_PUBLIC_USER' FROM DUAL
-         UNION
-        SELECT SCHEMA s
-           FROM dba_registry
-         WHERE comp_id = 'APEX')
-</pre>
-<p><span style="font-weight:bold;">- Remove old schemas</span><br>Connect as SYS using the SYSDBA role then run:</p>
-<pre class="brush: sql">
-DROP USER FLOWS_030000 CASCADE; -- Where "FLOWS_030000" is the username from the previous query
-</pre>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2010/08/apex-spring-cleaning/" data-id="ck6mkajx0004201o86fmqfkup" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2010/08/apex-spring-cleaning/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
@@ -788,7 +793,7 @@ DROP USER FLOWS_030000 CASCADE; -- Where "FLOWS_030000" is the username from the
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/20/">&amp;laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="page-number current">21</span><a class="page-number" href="/page/22/">22</a><a class="page-number" href="/page/23/">23</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="extend next" rel="next" href="/page/22/">Next &amp;raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/20/">&amp;laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="page-number current">21</span><a class="page-number" href="/page/22/">22</a><a class="page-number" href="/page/23/">23</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="extend next" rel="next" href="/page/22/">Next &amp;raquo;</a>
   </nav>
 
 </section>
@@ -822,7 +827,7 @@ DROP USER FLOWS_030000 CASCADE; -- Where "FLOWS_030000" is the username from the
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">150</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">151</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex 19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -859,7 +864,7 @@ DROP USER FLOWS_030000 CASCADE; -- Where "FLOWS_030000" is the username from the
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
