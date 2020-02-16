@@ -2,6 +2,7 @@
 title: How to Reduce Width of IR Link Column in APEX
 tags:
   - apex
+  - interactive-report
 date: 2020-02-14 19:13:47
 alias:
 ---
