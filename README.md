@@ -64,6 +64,7 @@ cd .deploy_git
 git add *
 git commit -m "Site updated"
 git push
+cd ..
 
 ```
 
