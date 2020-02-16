@@ -68,6 +68,98 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-sendupload-clob-from-browser-to" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/08/how-to-sendupload-clob-from-browser-to/" class="article-date">
+  <time datetime="2012-08-28T15:39:00.000Z" itemprop="datePublished">2012-08-28</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/08/how-to-sendupload-clob-from-browser-to/">How to Send/Upload a CLOB from the Browser to APEX via AJAX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Today <a href="https://twitter.com/AliUK12" target="_blank" rel="noopener">Alistair Lang</a> asked on Twitter “<em>how do I pass in a CLOB to an on-demand process using AJAX in APEX?</em>“. I had this same questions a few months ago when I was working on uploading files using AJAX into APEX.</p>
+<p>It turns out you can’t use the standard <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">addParam</span> APEX JavaScript method (hopefully this will change in 4.2). Instead you need call a different function which will store the CLOB into a special APEX collection then process the CLOB from that collection. Here’s a breakdown of what needs to happen:</p>
+<ul>
+<li>Send the CLOB from the browser to APEX. It will be stored in the <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">CLOB001</span> column in the collection “CLOB_CONTENT”.</li>
+<li>Once the CLOB is sent to APEX call your On Demand process (i.e. AJAX request) to run some PL/SQL code. This PL/SQL code will need to retrieve the CLOB value from the collection</li>
+</ul>
+<p>Here’s an example</p>
+<p><strong>On Demand Process</strong>: On your page create an On Demand process called “MY_PROCESS”. In the code enter the following:</p>
+<pre class="brush: sql; highlight: []">
+DECLARE
+  l_clob CLOB;
+BEGIN
+  SELECT clob001
+  INTO l_clob
+  FROM apex_collections
+  WHERE collection_name = 'CLOB_CONTENT';
+
+  -- Now you can process the CLOB using l_clob
+END;
+</pre>**JavaScript Code**: This can be stored either in a Dynamic Action or custom JS code:
+<pre class="brush: js; highlight: []">
+/**
+ * Code to run once the upload is done
+ *
+ * Clob is now accessible in the apex_collections view:
+ * SELECT collection_name, seq_id, clob001 FROM apex_collections
+ * WHERE collection_name = 'CLOB_CONTENT';
+ *  - Note: The collection name "CLOB_CONTENT" is not modifiable
+ *
+ * Use this function to make an AJAX request to trigger
+ * an On Demand Process (i.e. run some PL/SQL code)
+ */
+function clubUploadDone(){
+  var get = new htmldb_Get(null,$v('pFlowId'),'APPLICATION_PROCESS=MY_PROCESS',$v('pFlowStepId'));
+  //Optional: pass some additional values get.addParam('x01','some data');
+  gReturn = get.get();
+}
+
+/**
+ * Send clob to APEX (will be stored in the apex_collection "CLOB_CONTENT"
+ */
+var clobObj = new apex.ajax.clob(
+  //Callback funciton. only process CLOB once it's finished uploading to APEX
+  function(p){
+    if (p.readyState == 4){
+      clubUploadDone();
+    }
+  });
+
+clobObj._set('Put clob content here'); //Sends the data to Oracle/APEX collection
+
+</pre>It's important to note that there is only one area where the CLOB data is stored so each time you send a new CLOB it will erase the older value in the collection. If you're sending multiple CLOBS sequentially you need to handle it accordingly. A good example of this is if you're uploading multiple files via a drag &amp; drop interface.
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/08/how-to-sendupload-clob-from-browser-to/" data-id="ck6op77uu008q01l8gxbvetgi" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/08/how-to-sendupload-clob-from-browser-to/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-setting-sysdate-in-oracle-for-testing" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/08/setting-sysdate-in-oracle-for-testing/" class="article-date">
@@ -136,7 +228,7 @@ SYSDATE
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/" data-id="ck6onnbvt008p01p8etto5xnd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/" data-id="ck6op77uw008u01l8gwuc55pm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -223,7 +315,7 @@ END IF;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/" data-id="ck6onnbvf008a01p86gk29k5g" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/" data-id="ck6op77v0008y01l8dz5i5dlx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/sqlrowcount-and-logger/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -310,7 +402,7 @@ END IF;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="ck6onnbvd008801p86o3t1393" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/" data-id="ck6op77uq008m01l82ar6fk3a" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/integrating-build-options-in-your-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -429,7 +521,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="ck6onnbvi008c01p81q0lbygm" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/" data-id="ck6op77uv008s01l8c4iod05a" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/nodatafound-exceptions-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -480,7 +572,7 @@ ORA-06512: at "MARTIN.F_GENERATE_ERROR", line 9
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="ck6onnbv9008601p8hzyzap64" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/" data-id="ck6op77uo008k01l8hebzhctf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/08/how-to-create-apex-session-in-plsql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -527,7 +619,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="ck6onnbv2008001p853fkemvp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/odtug-apexposed-2012/" data-id="ck6op77um008i01l8dp5s165e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/odtug-apexposed-2012/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -569,7 +661,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="ck6onnbvk008f01p84uig663n" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/" data-id="ck6op77ul008g01l80uluby3v" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/apex-4-html5-awesome-ii-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -611,7 +703,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="ck6onnbv0007y01p8gb8w5sao" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/07/building-better-team-slides/" data-id="ck6op77us008o01l88czzaasl" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/07/building-better-team-slides/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -661,61 +753,12 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="ck6onnbv4008201p8apa9ef4t" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/" data-id="ck6op77ug008a01l80jxx4ik1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/odtug-kscope-12-things-to-look-out-for/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/" rel="tag">kscope</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-select-into-techinques" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/06/select-into-techinques/" class="article-date">
-  <time datetime="2012-06-07T17:01:00.000Z" itemprop="datePublished">2012-06-07</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/06/select-into-techinques/">SELECT INTO Techinques</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>One thing that bothers a lot of PL/SQL developers is when they have to select some data from a table into local variables. The problem is that the data may or may not exist (i.e. return 0..1 rows). They’re several ways to write this code, some taking longer than others which is the pain point for developers.  </p>
-<p>I’ve listed out various ways to do this below and hopefully it’ll help you find some easier ways to solve this issue.</p>
-<p> The first example is the classic case of handling the 0..1 rows issue in PL/SQL. They’re a few issues (not problems) that I have with this. The first is that it adds some additional lines of code (highlighted) which can make the code harder to follow. The other issue is that instead of using “<em>WHEN no_data_found</em>“ some developers tend to use “<em>WHEN OTHERS</em>“ which is guaranteed to give you some false positives in the long run.  <pre class="brush: sql; highlight: [6,11,12,13,14]"><br>DECLARE<br>  l_sal emp.sal%TYPE;<br>  p_empno emp.empno%TYPE := 123; -- Invalid empno number<br>BEGIN</p>
-<p>  BEGIN<br>    SELECT sal<br>    INTO l_sal<br>    FROM emp<br>    WHERE empno = p_empno;<br>  EXCEPTION<br>    WHEN no_data_found THEN<br>      l_sal := 0;<br>  END;</p>
-<p>END;<br>/<br></pre> Another way to get the value from the table is to use the aggregate function <em>MAX</em>. Since you’re expecting 0..1 rows this will always return 1 row and eliminates the need to have the “<em>BEGIN …</em>“ block of code which saves 5 lines of code. You can handle what to do when no value is found by using the <em>NVL</em> function.  <pre class="brush: sql; highlight: [6]"><br>DECLARE<br>  l_sal emp.sal%TYPE;<br>  p_empno emp.empno%TYPE := 123; -- Invalid empno number<br>BEGIN</p>
-<p>  SELECT NVL(MAX(sal), 0)<br>  INTO l_sal<br>  FROM emp<br>  WHERE empno = p_empno;</p>
-<p>END;<br>/<br></pre> The only issue with the above example is when you can have 0..n rows but should only get 0..1. Ideally you should have table constraints in order to guarantee 0..1 rows but it’s not always the case in some system. The following example shows how you can use the same technique as above but it will trigger an exception if n rows are found (which is what you want to do):  <pre class="brush: sql; highlight: [10]"><br>DECLARE<br>  l_sal emp.sal%TYPE;<br>  p_empno emp.empno%TYPE := 123; -- Invalid empno number<br>BEGIN</p>
-<p>  SELECT NVL(MAX(sal), 0)<br>  INTO l_sal<br>  FROM emp<br>  WHERE empno = p_empno<br>  HAVING count(1) <= 1;</p>
-<p>END;<br>/<br></pre></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="ck6onnbv7008401p8gbjqhzsz" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/06/select-into-techinques/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
 
     </footer>
   </div>
@@ -762,7 +805,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">152</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">153</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -799,7 +842,7 @@ ODTUG is hosting it's APEX focused APEXposed conference in Montreal this fall fr
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

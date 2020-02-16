@@ -68,6 +68,55 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-using-pivot-for-aggregations" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2017/01/using-pivot-for-aggregations/" class="article-date">
+  <time datetime="2017-01-22T22:45:28.000Z" itemprop="datePublished">2017-01-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2017/01/using-pivot-for-aggregations/">Using Pivot for Aggregations</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Suppose you had a requirement in which you needed to return one row which had two columns. The two columns would contain the number of employees in the two different departments. This sounds like a trivial problem to solve but isn’t as easy when you get to coding it.</p>
+<p>One way to do this is to use <code>case</code> statements in the aggregation function such as :</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">  <span class="keyword">count</span>(<span class="keyword">case</span> <span class="keyword">when</span> d.dname = <span class="string">'ACCOUNTING'</span> <span class="keyword">then</span> <span class="number">1</span> <span class="keyword">else</span> <span class="literal">null</span> <span class="keyword">end</span>) acct_dept_cnt,</span><br><span class="line">  <span class="keyword">count</span>(<span class="keyword">case</span> <span class="keyword">when</span> d.dname = <span class="string">'RESEARCH'</span> <span class="keyword">then</span> <span class="number">1</span> <span class="keyword">else</span> <span class="literal">null</span> <span class="keyword">end</span>) rsch_dept_cnt</span><br><span class="line"><span class="keyword">from</span> emp e, dept d</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> e.deptno = d.deptno</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">ACCT_DEPT_CNT  RSCH_DEPT_CNT</span><br><span class="line">3              5</span><br></pre></td></tr></table></figure>
+
+<p>Another neat way to do this is to use the <code>pivot</code> function:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">  acct_dept_cnt,</span><br><span class="line">  rsch_dept_cnt</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">  <span class="keyword">select</span> e.deptno, d.dname</span><br><span class="line">  <span class="keyword">from</span> emp e, dept d</span><br><span class="line">  <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">    <span class="keyword">and</span> e.deptno = d.deptno)</span><br><span class="line"><span class="keyword">pivot</span> (<span class="keyword">count</span>(deptno) <span class="keyword">as</span> dept_cnt <span class="keyword">for</span> (dname) <span class="keyword">in</span> (<span class="string">'ACCOUNTING'</span> <span class="keyword">as</span>  acct, <span class="string">'RESEARCH'</span> <span class="keyword">as</span> rsch))</span><br><span class="line">;</span><br></pre></td></tr></table></figure>
+
+<p>In this example they both have the same explain plan as shown below. If using on larger / more complex data sets it would be a good idea to compare the explain plans for both queries to see if there’s performance gain between the two.</p>
+<img src="/2017/01/using-pivot-for-aggregations/explain-plan.png" class="">
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2017/01/using-pivot-for-aggregations/" data-id="ck6op783700g701l81syr14gc" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2017/01/using-pivot-for-aggregations/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-how-to-reference-package-variables-in-sql" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2017/01/how-to-reference-package-variables-in-sql/" class="article-date">
@@ -99,7 +148,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/01/how-to-reference-package-variables-in-sql/" data-id="ck6onnc5x00g801p88dyv42lq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/01/how-to-reference-package-variables-in-sql/" data-id="ck6op783c00g901l845zn08o5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/01/how-to-reference-package-variables-in-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -143,7 +192,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/01/how-to-reference-javsscript-and-css-files-for-entire-application/" data-id="ck6onnc6700gf01p876f91tq4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/01/how-to-reference-javsscript-and-css-files-for-entire-application/" data-id="ck6op783500g501l838yndjy4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/01/how-to-reference-javsscript-and-css-files-for-entire-application/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -198,7 +247,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2016/12/new-blog-platform-based-on-markdown-and-git/" data-id="ck6onnbzl00b601p8buxw2tw1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2016/12/new-blog-platform-based-on-markdown-and-git/" data-id="ck6op781900eq01l8aje95fy7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2016/12/new-blog-platform-based-on-markdown-and-git/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -247,7 +296,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2016/08/apex-oow-2016-meetup/" data-id="ck6onnbze00b001p82lke1nun" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2016/08/apex-oow-2016-meetup/" data-id="ck6op781100eg01l8arlu7ki2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2016/08/apex-oow-2016-meetup/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -290,7 +339,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2016/08/odtug-leadership-program/" data-id="ck6onnbz900au01p8ckggfm7b" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2016/08/odtug-leadership-program/" data-id="ck6op780x00ec01l8h1jqfzny" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2016/08/odtug-leadership-program/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -334,7 +383,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2016/02/apex-and-nest-thermostat/" data-id="ck6onnbzh00b401p8bbk9axy3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2016/02/apex-and-nest-thermostat/" data-id="ck6op780z00ee01l82t65aacq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2016/02/apex-and-nest-thermostat/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -392,7 +441,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2016/01/ehpex-unofficial-tour/" data-id="ck6onnbzc00ay01p88e1ng1za" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2016/01/ehpex-unofficial-tour/" data-id="ck6op781300ej01l80knodpjk" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2016/01/ehpex-unofficial-tour/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -437,55 +486,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/11/clarifit-fromto-date-picker-plug-in/" data-id="ck6onnc4s00f401p88u7039ax" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/11/clarifit-fromto-date-picker-plug-in/" data-id="ck6op77yu00c601l8b3c48qj4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/11/clarifit-fromto-date-picker-plug-in/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-odtug-technical-journal-authors-wanted" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/11/odtug-technical-journal-authors-wanted/" class="article-date">
-  <time datetime="2015-11-09T14:00:00.000Z" itemprop="datePublished">2015-11-09</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/11/odtug-technical-journal-authors-wanted/">ODTUG Technical Journal - Authors Wanted</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>If you’ve ever thought of starting your own blog or wanted to write a detailed article on some cool APEX or Oracle feature but didn’t know where to start, now’s your big chance! The <a href="http://www.odtug.com/technical-journal-corner" target="_blank" rel="noopener">ODTUG Technical Journal</a> is looking for some new articles and we’d like to see articles from first time contributors.</p>
-<p>Signing up is easy. Simply email Karen Cannell (<a href="mailto:kcannell@odtug.com">kcannell@odtug.com</a>) and let her know that you’re interested in writing an article for the journal. Then you can work out a schedule with her. After that, all you need to do is write the article, Karen will take care of the rest.</p>
-<p>This is a great opportunity to get your name out there and also promote what you and your organization have been been working on. I’m looking forward to seeing some great content from the APEX community.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/11/odtug-technical-journal-authors-wanted/" data-id="ck6onnc4i00er01p8cmxhcd45" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2015/11/odtug-technical-journal-authors-wanted/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/" rel="tag">odtug</a></li></ul>
 
     </footer>
   </div>
@@ -545,7 +551,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/11/odtug-election/" data-id="ck6onnc4n00ex01p82bl49tat" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/11/odtug-election/" data-id="ck6op77yv00c801l85zvldw5l" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/11/odtug-election/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -597,7 +603,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">152</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">153</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -634,7 +640,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
