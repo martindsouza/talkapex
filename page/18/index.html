@@ -68,6 +68,178 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-odtug-apex-plug-in-competition" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/odtug-apex-plug-in-competition/" class="article-date">
+  <time datetime="2012-03-27T20:23:00.000Z" itemprop="datePublished">2012-03-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/odtug-apex-plug-in-competition/">ODTUG APEX Plug-In Competition</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago <a href="http://www.apex-at-work.com/" target="_blank" rel="noopener">Tobias Arnhold</a> posted a tweet suggesting that we should have an APEX Plugins competition. After a few months, many emails, a lot of effort by an excellent group of people, and the support from <a href="http://www.odtug.com/" target="_blank" rel="noopener">ODTUG</a>, I’m pleased to announce the first ever world wide <a href="http://www.odtug.com/apex/f?p=500:450:0" target="_blank" rel="noopener">APEX Plug-ins competition</a>! Here’s a short blurb from the official announcement on odtug.com:</p>
+<p><em>ODTUG is holding its first ever world wide <a href="http://www.odtug.com/apex/f?p=500:450:0" target="_blank" rel="noopener">APEX Plug-ins competition</a>! This is your opportunity to write an APEX plug-in and have it viewed by the entire international APEX community and maybe crowned 2012 ODTUG APEX Plug-in Developer of the Year! Even better, there are some really great prizes with the grand prize being a** free pass to Kscope13** or a <strong>Jawbone Jambox</strong>!</em></p>
+<p>This is your opportunity to showcase your Oracle APEX Plugin skills and win some really cool <a href="http://www.odtug.com/apex/f?p=500:450:0#prizes" target="_blank" rel="noopener">prizes</a>. We also made a special Experts category to ensure everyone is on a level playing field.</p>
+<p>I hope this encourages everyone to try to submit a plugin and help expand the list of already fantastic plugins.</p>
+<p>Good luck!</p>
+<p><em>Update: Here’s the <a href="https://twitter.com/#%21/tobias_arnhold/status/162425360724664320" target="_blank" rel="noopener">original tweet</a> from Tobias</em>!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/" data-id="ck757r1ro00bd01rx7x03bs01" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/" rel="tag">odtug</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-q-function-inside-q-function" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/q-function-inside-q-function/" class="article-date">
+  <time datetime="2012-03-26T13:00:00.000Z" itemprop="datePublished">2012-03-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/q-function-inside-q-function/">q Function Inside a q Function</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Two years ago I wrote about how to escape single quotes in string using the <em>q</em> function: <a href="http://www.talkapex.com/2009/03/q-function-escape-single-quotes.html">http://www.talkapex.com/2009/03/q-function-escape-single-quotes.html</a> If you’ve never seen this before or don’t know what I’m talking about please read the article first before continuing.</p>
+<p>I recently had an issue where I had to use a <em>q</em> function inside another <em>q</em> function. Here’s what I tried:</p>
+<pre class="brush: sql;">DECLARE
+  l_code varchar2(4000);
+
+BEGIN
+  l_code := q'!BEGIN dbms_output.put_line(q'!It's cold in Calgary!'); END; !';
+
+  dbms_output.put_line(l_code);
+
+  execute immediate l_code;
+
+END;
+/
+
+ERROR:
+ORA-01756: quoted string not properly terminated
+</pre>You'll notice that the above code doesn't run. The reason it doesn't work is that I'm using the same character (!) as the quote delimiter. To fix this, each "Q" block must have it's own unique quote delimiter. Below is a copy of the same code but using two different quote delimiters (# and !).   
+<pre class="brush: sql;">DECLARE
+  l_code varchar2(4000);
+
+BEGIN
+  l_code := q'#BEGIN dbms_output.put_line(q'!It's cold in Calgary!'); END; #';
+
+  dbms_output.put_line(l_code);
+
+  execute immediate l_code;
+
+END;
+/
+
+BEGIN dbms_output.put_line(q'!It's cold in Calgary!'); END;
+It's cold in Calgary
+
+PL/SQL procedure successfully completed.
+</pre>For more information on the q function (it's real name is "Q-quote mechanism") read the Oracle documentation: [http://docs.oracle.com/cd/B19306_01/appdev.102/b14251/adfns_sqltypes.htm#BABECADE](http://docs.oracle.com/cd/B19306_01/appdev.102/b14251/adfns_sqltypes.htm#BABECADE) and scroll down to the "Quoting Character Literals" section.
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/03/q-function-inside-q-function/" data-id="ck757r1ra00az01rxe5rs756h" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/03/q-function-inside-q-function/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-things-to-watch-out-for-when-upgrading" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/03/things-to-watch-out-for-when-upgrading/" class="article-date">
+  <time datetime="2012-03-22T14:00:00.000Z" itemprop="datePublished">2012-03-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/03/things-to-watch-out-for-when-upgrading/">Things to Watch Out for When Upgrading an APEX Plugin</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Now that APEX plugins have been around for a while I’m starting to notice that upgrades are being released for the same plugin. This is a natural occurrence in the lifecycle of software development and is expected.</p>
+<p>Prior to upgrading an APEX plugin you should be aware of what will happen to the settings (also known as Custom Attributes) for your plugin before upgrading. Before I continue it’s important to note the two different types of custom attributes a plugin can have.</p>
+<p><strong>Application:</strong> These attributes are applicable for the plugin as a whole across the entire application. Think of them as a global variable for the plugin</p>
+<p><strong>Component</strong>: These attributes are applicable for each instantiation of the plugin. For example, if the plugin is an item type plugin the settings found while editing the item are component level attributes.</p>
+<p>When upgrading a plugin the component level attributes/settings will retain their value (this is good). The same is not true for application level attributes. They will be reset to the plugin’s default values. For example if I configure the <a href="http://apex.oracle.com/pls/apex/f?p=45587:800:0::NO" target="_blank" rel="noopener">ClariFit Dialog</a> plugin they’re a few settings I can change: Background Color and Background Opacity. In the image below I’ve changed them from the default values to <em>red</em> and <em>50%</em> respectively.</p>
+<div class="separator" style="clear: both; text-align: center;">[![](http://2.bp.blogspot.com/-AbE8XEgHwKY/T2jQjAOLkdI/AAAAAAAAEHE/3PfGP5g96Bw/s400/plugin_before_upgrade.png)](http://2.bp.blogspot.com/-AbE8XEgHwKY/T2jQjAOLkdI/AAAAAAAAEHE/3PfGP5g96Bw/s1600/plugin_before_upgrade.png)</div>
+After I upgrade the plugin to a newer version the application level attributes are reset back to the plugin's default values shown below.
+
+<div class="separator" style="clear: both; text-align: center;">[![](http://2.bp.blogspot.com/-2B3zMtCmzvk/T2jQi2qnHhI/AAAAAAAAEHA/DNr2-opaFyg/s1600/plugin_after_upgrade.png)](http://2.bp.blogspot.com/-2B3zMtCmzvk/T2jQi2qnHhI/AAAAAAAAEHA/DNr2-opaFyg/s1600/plugin_after_upgrade.png)</div>
+Be sure to take note of your plugin application level settings before updating a plugin. I find the easiest way to do this is to take a screen shot, similar to the images above, before I upgrade the plugin and compare the values with the new default values and make the appropriate changes.
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading/" data-id="ck757r1rj00b701rx5cabcr6k" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-how-apex-processes-various-conditions" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/03/how-apex-processes-various-conditions/" class="article-date">
@@ -279,7 +451,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/" data-id="ck7576zks002m01mg1nuu711y" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/" data-id="ck757r1rf00b301rx3mlv9dl5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -338,7 +510,7 @@ _Note: They're other ways to use the REQUEST variable in the conditions section.
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/" data-id="ck7576zkf002e01mgeakkhk79" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/" data-id="ck757r1on008l01rx0qxb88lk" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -390,7 +562,7 @@ If this happens a lot in development you could create a special button for the J
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/" data-id="ck7576zkk002h01mg4z3ja1h1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/" data-id="ck757r1oi008f01rxgombcc4y" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/moving-apex-developer-toolbar/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -448,7 +620,7 @@ apex_application.stop_apex_engine; -- End APEX session
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/" data-id="ck7576zi9002701mg2g6101ml" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/" data-id="ck757r1oj008h01rxcs271tnp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/apexapplicationstopapexengine/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -506,7 +678,7 @@ The plugin also comes bundled with some nifty features that may not be visible a
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/" data-id="ck7576zgu001y01mgd40s72s7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/" data-id="ck757r1oh008d01rx3rkyecji" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/12/clarifit-fromto-date-picker-plug-in/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -560,7 +732,7 @@ _Note: If you submit the page now it'll raise an exception since the Min and Max
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/" data-id="ck7576zko002j01mg5hfxa1ie" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/" data-id="ck757r1oa008501rx8i5n4k61" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/min-and-max-dates-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -611,149 +783,12 @@ _Note: If you submit the page now it'll raise an exception since the Min and Max
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/clarifit-dialog-plugin/" data-id="ck7576zhv002201mgaaod1aqd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2011/11/clarifit-dialog-plugin/" data-id="ck757r1oc008701rx9a6eg796" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2011/11/clarifit-dialog-plugin/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-remainder-of-2011" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2011/11/remainder-of-2011/" class="article-date">
-  <time datetime="2011-11-29T16:41:00.000Z" itemprop="datePublished">2011-11-29</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2011/11/remainder-of-2011/">Remainder of 2011</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Dear Readers,</p>
-<p>It’s been a while (over 4 months) since I’ve posted a technical article on this blog. After presenting at <a href="http://kscope12.com/" target="_blank" rel="noopener">ODTUG KScope</a> this summer I’ve been really busy working at <a href="http://www.clarifit.com/" target="_blank" rel="noopener">ClariFit</a> and with other commitments. During the past four months there have been many times where I would have loved to roll up my sleeves and write a few articles but unfortunately other priorities took over.</p>
-<p>The rest of my 2011 calendar is filling up quickly and I hope to squeeze in a few more articles by the end of the year. Here’s what you can expect for the remainder of 2011:&nbsp;</p>
-<ul>
-<li>Free Ask the <a href="http://www.clarifit.com/1/post/2011/11/the-ask-the-clarifit-experts-webinar-has-been-rescheduled.html" target="_blank" rel="noopener">ClariFit Experts Webinar</a> on Wednesday December 14th at 1:30 PM EST. <em>Note: it’s still not to late to submit an APEX or PL/SQL question. Check the link for more info on how to submit questions and register.</em></li>
-<li>Two free plug-ins to be launched this week (actually one will be today!)</li>
-<li>Guest blog post on <a href="http://www.allthingsoracle.com/" target="_blank" rel="noopener">All Things Oracle</a> about the <a href="http://goo.gl/089zi" target="_blank" rel="noopener">Expert Oracle Application Express Plugins</a> book.</li>
-<li>Last but not least, (time permitting of course) a few APEX related articles. I have a very large list to write about and really look forward to dig into them.<br>&nbsp;- Martin</li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/remainder-of-2011/" data-id="ck7576zi4002401mggjledb5r" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2011/11/remainder-of-2011/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/" rel="tag">meta</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-ask-clarifit-experts-webinar" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2011/11/ask-clarifit-experts-webinar/" class="article-date">
-  <time datetime="2011-11-15T15:47:00.000Z" itemprop="datePublished">2011-11-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2011/11/ask-clarifit-experts-webinar/">Ask the ClariFit Experts Webinar</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>On December 14th at 1:30 PM EST Chris Hritzuk and I will be taking part in an “Ask the ClariFit Experts” webinar hosted by my company, <a href="http://www.clarifit.com/" target="_blank" rel="noopener">ClariFit Inc</a>. Leading up to the webinar the development team at ClariFit will be accepting APEX, SQL, and PL/SQL questions by email at <em><a href="mailto:AskTheExperts@clarifit.com">AskTheExperts@clarifit.com</a></em>. The plan is to choose a subset of questions from the list received and provide a live, step-by-step demonstration of the solution during the webinar. We’ll also be leaving some time at the end of the session to field any questions that come up during the webinar.</p>
-<p>To find out more about the webinar, including how to sign up, click here: <a href="http://www.clarifit.com/1/post/2011/11/ask-the-clarifit-experts-webinar.html" target="_blank" rel="noopener">http://www.clarifit.com/1/post/2011/11/ask-the-clarifit-experts-webinar.html</a><a href="http://www.clarifit.com/1/post/2011/11/ask-the-clarifit-experts-webinar.html" target="_blank" rel="noopener"></a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/11/ask-clarifit-experts-webinar/" data-id="ck7576zic002901mg1itf5ziu" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2011/11/ask-clarifit-experts-webinar/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-running-for-odtug-board-of-directors" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2011/10/running-for-odtug-board-of-directors/" class="article-date">
-  <time datetime="2011-10-12T15:52:00.000Z" itemprop="datePublished">2011-10-12</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2011/10/running-for-odtug-board-of-directors/">Running for ODTUG Board of Directors</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>For nearly four years I’ve enjoyed giving back to the Oracle APEX community in various ways such as the Oracle Forums, this blog, talks at various conferences, authoring free plug-ins, and webinars to name a few. Now I want to continue to help out in a different fashion by running for the ODTUG Board of Directors. I believe I will be able to help promote and grow the APEX community through the Board, and I would relish the chance represent all APEX developers.</p>
-<p>I’m officially running for the ODTUG Board of Directors and would like your support. If you’re a full (paid) ODTUG member please vote for the Board of Directors here: <a href="http://goo.gl/8xqxs" target="_blank" rel="noopener">http://goo.gl/8xqxs</a>&nbsp; Below is a copy of my official nomination:</p>
-<p><em><strong>Campaign Statement</strong>&nbsp;</em><br><em>I have attended ODTUG Kaleidoscope for several consecutive years and  have been a presenter for the last three. The conference has allowed me  to develop strong relationships with many others in the community, and  the importance of these relationships has proven invaluable. I  continually strive to give back to the community, using my personal time  to answer questions through email, blogs, the Oracle forums, and by  writing technical books. I would like to continue this spirit of giving  back by joining the ODTUG Board of Directors.  As a new board member I will bring a fresh perspective and  out-of-the-box ideas to help promote ODTUG and deliver our message to  the world. I am fortunate enough to have a successful blog with several  thousand unique monthly visitors. It is through this platform, along  with other opportunities such as my consulting firm blog, social  networking, and the multiple annual conferences that I attend from which  I intend to help share the ODTUG mission and values.  The Board plays a pivotal leadership role as both a driving force and a  face of the ODTUG community. I feel that my professional experience as a  leader and mentor will help the Board guide and develop ODTUG for the  future. The Board has responsibility to its most important group - the  members. I will help ensure that the Board serves as both a voice and an  ear for the entire ODTUG community; developers, DBAs, and technical  experts of all things Oracle.  Many thanks for your consideration.&nbsp;</em></p>
-<p><em><strong>Biographical Statement</strong>&nbsp;</em><br><em>Martin Giffy D’Souza is an Oracle ACE and award winning presenter and  speaker. Most recently Martin was honored with the ODTUG Kaleidoscope  2011 Presenter of the Year award. Martin also serves as a Co-founder  &amp; CTO at ClariFit Inc., a consulting firm specializing in Oracle  solutions. Martin’s career has seen him hold a range of positions  within award winning companies and his experience in the technology  industry has been focused on developing database-centric web  applications using the Oracle technology stack. Martin is the author of  the highly recognized blog <a href="http://www.TalkApex.com">www.TalkApex.com</a>, and he has co-authored  several APEX books including Expert Oracle Application Express, a  collaboration of some of the most renowned APEX developers in the  industry. He has presented at numerous international conferences such as  ODTUG, APEXposed, and COUG. Martin holds a Computer Engineering degree  from Queen’s University in Ontario, Canada.</em></p>
-<p>I appreciate all the support.</p>
-<ul>
-<li>Martin</li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/10/running-for-odtug-board-of-directors/" data-id="ck7576zgo001v01mg3se4goa3" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2011/10/running-for-odtug-board-of-directors/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/" rel="tag">odtug</a></li></ul>
 
     </footer>
   </div>
@@ -800,7 +835,7 @@ _Note: If you submit the page now it'll raise an exception since the Min and Max
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">154</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">155</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">27</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -837,7 +872,7 @@ _Note: If you submit the page now it'll raise an exception since the Min and Max
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">13</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

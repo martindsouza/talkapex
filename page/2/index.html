@@ -68,6 +68,201 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-using-docker-for-cli-applications" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/01/using-docker-for-cli-applications/" class="article-date">
+  <time datetime="2020-01-27T12:12:53.000Z" itemprop="datePublished">2020-01-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/01/using-docker-for-cli-applications/">Using Docker for CLI Applications</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago I wrote an article called <a href="/2018/04/docker-as-a-micro-service/" title="Docker as a Micro Service">Docker as a Micro Service</a> which covered how I used <a href="https://www.docker.com/" target="_blank" rel="noopener">Docker</a> to run the Alexa CLI tool. This was my first time using Docker for a CLI application.</p>
+<p>Since then, I’ve started to Dockerize other CLI tools and have found it very useful. Before I continue, I’ll admit there’s been some additional overhead both running a container for each command and also getting the Docker images correct. It has solved a few issues for me:</p>
+<ul>
+<li>I no longer worry about OS upgrade/changes on my laptop as my CLI commands all “reside” in the Docker image</li>
+<li>I avoid cluttering my system with a bunch of tools that can be a pain to remove if I don’t like them</li>
+<li>Avoid all the installation, dependency issues, etc</li>
+<li>When I change laptops I don’t need to reinstall all my tools. Docker will fetch them automatically the first time I call them.<ul>
+<li>This is also true for working with multiple machines</li>
+</ul>
+</li>
+</ul>
+<p>Going down the path of Dockerizing my CLI applications I’ve learned a few things that others may find  helpful looking to take the same approach:</p>
+<ul>
+<li>Use <code>`pwd`</code> to evaluate your current directory as a mount volume to the container (<em>demo in next point</em>)</li>
+<li>Use single quotes around the <code>alias</code> definition so that expressions aren’t evaluated until run time. Ex:</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Double Quote issue</span></span><br><span class="line"><span class="built_in">alias</span> dummycommand=<span class="string">"docker run -it --rm \</span></span><br><span class="line"><span class="string">  -v `pwd`:/opt/node_app \</span></span><br><span class="line"><span class="string">  somedockerimage:latest"</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># This will always (no matter where I call dummycommand from) </span></span><br><span class="line"><span class="comment"># map "~/" on my laptop to "/opt/node_app" on the container</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Single Quote (Solution)</span></span><br><span class="line"><span class="built_in">alias</span> dummycommand=<span class="string">'docker run -it --rm \</span></span><br><span class="line"><span class="string">  -v `pwd`:/opt/node_app/app \</span></span><br><span class="line"><span class="string">  somedockerimage:latest'</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># This will always map the current directory I'm in on my </span></span><br><span class="line"><span class="comment"># laptop to "/opt/node_app/app" on the container</span></span><br></pre></td></tr></table></figure>
+
+<p>In the next few articles I’ll write about some of the CLI tools I use and how I’ve moved them to Docker.</p>
+<ul>
+<li><a href="/2020/02/docker-image-for-oracle-sqlcl/" title="Docker Image for Oracle SQLcl">Docker Image for Oracle SQLcl</a></li>
+<li><a href="/2020/02/docker-for-oracle-sql-plus/" title="Docker for Oracle SQL*Plus">Docker for Oracle SQL*Plus</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2020/01/using-docker-for-cli-applications/" data-id="ck757r1yn00ha01rxc1arbufo" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2020/01/using-docker-for-cli-applications/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">Docker</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-stage-part-of-a-file-in-git" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/01/how-to-stage-part-of-a-file-in-git/" class="article-date">
+  <time datetime="2020-01-25T20:53:25.000Z" itemprop="datePublished">2020-01-25</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/01/how-to-stage-part-of-a-file-in-git/">How to Stage Part of a File in Git</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When working with <a href="https://git-scm.com/" target="_blank" rel="noopener">Git</a> (or any version control system) most developers tend to commit all the changes in a given file. What if you wanted to only commit part of the file? This situation can occur in a few situations, such as:</p>
+<ul>
+<li>Code not ready to be committed</li>
+<li>Working on two tickets at once and want separate commits for each set of work</li>
+<li>Some <code>TODO</code> comments that you don’t want in the codebase</li>
+</ul>
+<p>Git has a feature called <a href="https://git-scm.com/book/en/v2/Git-Tools-Interactive-Staging" target="_blank" rel="noopener">interactive staging</a> which lets you select specific lines of code you want staged (and then committed). The demo below highlights this using <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">Visual Studio Code</a>‘s (VSCode) Git tools.</p>
+<p>In my current file I have the following:</p>
+<img src="/2020/01/how-to-stage-part-of-a-file-in-git/demo-1.png" class="">
+
+<p>We can divide up the “new code” into two sections. The first <code>select</code> statement should be committed but the second statement (staring with <code>-- TODO mdsouza</code>) should not be committed. </p>
+<p>If the file needs to be committed without interactive staging a few options exist:</p>
+<ul>
+<li>Commit everything</li>
+<li>Cut out the sections I don’t want in and paste them back in after commit</li>
+<li>Copy file (as a backup), remove sections I don’t want, commit, restore backup</li>
+</ul>
+<p>Neither of these options will lead to good results and take additional time. Using VSCode you can do interactive staging in multiple ways. The following shows how to stage specific lines.</p>
+<img src="/2020/01/how-to-stage-part-of-a-file-in-git/git-demo.gif" class="">
+
+<p>A few things to note from the demo:</p>
+<ul>
+<li>Once staged, <code>test.sql</code> was still marked as having both changes and staged changes</li>
+<li>Only selected lines were staged (then committed)</li>
+</ul>
+<p><em>Note: In <a href="https://www.sourcetreeapp.com/" target="_blank" rel="noopener">Source Tree</a> (a free Git UI from <a href="https://www.atlassian.com/" target="_blank" rel="noopener">Atlassian</a>) this feature is called <code>hunk</code>s.</em></p>
+<p>Since finding out about interactive staging I’ve been using it to restrict what goes into each commit. It’s allowed me to keep my commits more concise along with not having to commit work that isn’t ready for others (ex: personal <code>TODO</code> comments).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2020/01/how-to-stage-part-of-a-file-in-git/" data-id="ck757r1yl00h801rx4dup85vc" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2020/01/how-to-stage-part-of-a-file-in-git/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/git/" rel="tag">git</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-select-an-optional-value" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/01/how-to-select-an-optional-value/" class="article-date">
+  <time datetime="2020-01-22T20:21:52.000Z" itemprop="datePublished">2020-01-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/01/how-to-select-an-optional-value/">How to Select an Optional Value</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Sometimes in your PL/SQL code you need to query a table which may or may not contain what you’re looking for. This post will cover some different ways of doing it.</p>
+<h2 id="The-problem"><a href="#The-problem" class="headerlink" title="The problem"></a>The problem</h2><p>Suppose you need to find an employee’s ID named <code>SAM</code>. If he doesn’t exist in the table then insert a new employee record.</p>
+<p><em>Side note: Technically you can use a <code>merge</code> statement for this functionality but want to highlight that a row may not be found.</em></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="keyword">select</span> e.empno</span><br><span class="line">  <span class="keyword">into</span> l_empno</span><br><span class="line">  <span class="keyword">from</span> emp e</span><br><span class="line">  <span class="keyword">where</span> e.ename = <span class="string">'SAM'</span>;</span><br><span class="line"></span><br><span class="line">  if l_empno is null then</span><br><span class="line">    <span class="comment">-- ... insert new emp</span></span><br><span class="line">  <span class="keyword">end</span> <span class="keyword">if</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">-- ...</span></span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Errors</span></span><br><span class="line">ORA-01403: no data found</span><br><span class="line">ORA-06512: at line 4</span><br><span class="line">1.     00000 -  "no data found"</span><br></pre></td></tr></table></figure>
+
+<p>An error is raised if the employee (<code>SAM</code> in this case) isn’t found. Here are some options to get around this.</p>
+<h2 id="Explicit-exception-block"><a href="#Explicit-exception-block" class="headerlink" title="Explicit exception block"></a>Explicit exception block</h2><p>This is the most correct way to know if the value exists or not. Some don’t like to use this approach as it can clutter code (due to additional lines of code), on the positive side it is very explicit.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">begin</span></span><br><span class="line">    <span class="keyword">select</span> e.empno</span><br><span class="line">    <span class="keyword">into</span> l_empno</span><br><span class="line">    <span class="keyword">from</span> emp e</span><br><span class="line">    <span class="keyword">where</span> e.ename = <span class="string">'SAM'</span>;</span><br><span class="line">  exception</span><br><span class="line">    when no_data_found then </span><br><span class="line">      l_empno := null;</span><br><span class="line">  <span class="keyword">end</span>;</span><br><span class="line">  </span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+<h2 id="Using-max"><a href="#Using-max" class="headerlink" title="Using max"></a>Using <code>max</code></h2><p>Using an aggregate function will always return a value even if no rows are returned. For example:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> nvl(<span class="keyword">max</span>(dummy), <span class="string">'still returns value'</span>) val</span><br><span class="line"><span class="keyword">from</span> dual</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">2</span> <span class="comment">-- Always false</span></span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">VAL          </span><br><span class="line"><span class="comment">-------------</span></span><br><span class="line">still returns value</span><br></pre></td></tr></table></figure>
+
+<p>Using this logic with the base example we can do:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">select</span> <span class="keyword">max</span>(e.empno)</span><br><span class="line">  <span class="keyword">into</span> l_empno</span><br><span class="line">  <span class="keyword">from</span> emp e</span><br><span class="line">  <span class="keyword">where</span> e.ename = <span class="string">'SAM'</span>;</span><br><span class="line">  </span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+<p>I’ve used this in the past, however it comes with a caveat. If used on a column that isn’t unique it will still return one value. If multiple values are present (ex: all <code>emp</code>s who’s <code>job</code> is <code>MANAGER</code>) it can lead to false positives.</p>
+<h2 id="Using-left-join"><a href="#Using-left-join" class="headerlink" title="Using left join"></a>Using <code>left join</code></h2><p>Similar to the previous option, selecting from <code>dual</code> (always returns a row) we can <code>left join</code> to optionally find the value.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">select</span> e.empno</span><br><span class="line">  <span class="keyword">into</span> l_empno</span><br><span class="line">  <span class="keyword">from</span> dual</span><br><span class="line">    <span class="keyword">left</span> <span class="keyword">join</span> emp e <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">      <span class="keyword">and</span> e.ename = <span class="string">'SAM'</span>;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+<p>I prefer this approach compared to the <code>max</code> approach since if multiple values are possible an error is returned (which in most cases we want):</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="keyword">select</span> e.empno</span><br><span class="line">  <span class="keyword">into</span> l_empno</span><br><span class="line">  <span class="keyword">from</span> dual</span><br><span class="line">    <span class="keyword">left</span> <span class="keyword">join</span> emp e <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">     <span class="keyword">and</span> e.job = <span class="string">'MANAGER'</span> <span class="comment">-- Will return multiple values</span></span><br><span class="line">  ;   </span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Error</span></span><br><span class="line">ORA-01422: exact fetch returns more than requested number of rows</span><br><span class="line">ORA-06512: at line 5</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/" data-id="ck757r1yf00h201rx5dmzg635" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-how-to-find-matching-sets-of-data-using-sql" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/11/how-to-find-matching-sets-of-data-using-sql/" class="article-date">
@@ -112,7 +307,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ck757714c00is01mg4wj68q4b" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ck757r1xo00gd01rxcfgph67u" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -158,7 +353,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ck757714g00iw01mgd268ep8n" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ck757r1xu00gk01rx1if4d2w1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -216,7 +411,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="ck757713w00im01mge6i9da3x" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="ck757r1xm00gb01rxagvh4ut9" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -293,7 +488,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="ck757713z00io01mg47n16jrc" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="ck757r1xs00gh01rx2y7oh0z5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -355,7 +550,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="ck757713l00ig01mgd1iy3484" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="ck757r1xh00g701rx2e4o5lca" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -414,7 +609,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="ck757713f00id01mgbupb9c37" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="ck757r1xj00g901rx2t2o95ql" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -476,159 +671,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="ck757713700i901mgdckn1dow" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="ck757r1x600fy01rx3tpr1fc6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-intercept-interactive-report-save-and-delete-functions-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" class="article-date">
-  <time datetime="2019-02-28T03:04:19.000Z" itemprop="datePublished">2019-02-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/">How to Intercept Interactive Report Save and Delete Functions in APEX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Suppose you have a requirement that all saved Interactive Reports (IR) names must be lowercase. How can you enforce it? Using some JavaScript (JS) you can “intercept” the save and delete functions and either continue on with them or not. <em>Note my uses case was very different than a naming standard but using it as an example as it’s very simple.</em></p>
-<p>The following code snippet will intercept the save functionality (you can inject your business rules accordingly). It’s important to note that this code <strong>must be run</strong> in the page’s <code>Function and Global Variable Declaration</code> section (as part of the page’s properties). A better alternative is to load it via a JS file (<em>hint: use <a href="https://github.com/OraOpenSource/apex-nitro" target="_blank" rel="noopener">APEX Nitro</a></em>). It will not work if you try to run it as is in your browser’s console.</p>
-<p><span class="talkapex-warning"><em>Warning: The following code is using undocumented features in the APEX IR JS library. Use at your discretion.</em></span></p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">$(<span class="built_in">document</span>).ready(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  $.widget(<span class="string">"apex.interactiveReport"</span>, $.apex.interactiveReport, &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Saving a Default report</span></span><br><span class="line">    _saveDefault: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">"_saveDefault"</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>._getId(<span class="string">"report_name"</span>));</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'stopping'</span>);</span><br><span class="line">      <span class="comment">// return this._super();</span></span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Saving a Public or Private reports</span></span><br><span class="line">    _save: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'_save'</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>._getId(<span class="string">"report_name"</span>));</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'stopping'</span>);</span><br><span class="line">      <span class="comment">// return this._super();</span></span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Deleting a report (user clicking the "X")</span></span><br><span class="line">    _remove: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'_remove'</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>._getId(<span class="string">"report_name"</span>));</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'stopping'</span>);</span><br><span class="line">      <span class="comment">// return this._super();</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-
-<p>I’ve commented out <code>return this._super();</code>. Re-enabling it will continue the function (save, remove, etc) as expected. In most cases you would wrap it in an <code>if</code> condition based on your requirements.</p>
-<p>The following demo shows this code in action. Both the save and delete requests don’t complete as the JS code intercepts the requests and logs some information.</p>
-<img src="/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/intercept-ir.gif" class="">
-
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="ck757713v00ik01mgc9hl9x9x" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-compile-all-invalid-objects-in-oracle" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/02/how-to-compile-all-invalid-objects-in-oracle/" class="article-date">
-  <time datetime="2019-02-25T05:55:41.000Z" itemprop="datePublished">2019-02-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/02/how-to-compile-all-invalid-objects-in-oracle/">How to Compile all Invalid Objects in Oracle</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>When reviewing a team’s release processes I commonly encounter developers spending a lot of time and concern over the order of their PL/SQL objects (i.e. views and packages). For example if <code>pkg_a</code> references <code>view_b</code> then the release looks like:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">@pkg_a.pks</span><br><span class="line">@pkg_a.pkb</span><br><span class="line">@view_b.sql</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p>At first glance this may not seem too bad but when working with larger applications or a high change rate of code (think initial development) this can take up a lot of wasted time. It can also get much more complicated when dealing with many packages and views to understand their dependencies to ensure that the code is compiled in the “correct order”. Thankfully you don’t need to worry about this with Oracle as there’s an API to compile all the invalid objects:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span></span><br><span class="line"> dbms_utility.compile_schema(<span class="keyword">schema</span> =&gt; <span class="keyword">user</span>, compile_all =&gt; <span class="literal">false</span>);</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
-
-<p>For all of this to work effectively ensure that all your views are written as <code>create or replace force view view_name</code> note the keyword <code>force</code>. This will ensure that the view is compiled even if it’s invalid.</p>
-<p>Using the <code>dbms_utility.compile_schema</code> procedure and leveraging the <code>force</code> in the <code>create view</code> statements, most of my releases look like the following:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- views</span></span><br><span class="line">@view_b.sql</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">-- packages</span></span><br><span class="line">@pkg_a.pks</span><br><span class="line">@pkg_a.pkb</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Recompile invalid objects</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line"> dbms_utility.compile_schema(<span class="keyword">schema</span> =&gt; <span class="keyword">user</span>, compile_all =&gt; <span class="literal">false</span>);</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
-
-<p>For very active development cycles (where a lot of the code is changing) I even have scripts to scrape both the <code>packages</code> and <code>views</code> folder and auto-inject all the file names into the release file. This way developers don’t need to worry about which packages or views were modified for a given release (nor their order/dependencies) as they will all be re-compiled.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="ck757714600iq01mg1eu3c2c1" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-case-insensitive-sorting-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/02/case-insensitive-sorting-in-apex/" class="article-date">
-  <time datetime="2019-02-25T05:16:47.000Z" itemprop="datePublished">2019-02-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/02/case-insensitive-sorting-in-apex/">Case Insensitive Sorting in APEX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>By default Oracle does case sensitive sorting, which means that ascending order goes from <code>A-Z</code> then <code>a-z</code>. This is reflected in APEX when creating reports and sorting on them.</p>
-<img src="/2019/02/case-insensitive-sorting-in-apex/before.png" class="">
-
-<p>They’re various workarounds to enable case insensitive sorting. The simplest is to change the entire application by modifying the following setting in <code>Shared Components &gt; Globalization &gt; Character Value Comparison</code> to <code>BINARY_CI</code>:</p>
-<img src="/2019/02/case-insensitive-sorting-in-apex/settings.png" class="">
-
-<p>Once set, all your reports will be sorted case insensitive. The first report now looks like this:</p>
-<img src="/2019/02/case-insensitive-sorting-in-apex/after.png" class="">
-
-<p><em>Thanks to <a href="https://twitter.com/rimblas" target="_blank" rel="noopener">Jorge Rimblas</a> for showing me this!</em></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/" data-id="ck757712o00hz01mg3kfi2ovi" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
@@ -678,7 +723,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">154</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">155</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">27</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -715,7 +760,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">13</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

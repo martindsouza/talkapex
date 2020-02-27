@@ -68,6 +68,245 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-custom-download-for-apex-interactive" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/04/custom-download-for-apex-interactive/" class="article-date">
+  <time datetime="2009-04-20T13:44:00.000Z" itemprop="datePublished">2009-04-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/04/custom-download-for-apex-interactive/">Custom Download for APEX Interactive Reports</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A few months ago I needed to modify the downloaded Interactive Report (IR) to CSV function so that we could include group headings, report description, and report parameters (please see <a href="http://apex-smb.blogspot.com/2009/03/column-groups-in-apex-interactive.html" target="_blank" rel="noopener">Column Groups in APEX Interactive Reports</a> on how to display column groups in IR). <a href="http://deneskubicek.blogspot.com/" target="_blank" rel="noopener">Denes Kubicek</a> has a package to download regular reports in Excel format, however it does not return the query that the user is currently viewing. This is really important since users may add columns, change the ordering of columns, etc. When users download a report it should reflect what is currently being displayed on the screen.</p>
+<p>After digging through the APEX packages I was able to write some code to generate my own custom download function for IRs. Since the code is fairly long you’ll need to get a copy of the code <a href="http://apex.oracle.com/pls/otn/f?p=20195:1300" target="_blank" rel="noopener">here</a> (please save the file as pkg_apex_report.zip). <span style="font-weight:bold; color: red">Note: This code is NOT ready for a production environment!</span>. It’s also important to note that some of the grant privileges could have <span style="font-weight:bold; color: red">security implications</span> and is not recommend to be run for public applications. If you need to use these grants in a production instance I suggest creating a special “APEX” schema and write some custom wrapper functions. Since grants are required from the APEX schema I can’t post a working example of this application on <a href="http://apex.oracle.com" target="_blank" rel="noopener">apex.oracle.com</a>.</p>
+<p>Now that I’m done with my disclaimers here’s how to customize IR downloads (don’t forget to download the code). <span style="font-style:italic;">Please note that the schema I developed in this was called “giffy”.</span></p>
+<p><span style="font-weight:bold;">1- Grant Privileges</span></p>
+<pre class="brush: sql">
+  -- Change "apex_030200" to the version of APEX that you are using
+  -- Change "giffy" to your schema
+  GRANT EXECUTE ON apex_030200.wwv_flow_worksheet_standard TO giffy;
+  CREATE OR REPLACE SYNONYM giffy.wwv_flow_worksheet_standard FOR apex_030200.wwv_flow_worksheet_standard
+
+  GRANT EXECUTE ON apex_030200.wwv_flow_conditions TO giffy;
+  CREATE OR REPLACE SYNONYM giffy.wwv_flow_conditions FOR apex_030200.wwv_flow_conditions;
+
+  GRANT EXECUTE ON apex_030200.wwv_flow_worksheet TO giffy;
+  CREATE OR REPLACE SYNONYM giffy.wwv_flow_worksheet FOR apex_030200.wwv_flow_worksheet;
+
+  GRANT EXECUTE ON apex_030200.wwv_flow_render_query TO giffy;
+  CREATE OR REPLACE SYNONYM giffy.wwv_flow_render_query FOR apex_030200.wwv_flow_render_query;
+</pre>
+
+<p><span style="font-weight:bold;">2- Create Package apex_report</span></p>
+<p>Download code <a href="http://apex.oracle.com/pls/otn/f?p=20195:1300" target="_blank" rel="noopener">here</a> (save the file as pkg_apex_report.zip)<br>In SQL*Plus run:</p>
+<pre class="brush: sql">
+  @pkg_apex_report.pks
+  @pkg_apex_report.pkb
+</pre>
+
+<p><span style="font-weight:bold;">3- Create Interactive Report region</span></p>
+<pre class="brush: sql">
+  SELECT *
+    FROM emp
+</pre>
+
+<p><span style="font-weight:bold;">4- Create “Download Page”</span></p>
+<ul>
+<li><p>Create a new HTML Page.</p>
+</li>
+<li><p>Create a page item P3_BASE_REPORT_ID</p>
+</li>
+<li><p>Create a page item P3_PAGE_ID</p>
+</li>
+<li><p>Create a PL/SQL Process</p>
+<ul>
+<li>Point: On Load Before Header</li>
+<li>PL/SQL:</li>
+</ul>
+</li>
+</ul>
+<pre class="brush: sql">
+  DECLARE
+    v_region_id apex_application_page_regions.region_id%TYPE;
+    v_base_report_id apex_application_page_ir_rpt.base_report_id%TYPE;
+    v_page_id apex_application_page_ir_rpt.page_id%TYPE;
+  BEGIN
+    v_base_report_id := :p3_base_report_id;
+    v_page_id := :p3_page_id;
+
+    SELECT ir.region_id
+      INTO v_region_id
+      FROM apex_application_page_ir_rpt irr,
+           apex_application_page_ir ir
+     WHERE irr.application_id = :app_id
+       AND irr.page_id = v_page_id
+       AND irr.session_id = :app_session
+       AND irr.base_report_id = v_base_report_id
+       AND irr.interactive_report_id = ir.interactive_report_id;
+
+    pkg_apex_report.sp_download_report (p_page_id            => v_page_id,
+                                        p_region_id          => v_region_id,
+                                        p_base_report_id     => v_base_report_id,
+                                        p_format_typ         => 'CSV'
+                                       );
+  END;
+</pre>
+
+<p><span style="font-weight:bold;">5- Alter Interactive Report Download Link</span><br><span style="font-style:italic;">Please see <a href="http://apex-smb.blogspot.com/2009/03/interactive-report-download-with-one.html" target="_blank" rel="noopener">APEX Interactive Report - Download with One Click</a> for more information about this code</span>. You’ll need <a href="http://www.jquery.com" target="_blank" rel="noopener">jQuery</a> for this.</p>
+<pre class="brush: js">
+//Note: "3" is my download page
+$(document).ready(function() {
+  $('.dhtmlSubMenuN[title="Download"]').attr('href','f?p=' + $v('pFlowId') + ':3:' + $v('pInstance') + '::NO:3:P3_PAGE_ID,P3_BASE_REPORT_ID:' + $v('pFlowStepId') + ',' + $v('apexir_REPORT_ID'));  
+});
+</pre>
+
+<p>At this point you should be able to run your interactive report and download the custom CSV file. You’ll notice that there’s a block of HTML that appears at the top of the CSV file. This is caused by the call (wwv_flow_worksheet.get_worksheet_report_query) to get the SQL the user is currently looking at. I don’t have a fix or a work around (if you know of one please post in comment section)</p>
+<p>Please post any bugs, suggestions, or updates to the code as I’d like to create a production version for this code.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/04/custom-download-for-apex-interactive/" data-id="ck757r18t001e01rxap44gknb" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/04/custom-download-for-apex-interactive/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apex-interactive-reports-customize-wait" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/04/apex-interactive-reports-customize-wait/" class="article-date">
+  <time datetime="2009-04-13T13:43:00.000Z" itemprop="datePublished">2009-04-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/04/apex-interactive-reports-customize-wait/">APEX Interactive Reports - Customize Wait Display Part 1</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>We recently needed to change, and move, the default Interactive Report (IR) AJAX “Loading” image (spinning wheel):<br><a href="http://3.bp.blogspot.com/_33EF80fk9sM/SeNCCZQweaI/AAAAAAAADoA/25cGNbjO0ok/s1600-h/01_cust_ir_wait.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/SeNCCZQweaI/AAAAAAAADoA/25cGNbjO0ok/s400/01_cust_ir_wait.bmp" alt=""></a><br>  After some investigation they’re several things you can do depending on your requirements. A demo application is available <a href="http://apex.oracle.com/pls/otn/f?p=20195:1200" target="_blank" rel="noopener">here.</a></p>
+<p><span style="font-weight: bold">Part 2 is here: <a href="http://apex-smb.blogspot.com/2009/04/apex-interactive-reports-customize-wait_28.html" target="_blank" rel="noopener">http://apex-smb.blogspot.com/2009/04/apex-interactive-reports-customize-wait_28.html</a></span></p>
+<p>Before we go over the solution it’s important to review where the image is located and how it gets toggled on and off. The image is stored in a span region which is hidden by default. The code looks like this:</p>
+<pre class="brush: html">
+  <span style="" id="apexir_LOADER">
+    ![](/i/ws/ajax-loader.gif)
+  </span>
+</pre>
+
+<p>If you want to manually make it visible you can run the following code:</p>
+<pre class="brush: js">
+  $('#apexir_LOADER').show();
+</pre>
+
+<p>The JS code to toggle the image is stored in: apex_ns_3_1.js. You can view an uncompressed version of this file in your installation directory: apex_3.1.2\apex\images\javascript\uncompressed\apex_ns_3_1.js  To toggle the image, APEX calls the following JS function: apex.worksheet.ws._BusyGraphic  (We won’t be using this function in this post but I’ll do another posting on how we can use it for a completely customizable solution)</p>
+<p>First Let’s build a IR page with the emp table:</p>
+<pre class="brush: sql">
+select *
+from emp
+connect by level <= 3
+</pre>
+
+<p>The easiest option is if all you need to do is change the image:</p>
+<pre class="brush: js">
+  $('#apexir_LOADER img')[0].src="#IMAGE_PREFIX#processing3.gif";
+</pre>
+
+<p><a href="http://2.bp.blogspot.com/_33EF80fk9sM/SeNCdmCqZNI/AAAAAAAADoI/y3d79iimB84/s1600-h/02_cust_ir_wait.bmp" target="_blank" rel="noopener"><img src="http://2.bp.blogspot.com/_33EF80fk9sM/SeNCdmCqZNI/AAAAAAAADoI/y3d79iimB84/s400/02_cust_ir_wait.bmp" alt=""></a></p>
+<p>The new image, processing3.gif, is part of APEX as well. You can reference your own images if you’d like.</p>
+<p>In Part 2 I’ll go over changing the actual function that shows and hides the loading image. This will give you complete control of the loading message.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait/" data-id="ck757r19g001n01rxam6tdo1j" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/04/apex-interactive-reports-customize-wait/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-presenting-at-odtug-kaleidoscope-2009" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/04/presenting-at-odtug-kaleidoscope-2009/" class="article-date">
+  <time datetime="2009-04-09T00:19:00.000Z" itemprop="datePublished">2009-04-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/04/presenting-at-odtug-kaleidoscope-2009/">Presenting at ODTUG Kaleidoscope 2009 - APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><a href="http://www.odtugkaleidoscope.com/?utm_source=speake" target="_blank" rel="noopener"><img src="http://www.odtugkaleidoscope.com/webbutton.jpg" alt=""></a><br>Frank Hoogendoorn and I will be presenting at the Application Express Symposium on Sunday at ODTUG Kaleidoscope 2009. Our presentation is called “<span style="font-weight:bold;">Getting the Ape out of APEX</span>“.</p>
+<p>I attended ODTUG last year in New Orleans and was amazed with all the excellent APEX presentations, I’m sure this year will be even better. If you can only attend once conference this year and you are using, or interested in, APEX this is the conference to go to!</p>
+<p>You can go to <a href="http://www.odtugkaleidoscope.com/?utm_source=speake" target="_blank" rel="noopener">www.odtugkaleidoscope.com</a> for more information and registration.</p>
+<p>See you then.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/04/presenting-at-odtug-kaleidoscope-2009/" data-id="ck757r188001901rx285a6v6f" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/04/presenting-at-odtug-kaleidoscope-2009/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/" rel="tag">kscope</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-log-apex-interactive-report-search" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/04/log-apex-interactive-report-search/" class="article-date">
@@ -150,7 +389,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/" data-id="ck757700w007n01mgb1gr0jqq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/" data-id="ck757r17v001201rx9ira8j4w" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/04/log-apex-interactive-report-search/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -334,7 +573,7 @@ $(document).ready(function(){
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/" data-id="ck7577011007p01mg5zwi95d1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/" data-id="ck757r17h000r01rxdj7shglu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/column-groups-in-apex-interactive/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -392,7 +631,7 @@ $(document).ready(function() {
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/interactive-report-download-with-one/" data-id="ck757700s007l01mgb7mb6zse" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/interactive-report-download-with-one/" data-id="ck757r17y001501rxatvc071z" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/interactive-report-download-with-one/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -531,7 +770,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="ck7576zzp007e01mg3j3uhj1r" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="ck757r17g000p01rxhsdk1a3n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/custom-authentication-status/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -587,7 +826,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/" data-id="ck7576zzb007801mg2ss24w8a" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/" data-id="ck757r17o000w01rx3mumgxox" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -656,7 +895,7 @@ END;</pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="ck7577015007r01mgheuwe97l" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="ck757r17c000m01rx1yog2520" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -706,202 +945,9 @@ END;</pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="ck7576zzg007a01mg72w36jjf" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="ck757r17q000y01rx11q1fqpw" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/test-data-in-production-applications/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-application-id-reserved-fix" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/02/application-id-reserved-fix/" class="article-date">
-  <time datetime="2009-02-05T21:10:00.000Z" itemprop="datePublished">2009-02-05</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/02/application-id-reserved-fix/">&#34;Application ID Reserved&#34; - Fix</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>When you upgrade an application do you ever get the following <code>Application ID Reserved</code> error message?</p>
-<p><img src="http://3.bp.blogspot.com/_33EF80fk9sM/SYtWlmBrUOI/AAAAAAAADl4/MNxQkrJD8LA/s400/application_id_reserved.jpg" alt=""></p>
-<p>Even if you delete your application and try to re-import using the same application ID you’ll get the message.</p>
-<p>To view “reserved” application ids you can run the following query (please note you may need to be a dba user):</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> *</span><br><span class="line"><span class="keyword">from</span> flows_030100.wwv_flows_reserved;</span><br></pre></td></tr></table></figure>
-
-<p>In order to fix this problem you just need to delete the application id from that table:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">delete</span></span><br><span class="line">  <span class="keyword">from</span> flows_030100.wwv_flows_reserved</span><br><span class="line">  <span class="keyword">where</span> <span class="keyword">id</span> = :p_app_id; <span class="comment">-- Your application ID that is locked</span></span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/02/application-id-reserved-fix/" data-id="ck757700l007j01mg5i664gax" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/02/application-id-reserved-fix/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-report-with-checkboxes-advanced" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2009/01/apex-report-with-checkboxes-advanced/" class="article-date">
-  <time datetime="2009-01-21T06:58:00.000Z" itemprop="datePublished">2009-01-20</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2009/01/apex-report-with-checkboxes-advanced/">APEX Report with checkboxes (advanced).</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><strong><span style="color: red;">Note:</span> This solution was updated to account for APEX’s new features and APIs. See the updated post here:&nbsp;<a href="http://www.talkapex.com/2015/09/report-with-checkboxes-update.html">http://www.talkapex.com/2015/09/report-with-checkboxes-update.html</a></strong></p>
-<p>A colleague of mine wanted to build a report with check boxes. Once the user selected all the rows, they would click submit and the application would process the rows. Sounds pretty simple and straight forward however he did have some extra requirements:</p>
-<ul>
-<li>The report is an interactive report</li>
-<li>There may be up to 10,000 records in the report</li>
-<li>When the user “scrolls” through the report (i.e. uses pagination), if they checked off a box it should remain checked the entire time (i.e. if they check an row in the 1st 15 rows, then view rows 16<del>30, then go back to rows 1</del>15 it should remain checked)</li>
-</ul>
-<p>So here’s the example on how to do it. The working example can be found here: <a href="http://apex.oracle.com/pls/otn/f?p=20195:500" target="_blank" rel="noopener">http://apex.oracle.com/pls/otn/f?p=20195:500</a></p>
-<p>Create an application item F_EMPNO_LIST. Note you can use a page item as well…</p>
-<p>Setup IR:</p>
-<pre class="brush: sql;">
-SELECT apex_item.checkbox (1,
-                           empno,
-                           'onchange="spCheckChange(this);"',
-                           :f_empno_list,
-                           ':'
-                          ) checkbox,
-       empno, ename, job
-  FROM emp</pre>
-<p>Once the report is setup set the row display to 5 (you’ll need it for this example)</p>
-<ul>
-<li><p>Add an HTML region and add the following code: (Note: the jQuery call is not needed… for now)</p>
-<pre class="brush: js;">
-<script src="http://www.google.com/jsapi"></script>
-<script>
-// Load jQuery
-google.load("jquery", "1.2.6", {uncompressed:true});
-
-function spCheckChange(pThis){
-  var get = new htmldb_Get(null,$v('pFlowId'),'APPLICATION_PROCESS=CHECKBOX_CHANGE',$v('pFlowStepId'));  
-  get.addParam('x01',pThis.value); //Value that was checked
-  get.addParam('x02',pThis.checked ? 'Y':'N'); // Checked Flag
-  gReturn = get.get();
-
-  $x('checkListDisp').innerHTML=gReturn;
-}
-
-</li>
-</ul>
-<p></script><br>CHECKBOX List:</p>
-<div id="checkListDisp">
-&amp;F_EMPNO_LIST.</div>
-</pre>
-Now create an application process (on Demand) called: CHECKBOX_CHANGE
-<pre class="brush: sql;">
--- Application Process: CHECKBOX_CHANGE
--- On Demand...
-
-<p>DECLARE<br>  v_item_val NUMBER := apex_application.g_x01;<br>  v_checked_flag VARCHAR2 (1) := apex_application.g_x02;<br>BEGIN<br>  IF v_checked_flag = ‘Y’ THEN<br>    – Add to the list<br>    IF :f_empno_list IS NULL THEN<br>      :f_empno_list := ‘:’ || v_item_val || ‘:’;<br>    ELSE<br>      :f_empno_list := :f_empno_list || v_item_val || ‘:’;<br>    END IF;<br>  ELSE<br>    – Remove from the list<br>    :f_empno_list := REPLACE (:f_empno_list, ‘:’ || v_item_val || ‘:’, ‘:’);<br>  END IF;</p>
-<p>  – Just for testing<br>  HTP.p (:f_empno_list);<br>END;</pre></p>
-<ul>
-<li>On the post page create a query to view data (you can process how you need/want)<pre class="brush: sql;">
-select *
-from emp
-where instr(:F_EMPNO_LIST, ':' || empno || ':') &gt; 0</pre>
-Please note there may be better/faster ways to implement the SQL code etc.</li>
-</ul>
-<p>Here are some links on the x01 code that I used:<br><a href="http://carlback.blogspot.com/2008/03/new-stuff-2-x01-and-friends.html" target="_blank" rel="noopener">http://carlback.blogspot.com/2008/03/new-stuff-2-x01-and-friends.html</a> and <a href="http://carlback.blogspot.com/2008/04/new-stuff-q.html" target="_blank" rel="noopener">http://carlback.blogspot.com/2008/04/new-stuff-q.html</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/" data-id="ck7576zzj007c01mg4l3xfe7z" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-access-images-in-apex-on-linux" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2008/12/how-to-access-images-in-apex-on-linux/" class="article-date">
-  <time datetime="2008-12-28T17:49:00.000Z" itemprop="datePublished">2008-12-28</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2008/12/how-to-access-images-in-apex-on-linux/">How to access images in APEX on Linux</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Hi,</p>
-<p>Dietmar has a great post on where the images are located in APEX using webdav: <a href="http://daust.blogspot.com/2006/03/where-are-images-of-application.html" target="_blank" rel="noopener">http://daust.blogspot.com/2006/03/where-are-images-of-application.html</a>  He also covers how to access them via FTP!</p>
-<p>I recently switched from Windows to Linux and was looking for a quick way to access the files as I would with Windows.</p>
-<p>Using KDE and Konqueror, you can access them very easily. Use the following in the URL: webdav://&lt;url&gt;</p>
-<p>So it would be: webdav://127.0.0.1:8080/i</p>
-<p>Log in with system and you should be able to access everything!</p>
-<p>Martin</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/" data-id="ck7576zbe000q01mgg39jf9w8" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
@@ -951,7 +997,7 @@ Please note there may be better/faster ways to implement the SQL code etc.</li>
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">154</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">155</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">27</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -988,7 +1034,7 @@ Please note there may be better/faster ways to implement the SQL code etc.</li>
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">13</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

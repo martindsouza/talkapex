@@ -68,6 +68,156 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-intercept-interactive-report-save-and-delete-functions-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" class="article-date">
+  <time datetime="2019-02-28T03:04:19.000Z" itemprop="datePublished">2019-02-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/">How to Intercept Interactive Report Save and Delete Functions in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Suppose you have a requirement that all saved Interactive Reports (IR) names must be lowercase. How can you enforce it? Using some JavaScript (JS) you can “intercept” the save and delete functions and either continue on with them or not. <em>Note my uses case was very different than a naming standard but using it as an example as it’s very simple.</em></p>
+<p>The following code snippet will intercept the save functionality (you can inject your business rules accordingly). It’s important to note that this code <strong>must be run</strong> in the page’s <code>Function and Global Variable Declaration</code> section (as part of the page’s properties). A better alternative is to load it via a JS file (<em>hint: use <a href="https://github.com/OraOpenSource/apex-nitro" target="_blank" rel="noopener">APEX Nitro</a></em>). It will not work if you try to run it as is in your browser’s console.</p>
+<p><span class="talkapex-warning"><em>Warning: The following code is using undocumented features in the APEX IR JS library. Use at your discretion.</em></span></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">$(<span class="built_in">document</span>).ready(<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line"></span><br><span class="line">  $.widget(<span class="string">"apex.interactiveReport"</span>, $.apex.interactiveReport, &#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">// Saving a Default report</span></span><br><span class="line">    _saveDefault: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">"_saveDefault"</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>._getId(<span class="string">"report_name"</span>));</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'stopping'</span>);</span><br><span class="line">      <span class="comment">// return this._super();</span></span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Saving a Public or Private reports</span></span><br><span class="line">    _save: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'_save'</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>._getId(<span class="string">"report_name"</span>));</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'stopping'</span>);</span><br><span class="line">      <span class="comment">// return this._super();</span></span><br><span class="line">    &#125;,</span><br><span class="line"></span><br><span class="line">    <span class="comment">// Deleting a report (user clicking the "X")</span></span><br><span class="line">    _remove: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'_remove'</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>);</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="keyword">this</span>._getId(<span class="string">"report_name"</span>));</span><br><span class="line">      <span class="built_in">console</span>.log(<span class="string">'stopping'</span>);</span><br><span class="line">      <span class="comment">// return this._super();</span></span><br><span class="line">    &#125;</span><br><span class="line">  &#125;);</span><br><span class="line"></span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>I’ve commented out <code>return this._super();</code>. Re-enabling it will continue the function (save, remove, etc) as expected. In most cases you would wrap it in an <code>if</code> condition based on your requirements.</p>
+<p>The following demo shows this code in action. Both the save and delete requests don’t complete as the JS code intercepts the requests and logs some information.</p>
+<img src="/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/intercept-ir.gif" class="">
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="ck757r1xc00g201rx038e8nvx" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-compile-all-invalid-objects-in-oracle" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/02/how-to-compile-all-invalid-objects-in-oracle/" class="article-date">
+  <time datetime="2019-02-25T05:55:41.000Z" itemprop="datePublished">2019-02-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/02/how-to-compile-all-invalid-objects-in-oracle/">How to Compile all Invalid Objects in Oracle</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When reviewing a team’s release processes I commonly encounter developers spending a lot of time and concern over the order of their PL/SQL objects (i.e. views and packages). For example if <code>pkg_a</code> references <code>view_b</code> then the release looks like:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">@pkg_a.pks</span><br><span class="line">@pkg_a.pkb</span><br><span class="line">@view_b.sql</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>At first glance this may not seem too bad but when working with larger applications or a high change rate of code (think initial development) this can take up a lot of wasted time. It can also get much more complicated when dealing with many packages and views to understand their dependencies to ensure that the code is compiled in the “correct order”. Thankfully you don’t need to worry about this with Oracle as there’s an API to compile all the invalid objects:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">begin</span></span><br><span class="line"> dbms_utility.compile_schema(<span class="keyword">schema</span> =&gt; <span class="keyword">user</span>, compile_all =&gt; <span class="literal">false</span>);</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+<p>For all of this to work effectively ensure that all your views are written as <code>create or replace force view view_name</code> note the keyword <code>force</code>. This will ensure that the view is compiled even if it’s invalid.</p>
+<p>Using the <code>dbms_utility.compile_schema</code> procedure and leveraging the <code>force</code> in the <code>create view</code> statements, most of my releases look like the following:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- views</span></span><br><span class="line">@view_b.sql</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">-- packages</span></span><br><span class="line">@pkg_a.pks</span><br><span class="line">@pkg_a.pkb</span><br><span class="line">...</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Recompile invalid objects</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line"> dbms_utility.compile_schema(<span class="keyword">schema</span> =&gt; <span class="keyword">user</span>, compile_all =&gt; <span class="literal">false</span>);</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+<p>For very active development cycles (where a lot of the code is changing) I even have scripts to scrape both the <code>packages</code> and <code>views</code> folder and auto-inject all the file names into the release file. This way developers don’t need to worry about which packages or views were modified for a given release (nor their order/dependencies) as they will all be re-compiled.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="ck757r1xf00g501rx53hbd2go" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-case-insensitive-sorting-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/02/case-insensitive-sorting-in-apex/" class="article-date">
+  <time datetime="2019-02-25T05:16:47.000Z" itemprop="datePublished">2019-02-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/02/case-insensitive-sorting-in-apex/">Case Insensitive Sorting in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>By default Oracle does case sensitive sorting, which means that ascending order goes from <code>A-Z</code> then <code>a-z</code>. This is reflected in APEX when creating reports and sorting on them.</p>
+<img src="/2019/02/case-insensitive-sorting-in-apex/before.png" class="">
+
+<p>They’re various workarounds to enable case insensitive sorting. The simplest is to change the entire application by modifying the following setting in <code>Shared Components &gt; Globalization &gt; Character Value Comparison</code> to <code>BINARY_CI</code>:</p>
+<img src="/2019/02/case-insensitive-sorting-in-apex/settings.png" class="">
+
+<p>Once set, all your reports will be sorted case insensitive. The first report now looks like this:</p>
+<img src="/2019/02/case-insensitive-sorting-in-apex/after.png" class="">
+
+<p><em>Thanks to <a href="https://twitter.com/rimblas" target="_blank" rel="noopener">Jorge Rimblas</a> for showing me this!</em></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/" data-id="ck757r1x300fu01rxag99dute" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-5-chrome-dev-tools-for-apex-developers" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/02/5-chrome-dev-tools-for-apex-developers/" class="article-date">
@@ -125,7 +275,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/" data-id="ck757713100i601mg6jt98jjp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/" data-id="ck757r1xa00g001rxhzo0hwdj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -171,7 +321,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/10/oracle-xe-18-docker-image/" data-id="ck757712v00i401mg2ygl3w1a" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/10/oracle-xe-18-docker-image/" data-id="ck757r1ya00gx01rxfa5t002c" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/10/oracle-xe-18-docker-image/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -236,7 +386,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/" data-id="ck757713d00ib01mg8aqrdqf2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/" data-id="ck757r1yh00h401rx3sxd3dmj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -290,7 +440,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/" data-id="ck757713o00ii01mgcttx3z70" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/" data-id="ck757r1yj00h601rxfedxhxct" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -344,7 +494,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" data-id="ck757712k00hv01mg9u1dhopl" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" data-id="ck757r1yt00hf01rx3e8xg3r5" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -393,7 +543,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" data-id="ck757712t00i201mg2ke7bb2f" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" data-id="ck757r1yc00gz01rxaasg2fdb" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -459,204 +609,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="ck757712600ho01mg2esncmx6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="ck757r1y400gs01rxdwbeccow" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-docker-as-a-micro-service" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/04/docker-as-a-micro-service/" class="article-date">
-  <time datetime="2018-04-05T04:41:37.000Z" itemprop="datePublished">2018-04-04</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/04/docker-as-a-micro-service/">Docker as a Micro Service</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Things can get worse if the software has additional dependencies (Java for example) especially when you need to have two versions of the same tool for different apps.</p>
-<p>Docker solves this problem by keeping everything you need for a specific task in one container. The added bonus is that you’ll probably be able to find a Docker container for just about anything you want and it’s OS independent on <a href="https://hub.docker.com/" target="_blank" rel="noopener">Docker Hub</a>.</p>
-<p>At <a href="https://www.insum.ca/hackathon-opportunity-work-with-new-technology/" target="_blank" rel="noopener">Insum’s 2018 Hackathon</a> we developed skills for <a href="https://alexa.amazon.com" target="_blank" rel="noopener">Amazon Alexa</a>. To help the teams I published a <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Docker image</a> that has both the <a href="https://aws.amazon.com/cli/" target="_blank" rel="noopener">AWS CLI</a> and <a href="https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html" target="_blank" rel="noopener">Alexa Skills Kit (ASK) CLI</a>. </p>
-<p>Most of the demos I’ve seen for containers that are used for CLI tools looked like this:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker run -it \</span><br><span class="line">  ...</span><br><span class="line">  doccker_prefs</span><br><span class="line">  my_tool.sh -some -parameters</span><br></pre></td></tr></table></figure>
-
-<p>Though these containers are helpful it’s not really useful for end users (i.e. developers) since the command can be tough to remember and the containers may exist after running the tool (i.e. you may need to manually delete them.</p>
-<p>When building the <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Amazon ASK CLI container</a> I wanted to avoid these issues to make it as easy as possible for developers to use. I did the following tricks:</p>
-<h2 id="alias-the-docker-run-command"><a href="#alias-the-docker-run-command" class="headerlink" title="alias the docker run command"></a><code>alias</code> the <code>docker run</code> command</h2><p>Instead of having to remember the long <code>docker run</code> command with all the parameters I used an <code>alias</code> command to bundle it all together. Mine looked like this:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> alexa=<span class="string">"docker run -it --rm \</span></span><br><span class="line"><span class="string">  -v ~/alexa-demo/ask-config:/home/node/.ask \</span></span><br><span class="line"><span class="string">  -v ~/alexa-demo/aws-config:/home/node/.aws \</span></span><br><span class="line"><span class="string">  -v ~/alexa-demo/app:/home/node/app \</span></span><br><span class="line"><span class="string">  martindsouza/amazon-ask-cli:latest</span></span><br></pre></td></tr></table></figure>
-
-<p>A few key things to note from the above snippet:</p>
-<ul>
-<li><code>alias</code>: This means that anytime I type in <code>alexa</code> in bash it will run everything in the quotes.<ul>
-<li><em>Windows users: <code>alias</code> doesn’t exist in DOS or PowerShell. I’m not aware of any alternatives. If you know of any easy ones please leave a comment and I’ll update this post</em></li>
-</ul>
-</li>
-<li><code>--rm</code> option: Deletes (self destruct) the container after the command is run. This means is that when I run <code>alexa ask init</code> (where <code>ask init</code> is the CLI tool) it’ll <code>run</code> the container, execute <code>ask</code> (with parameter <code>init</code>), then remove the container once <code>ask</code> is done.</li>
-</ul>
-<p>Using the <code>alias</code> and <code>--rm</code> techniques you can easily have all the CLI tools you want without cluttering up your base machine. Of course there may be some minor performance impacts by Dockerizing them. Personally I didn’t notice any slowdowns and will start using this technique for all my future CLI tools.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="ck757712m00hx01mg0vwbbioy" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2018/04/docker-as-a-micro-service/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-docker-image-for-ords-standalone" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/04/docker-image-for-ords-standalone/" class="article-date">
-  <time datetime="2018-04-02T02:00:42.000Z" itemprop="datePublished">2018-04-01</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/04/docker-image-for-ords-standalone/">Docker Image for ORDS Standalone</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>A while ago I released a Docker image for <a href="https://github.com/martindsouza/docker-ords/releases/tag/tomcat-0.1.0" target="_blank" rel="noopener">ORDS using Tocmat</a>. I’ve tagged that script and have since rebuilt this image to use ORDS standalone as well as updating it to <code>17.4.1</code>.</p>
-<p>If you’re interested in using it, the entire project along with documentation is available here: <a href="https://github.com/martindsouza/docker-ords" target="_blank" rel="noopener">github.com/martindsouza/docker-ords</a>. </p>
-<p>A few things to note about this Docker image:</p>
-<ul>
-<li>The configuration folder points to a mountable volume. If you store your configuration on a shared folder or version control system you can have ORDS point at it. If you need to have multiple versions of ORDS running this can be helpful since they can all point to the same configuration.<ul>
-<li>If you don’t have a shared configuration that’s fine. The container will install and configure ORDS if one isn’t found.</li>
-</ul>
-</li>
-<li>I could not post this image on Docker Hub as Oracle requires that you <a href="http://www.oracle.com/technetwork/developer-tools/rest-data-services/downloads/index.html" target="_blank" rel="noopener">download ORDS</a> yourself and accept their terms and conditions. This means that you need to build your own Docker image (this adds a few minimal steps to the overall process).</li>
-<li>The image currently does not have SSL support and can be added it in if there’s interest. Please vote or leave a comment on the <a href="https://github.com/martindsouza/docker-ords/issues/7" target="_blank" rel="noopener">“Add Support for SSL”</a> issue if you’d like it.</li>
-</ul>
-<p>If you have any other feedback or suggestions please create an <a href="https://github.com/martindsouza/docker-ords/issues" target="_blank" rel="noopener">issue</a> on the project page.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="ck757712e00hs01mg9g381afn" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ords/" rel="tag">ords</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-save-page-data-but-show-errors-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/03/how-to-save-page-data-but-show-errors-in-apex/" class="article-date">
-  <time datetime="2018-03-29T14:15:48.000Z" itemprop="datePublished">2018-03-29</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/03/how-to-save-page-data-but-show-errors-in-apex/">How to Save Page Data but Show Errors in APEX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>In most cases error messages are shown on an APEX page when the user submits a form and a validation fails. Sometimes (not often) you may need to manually control the validations rather than using the declarative validations section. To do this you can use the <a href="https://docs.oracle.com/database/apex-5.1/AEAPI/APEX_ERROR.htm#AEAPI2209" target="_blank" rel="noopener"><code>apex_error</code></a> API. The following is an example of how to call the API.</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apex_error.add_error(</span><br><span class="line">  p_message =&gt; 'Custom error from PL/SQL',</span><br><span class="line">  p_display_location =&gt; apex_error.c_inline_in_notification);</span><br></pre></td></tr></table></figure>
-
-<p>This will generate the following on the page:</p>
-<img src="/2018/03/how-to-save-page-data-but-show-errors-in-apex/custom-error.png" class="">
-
-<p><code>apex_error.add_error</code> triggers a rollback and in most cases this is a good thing. In some very specific cases you may not want a rollback to occur. The rest of this article covers how to generate errors without a rollback occurring.</p>
-<h2 id="Edge-Case"><a href="#Edge-Case" class="headerlink" title="Edge Case"></a>Edge Case</h2><p>I recently had a rare edge case for a page submit and errors. The page was used to edit batch staging data. The requirements were:</p>
-<ul>
-<li>User submits page</li>
-<li>All the data is saved (in a staging table)<ul>
-<li>_Since this is staging area, the data must be saved and committed each time regardless of errors _</li>
-</ul>
-</li>
-<li>Do validations against staged data<ul>
-<li>If errors were found, the page would show them (remember the data still needs to be saved)</li>
-<li>If no errors were found, the staged data would be posted and then branch to another page.</li>
-</ul>
-</li>
-</ul>
-<h2 id="The-Solution"><a href="#The-Solution" class="headerlink" title="The Solution"></a>The Solution</h2><p>Given that <code>apex_error.add_error</code> performs a rollback the simple solution is to save the staged data, perform an explicit <code>commit</code>, and then do custom validations. Unfortunately this was not possible due to additional requirements that I left out of this article.</p>
-<p><em>The following relies on the fact that you know about the <code>apex.message</code> API. If you do not please read <a href="/2018/03/custom-apex-notification-messages/" title="this article">this article</a>.</em></p>
-<p>This is an overview of the final solution:</p>
-<ul>
-<li>On Submit PL/SQL page process that:<ul>
-<li>Saved all the page’s data</li>
-<li>Called a custom validation function that returned a JSON object. If no errors were found this function would return <code>null</code>. The results of this function were stored in the page item <code>P1_ERR_JSON</code>.</li>
-</ul>
-</li>
-<li>Created an <code>onPageLoad</code> Dynamic Action to display errors using the <code>apex.message</code> API</li>
-</ul>
-<p>The following pseudo code summarizes the above description:</p>
-<h3 id="Page-Process"><a href="#Page-Process" class="headerlink" title="Page Process"></a>Page Process</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- ...</span></span><br><span class="line"><span class="comment">-- Save staging data</span></span><br><span class="line"><span class="comment">-- ...</span></span><br><span class="line"><span class="comment">-- Validations:</span></span><br><span class="line">l_err_json := null;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">sum</span>(salary)</span><br><span class="line"><span class="keyword">into</span> l_salary_total</span><br><span class="line"><span class="keyword">from</span> my_stage_table;</span><br><span class="line"></span><br><span class="line">if l_salary_total &gt; 1000 then</span><br><span class="line">  <span class="comment">-- Produce JSON error like:</span></span><br><span class="line">  <span class="comment">-- &#123;</span></span><br><span class="line">  <span class="comment">--   "errMsg": "Total salary must be less than $1000"</span></span><br><span class="line">  <span class="comment">-- &#125;</span></span><br><span class="line">  apex_json.initialize_clob_output;</span><br><span class="line">  apex_json.open_object;</span><br><span class="line">  apex_json.write('errMsg', 'Total salary must be less than $1000');</span><br><span class="line">  apex_json.close_object;</span><br><span class="line"></span><br><span class="line">  l_err_json := apex_json.get_clob_output;</span><br><span class="line">  apex_json.free_output;</span><br><span class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</span><br><span class="line"></span><br><span class="line">apex_util.set_session_state('P1_ERR_JSON', l_err_json, false);</span><br></pre></td></tr></table></figure>
-
-<h3 id="onPageLoad-Dynamic-Action"><a href="#onPageLoad-Dynamic-Action" class="headerlink" title="onPageLoad Dynamic Action"></a><code>onPageLoad</code> Dynamic Action</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">err = apex.item(<span class="string">'P1_ERR_JSON'</span>).getValue();</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (err.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">  err = <span class="built_in">JSON</span>.parse(err);</span><br><span class="line"></span><br><span class="line">  apex.message.clearErrors();</span><br><span class="line">  apex.message.showErrors([</span><br><span class="line">    &#123;</span><br><span class="line">      type: apex.message.TYPE.ERROR,</span><br><span class="line">      location: [<span class="string">"page"</span>],</span><br><span class="line">      message: err.errMsg,</span><br><span class="line">      unsafe: <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]);</span><br><span class="line">&#125;<span class="comment">// end if</span></span><br></pre></td></tr></table></figure>
-
-<p>When an error occurred, the page looked like:</p>
-<img src="/2018/03/how-to-save-page-data-but-show-errors-in-apex/total-error.png" class="">
-
-<h2 id="Wrapping-Up"><a href="#Wrapping-Up" class="headerlink" title="Wrapping Up"></a>Wrapping Up</h2><p>This solution is a summary of the final code. You can easily expand it to handle multiple error messages, associate with page items, etc.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="ck757711j00hi01mge9mrhpce" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a></li></ul>
 
     </footer>
   </div>
@@ -703,7 +661,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">154</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">155</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">27</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -740,7 +698,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">13</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

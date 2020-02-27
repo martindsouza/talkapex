@@ -68,6 +68,198 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-docker-as-a-micro-service" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/docker-as-a-micro-service/" class="article-date">
+  <time datetime="2018-04-05T04:41:37.000Z" itemprop="datePublished">2018-04-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/docker-as-a-micro-service/">Docker as a Micro Service</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Things can get worse if the software has additional dependencies (Java for example) especially when you need to have two versions of the same tool for different apps.</p>
+<p>Docker solves this problem by keeping everything you need for a specific task in one container. The added bonus is that you’ll probably be able to find a Docker container for just about anything you want and it’s OS independent on <a href="https://hub.docker.com/" target="_blank" rel="noopener">Docker Hub</a>.</p>
+<p>At <a href="https://www.insum.ca/hackathon-opportunity-work-with-new-technology/" target="_blank" rel="noopener">Insum’s 2018 Hackathon</a> we developed skills for <a href="https://alexa.amazon.com" target="_blank" rel="noopener">Amazon Alexa</a>. To help the teams I published a <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Docker image</a> that has both the <a href="https://aws.amazon.com/cli/" target="_blank" rel="noopener">AWS CLI</a> and <a href="https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html" target="_blank" rel="noopener">Alexa Skills Kit (ASK) CLI</a>. </p>
+<p>Most of the demos I’ve seen for containers that are used for CLI tools looked like this:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker run -it \</span><br><span class="line">  ...</span><br><span class="line">  doccker_prefs</span><br><span class="line">  my_tool.sh -some -parameters</span><br></pre></td></tr></table></figure>
+
+<p>Though these containers are helpful it’s not really useful for end users (i.e. developers) since the command can be tough to remember and the containers may exist after running the tool (i.e. you may need to manually delete them.</p>
+<p>When building the <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Amazon ASK CLI container</a> I wanted to avoid these issues to make it as easy as possible for developers to use. I did the following tricks:</p>
+<h2 id="alias-the-docker-run-command"><a href="#alias-the-docker-run-command" class="headerlink" title="alias the docker run command"></a><code>alias</code> the <code>docker run</code> command</h2><p>Instead of having to remember the long <code>docker run</code> command with all the parameters I used an <code>alias</code> command to bundle it all together. Mine looked like this:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> alexa=<span class="string">"docker run -it --rm \</span></span><br><span class="line"><span class="string">  -v ~/alexa-demo/ask-config:/home/node/.ask \</span></span><br><span class="line"><span class="string">  -v ~/alexa-demo/aws-config:/home/node/.aws \</span></span><br><span class="line"><span class="string">  -v ~/alexa-demo/app:/home/node/app \</span></span><br><span class="line"><span class="string">  martindsouza/amazon-ask-cli:latest</span></span><br></pre></td></tr></table></figure>
+
+<p>A few key things to note from the above snippet:</p>
+<ul>
+<li><code>alias</code>: This means that anytime I type in <code>alexa</code> in bash it will run everything in the quotes.<ul>
+<li><em>Windows users: <code>alias</code> doesn’t exist in DOS or PowerShell. I’m not aware of any alternatives. If you know of any easy ones please leave a comment and I’ll update this post</em></li>
+</ul>
+</li>
+<li><code>--rm</code> option: Deletes (self destruct) the container after the command is run. This means is that when I run <code>alexa ask init</code> (where <code>ask init</code> is the CLI tool) it’ll <code>run</code> the container, execute <code>ask</code> (with parameter <code>init</code>), then remove the container once <code>ask</code> is done.</li>
+</ul>
+<p>Using the <code>alias</code> and <code>--rm</code> techniques you can easily have all the CLI tools you want without cluttering up your base machine. Of course there may be some minor performance impacts by Dockerizing them. Personally I didn’t notice any slowdowns and will start using this technique for all my future CLI tools.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="ck757r1y100go01rxcey32a0g" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/04/docker-as-a-micro-service/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-docker-image-for-ords-standalone" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/docker-image-for-ords-standalone/" class="article-date">
+  <time datetime="2018-04-02T02:00:42.000Z" itemprop="datePublished">2018-04-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/docker-image-for-ords-standalone/">Docker Image for ORDS Standalone</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>A while ago I released a Docker image for <a href="https://github.com/martindsouza/docker-ords/releases/tag/tomcat-0.1.0" target="_blank" rel="noopener">ORDS using Tocmat</a>. I’ve tagged that script and have since rebuilt this image to use ORDS standalone as well as updating it to <code>17.4.1</code>.</p>
+<p>If you’re interested in using it, the entire project along with documentation is available here: <a href="https://github.com/martindsouza/docker-ords" target="_blank" rel="noopener">github.com/martindsouza/docker-ords</a>. </p>
+<p>A few things to note about this Docker image:</p>
+<ul>
+<li>The configuration folder points to a mountable volume. If you store your configuration on a shared folder or version control system you can have ORDS point at it. If you need to have multiple versions of ORDS running this can be helpful since they can all point to the same configuration.<ul>
+<li>If you don’t have a shared configuration that’s fine. The container will install and configure ORDS if one isn’t found.</li>
+</ul>
+</li>
+<li>I could not post this image on Docker Hub as Oracle requires that you <a href="http://www.oracle.com/technetwork/developer-tools/rest-data-services/downloads/index.html" target="_blank" rel="noopener">download ORDS</a> yourself and accept their terms and conditions. This means that you need to build your own Docker image (this adds a few minimal steps to the overall process).</li>
+<li>The image currently does not have SSL support and can be added it in if there’s interest. Please vote or leave a comment on the <a href="https://github.com/martindsouza/docker-ords/issues/7" target="_blank" rel="noopener">“Add Support for SSL”</a> issue if you’d like it.</li>
+</ul>
+<p>If you have any other feedback or suggestions please create an <a href="https://github.com/martindsouza/docker-ords/issues" target="_blank" rel="noopener">issue</a> on the project page.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="ck757r1y300gq01rx41g75ary" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ords/" rel="tag">ords</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-save-page-data-but-show-errors-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/03/how-to-save-page-data-but-show-errors-in-apex/" class="article-date">
+  <time datetime="2018-03-29T14:15:48.000Z" itemprop="datePublished">2018-03-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/how-to-save-page-data-but-show-errors-in-apex/">How to Save Page Data but Show Errors in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>In most cases error messages are shown on an APEX page when the user submits a form and a validation fails. Sometimes (not often) you may need to manually control the validations rather than using the declarative validations section. To do this you can use the <a href="https://docs.oracle.com/database/apex-5.1/AEAPI/APEX_ERROR.htm#AEAPI2209" target="_blank" rel="noopener"><code>apex_error</code></a> API. The following is an example of how to call the API.</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apex_error.add_error(</span><br><span class="line">  p_message =&gt; 'Custom error from PL/SQL',</span><br><span class="line">  p_display_location =&gt; apex_error.c_inline_in_notification);</span><br></pre></td></tr></table></figure>
+
+<p>This will generate the following on the page:</p>
+<img src="/2018/03/how-to-save-page-data-but-show-errors-in-apex/custom-error.png" class="">
+
+<p><code>apex_error.add_error</code> triggers a rollback and in most cases this is a good thing. In some very specific cases you may not want a rollback to occur. The rest of this article covers how to generate errors without a rollback occurring.</p>
+<h2 id="Edge-Case"><a href="#Edge-Case" class="headerlink" title="Edge Case"></a>Edge Case</h2><p>I recently had a rare edge case for a page submit and errors. The page was used to edit batch staging data. The requirements were:</p>
+<ul>
+<li>User submits page</li>
+<li>All the data is saved (in a staging table)<ul>
+<li>_Since this is staging area, the data must be saved and committed each time regardless of errors _</li>
+</ul>
+</li>
+<li>Do validations against staged data<ul>
+<li>If errors were found, the page would show them (remember the data still needs to be saved)</li>
+<li>If no errors were found, the staged data would be posted and then branch to another page.</li>
+</ul>
+</li>
+</ul>
+<h2 id="The-Solution"><a href="#The-Solution" class="headerlink" title="The Solution"></a>The Solution</h2><p>Given that <code>apex_error.add_error</code> performs a rollback the simple solution is to save the staged data, perform an explicit <code>commit</code>, and then do custom validations. Unfortunately this was not possible due to additional requirements that I left out of this article.</p>
+<p><em>The following relies on the fact that you know about the <code>apex.message</code> API. If you do not please read <a href="/2018/03/custom-apex-notification-messages/" title="this article">this article</a>.</em></p>
+<p>This is an overview of the final solution:</p>
+<ul>
+<li>On Submit PL/SQL page process that:<ul>
+<li>Saved all the page’s data</li>
+<li>Called a custom validation function that returned a JSON object. If no errors were found this function would return <code>null</code>. The results of this function were stored in the page item <code>P1_ERR_JSON</code>.</li>
+</ul>
+</li>
+<li>Created an <code>onPageLoad</code> Dynamic Action to display errors using the <code>apex.message</code> API</li>
+</ul>
+<p>The following pseudo code summarizes the above description:</p>
+<h3 id="Page-Process"><a href="#Page-Process" class="headerlink" title="Page Process"></a>Page Process</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- ...</span></span><br><span class="line"><span class="comment">-- Save staging data</span></span><br><span class="line"><span class="comment">-- ...</span></span><br><span class="line"><span class="comment">-- Validations:</span></span><br><span class="line">l_err_json := null;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">sum</span>(salary)</span><br><span class="line"><span class="keyword">into</span> l_salary_total</span><br><span class="line"><span class="keyword">from</span> my_stage_table;</span><br><span class="line"></span><br><span class="line">if l_salary_total &gt; 1000 then</span><br><span class="line">  <span class="comment">-- Produce JSON error like:</span></span><br><span class="line">  <span class="comment">-- &#123;</span></span><br><span class="line">  <span class="comment">--   "errMsg": "Total salary must be less than $1000"</span></span><br><span class="line">  <span class="comment">-- &#125;</span></span><br><span class="line">  apex_json.initialize_clob_output;</span><br><span class="line">  apex_json.open_object;</span><br><span class="line">  apex_json.write('errMsg', 'Total salary must be less than $1000');</span><br><span class="line">  apex_json.close_object;</span><br><span class="line"></span><br><span class="line">  l_err_json := apex_json.get_clob_output;</span><br><span class="line">  apex_json.free_output;</span><br><span class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</span><br><span class="line"></span><br><span class="line">apex_util.set_session_state('P1_ERR_JSON', l_err_json, false);</span><br></pre></td></tr></table></figure>
+
+<h3 id="onPageLoad-Dynamic-Action"><a href="#onPageLoad-Dynamic-Action" class="headerlink" title="onPageLoad Dynamic Action"></a><code>onPageLoad</code> Dynamic Action</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">err = apex.item(<span class="string">'P1_ERR_JSON'</span>).getValue();</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (err.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">  err = <span class="built_in">JSON</span>.parse(err);</span><br><span class="line"></span><br><span class="line">  apex.message.clearErrors();</span><br><span class="line">  apex.message.showErrors([</span><br><span class="line">    &#123;</span><br><span class="line">      type: apex.message.TYPE.ERROR,</span><br><span class="line">      location: [<span class="string">"page"</span>],</span><br><span class="line">      message: err.errMsg,</span><br><span class="line">      unsafe: <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]);</span><br><span class="line">&#125;<span class="comment">// end if</span></span><br></pre></td></tr></table></figure>
+
+<p>When an error occurred, the page looked like:</p>
+<img src="/2018/03/how-to-save-page-data-but-show-errors-in-apex/total-error.png" class="">
+
+<h2 id="Wrapping-Up"><a href="#Wrapping-Up" class="headerlink" title="Wrapping Up"></a>Wrapping Up</h2><p>This solution is a summary of the final code. You can easily expand it to handle multiple error messages, associate with page items, etc.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="ck757r1y800gv01rx92teetsf" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-custom-apex-notification-messages" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/03/custom-apex-notification-messages/" class="article-date">
@@ -111,7 +303,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="ck757711l00hk01mggnpa8977" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="ck757r1xy00gm01rx67be2fkb" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/custom-apex-notification-messages/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -185,7 +377,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="ck757712900hq01mgbn0s2u8y" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="ck757r1xq00gf01rxct3oahp2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -231,7 +423,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="ck75770sf00d001mgfuo58iu4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="ck757r1tx00dl01rxhesxadqi" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -278,7 +470,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="ck75770ta00da01mggy3ya6dc" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="ck757r1u700ds01rx3anucatv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -343,7 +535,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="ck75770s600cy01mg8ny36aa5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="ck757r1u500dq01rx6pj42nrt" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -394,7 +586,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/reset-authorization-cache/" data-id="ck75770mj00cu01mg2tfwa5vr" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/reset-authorization-cache/" data-id="ck757r1tz00dn01rxeboi61b4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/reset-authorization-cache/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -456,333 +648,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/" data-id="ck75770t300d801mg49ex592p" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/" data-id="ck757r1tm00d901rx73630t58" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-top-oracle-sql-developer-data-modeler-settings" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/10/top-oracle-sql-developer-data-modeler-settings/" class="article-date">
-  <time datetime="2017-10-23T06:00:00.000Z" itemprop="datePublished">2017-10-23</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/10/top-oracle-sql-developer-data-modeler-settings/">Top Oracle SQL Developer Data Modeler Settings</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’ve started to use SQL Developer Data Modeler](<a href="http://www.oracle.com/technetwork/developer-tools/datamodeler/overview/index.html)(SDDM)" target="_blank" rel="noopener">http://www.oracle.com/technetwork/developer-tools/datamodeler/overview/index.html)(SDDM)</a> a lot for a project and realized that pretty much everything is configurable. The problem is that there’s no single area to search all the different settings and even the settings’ search boxes don’t filter for all the options. To get around this (and for my own references) I’ve included some settings that I found very useful. <em>I’ll try to keep this post up to date as I continue to explore SDDM.</em></p>
-<p><strong>Notes</strong></p>
-<ul>
-<li><a href="https://twitter.com/thatjeffsmith" target="_blank" rel="noopener">Jeff Smith</a> has <a href="http://www.thatjeffsmith.com" target="_blank" rel="noopener">blogged</a> about a lot of the different settings. For a more extensive list check out his <a href="http://www.thatjeffsmith.com" target="_blank" rel="noopener">blog</a>.</li>
-<li>When <em>Preferences</em> is mentioned it’s <code>Tools &gt; Preferences</code> in Windows and <code>Oracle Data Modeler &gt; Preferences</code> in Mac.</li>
-<li>I did not include any scripting (design rules, transformations, or DDL transformations) in this list. I’ll write a separate article on that.</li>
-</ul>
-<h2 id="Adding-PROMPT-Statements-in-DDL"><a href="#Adding-PROMPT-Statements-in-DDL" class="headerlink" title="Adding PROMPT Statements in DDL"></a>Adding <code>PROMPT</code> Statements in DDL</h2><p>SDDM can generate DDL statements for you either by clicking the DDL button (1) or synchronizing the model with a schema (2):</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_7.png">
-
-<p>It’s always helpful to have <code>prompt</code> statements before each DDL change to help debug where an issue occurred. To do so open <code>Preferences</code> and check  <code>Include PROMPT Command (for Oracle only)</code>:</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_6.png">
-
-<p>All DDL will then include a <code>prompt</code> statement like:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PROMPT CREATING TABLE 'MY_TABLE';</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> MY_TABLE ...</span><br></pre></td></tr></table></figure>
-
-<h2 id="12c-Identity-Column-or-Auto-Generate-Sequences"><a href="#12c-Identity-Column-or-Auto-Generate-Sequences" class="headerlink" title="12c Identity Column or Auto Generate Sequences"></a>12c Identity Column or Auto Generate Sequences</h2><p>Depending on your database version you may want to either have sequences automatically generated for you or not. In my case I was using a 12c instance and was going to use <a href="https://oracle-base.com/articles/12c/identity-columns-in-oracle-12cr1" target="_blank" rel="noopener">Identity Columns</a> for primary key IDs. I didn’t want sequences for each table to be automatically generated. To toggle this feature open Preferences and change the options in the image below.</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_8.png">
-
-
-<p>More on the Identity Column settings <a href="http://www.thatjeffsmith.com/archive/2014/01/defining-12c-identity-columns-in-oracle-sql-developer-data-modeler/" target="_blank" rel="noopener">here</a></p>
-<h2 id="DDL-Format-Lowercase-and-Tabs"><a href="#DDL-Format-Lowercase-and-Tabs" class="headerlink" title="DDL Format - Lowercase and Tabs"></a>DDL Format - Lowercase and Tabs</h2><p>If you’re really picky on the format of the DDL that is generated you can modify some of the settings in <code>Preferences &gt; Format</code>:</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_9.png">
-
-
-<h2 id="Naming-Standard-Templates"><a href="#Naming-Standard-Templates" class="headerlink" title="Naming Standard Templates"></a>Naming Standard Templates</h2><p>When adding primary keys (PK) and various other constraints a default name is always generated. You can determine how this name is generated by modifying the design’s properties settings:</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_10.png">
-
-<p>More information on different variables can be found <a href="https://kentgraziano.com/2015/12/29/better-data-modeling-discovering-foreign-keys-fk-in-sqldevmodeler-sddm/" target="_blank" rel="noopener">here</a></p>
-<h2 id="Short-Table-Names"><a href="#Short-Table-Names" class="headerlink" title="Short Table Names"></a>Short Table Names</h2><p>In most DB instances all object names are limited to 30 characters (this is changed in 12c but most organizations still haven’t enabled 128 characters). When using naming standards this can cause some issues because just referencing <code>&lt;table_name&gt;</code> may not work as its already 30 characters. Note <code>&lt;table_name&gt;</code> isn’t a real variable in SDDM.</p>
-<p>You can define a short name (SDDM calls it an <code>Abbreviation</code>) for each table via the table properties. Setting the <code>Abbreviation</code> is also very helpful when generating DDL statements or constraints from scripts.</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170722_12.png">
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/" data-id="ck75770pt00cv01mgerqwfnqu" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-docker-oracle-and-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/10/docker-oracle-and-apex/" class="article-date">
-  <time datetime="2017-10-16T01:12:39.000Z" itemprop="datePublished">2017-10-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/10/docker-oracle-and-apex/">Docker Oracle and APEX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><em>Update: I’ve moved my setup process to Dockerize Oracle and APEX to Github. It will be maintained with the latest steps I’m using it. The repository is <a href="https://github.com/martindsouza/docker-oracle-setup" target="_blank" rel="noopener">docker-oracle-setup</a>.</em></p>
-<p>Last week I needed to test an Oracle 12.2 feature and got hooked on Docker. I wrote an article on <a href="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/">how to setup an Oracle DB 12.2 Docker container</a>. This solved my goal to test the 12.2 feature. <a href="https://twitter.com/RoelH" target="_blank" rel="noopener">Roel Hartman</a> then wrote a <a href="http://roelhartman.blogspot.ca/2017/10/dockerize-your-apex-development.html" target="_blank" rel="noopener">followup article</a> about how to setup an Oracle database in a Docker container but preserve the data on his laptop. I.e. if the container was deleted or needed to be rebuilt his database data wouldn’t be lost.</p>
-<p>Roel’s article inspired me to setup an entire Dockerized Oracle and APEX environment, thus replacing my current local VM infrastructure. I took a lot of notes about the process. The result is this blog post which contains everything I did to create my containers and link them together. To get it all working I used the following articles and all my scripts are a result of a combination of the code found in the links.</p>
-<ul>
-<li><a href="http://joelkallman.blogspot.ca/2017/05/apex-and-ords-up-and-running-in2-steps.html" target="_blank" rel="noopener">APEX and ORDS up and running in….2 steps!</a> by <a href="https://twitter.com/joelkallman" target="_blank" rel="noopener">Joel Kallman</a></li>
-<li><a href="http://roelhartman.blogspot.ca/2017/10/dockerize-your-apex-development.html" target="_blank" rel="noopener">Dockerize your APEX development environment</a> by <a href="https://twitter.com/RoelH" target="_blank" rel="noopener">Roel Hartman</a></li>
-<li><a href="https://sqlmaria.com/2017/04/27/oracle-database-12c-now-available-on-docker/" target="_blank" rel="noopener">Oracle Database 12c now available on Docker</a> by <a href="https://twitter.com/sqlmaria" target="_blank" rel="noopener">Maria Colgan</a></li>
-<li><a href="https://github.com/lucassampsouza/ords_apex" target="_blank" rel="noopener">ORDS Docker Setup</a> by <a href="http://www.vertech-it.com.br" target="_blank" rel="noopener">Lucas Souza</a></li>
-</ul>
-<h2 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h2><p>A few things to keep in mind that will help when reading the rest of this article:</p>
-<ul>
-<li>All my scripts are Linux / MacOS focused. If you use a Windows machine you’ll need to translate</li>
-<li>I specifically made reference to “your laptop” to emphasize what was run “on your machine” vs “in a docker container”</li>
-</ul>
-<p>The following key configurations were used for the containers:</p>
-<h3 id="Port-Mapping"><a href="#Port-Mapping" class="headerlink" title="Port Mapping"></a>Port Mapping</h3><table>
-<thead>
-<tr>
-<th>Container</th>
-<th>Port</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>oracle</code></td>
-<td><code>32712</code></td>
-<td>TNS listener</td>
-</tr>
-<tr>
-<td><code>ords</code></td>
-<td><code>32713</code></td>
-<td>ORDS</td>
-</tr>
-</tbody></table>
-<h3 id="Passwords"><a href="#Passwords" class="headerlink" title="Passwords"></a>Passwords</h3><table>
-<thead>
-<tr>
-<th>Container</th>
-<th>Username</th>
-<th>Password</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>oracle</code></td>
-<td><code>sys</code></td>
-<td><code>Oradoc_db1</code></td>
-<td></td>
-</tr>
-<tr>
-<td><code>oracle</code></td>
-<td><code>admin</code></td>
-<td><code>oracle</code></td>
-<td>Workspace <code>Internal</code> for APEX admin</td>
-</tr>
-</tbody></table>
-<h3 id="Download-Files"><a href="#Download-Files" class="headerlink" title="Download Files"></a>Download Files</h3><p>Due to licensing restrictions I can’t host/provide these files in Github or elsewhere. As such you’ll need to download them manually. Download the following files and store them in your <code>Downloads</code> folder</p>
-<ul>
-<li>Docker Images: <a href="https://github.com/oracle/docker-images" target="_blank" rel="noopener">github.com/oracle/docker-images</a>. This will be saved as <code>docker-images-master.zip</code></li>
-<li>Oracle 12.2 Database: Go to <a href="http://www.oracle.com/technetwork/database/enterprise-edition/downloads/index.html" target="_blank" rel="noopener">www.oracle.com/technetwork/database/enterprise-edition/downloads</a> and download <code>linuxx64_12201_database.zip</code></li>
-<li>APEX: Go to <a href="http://www.oracle.com/technetwork/developer-tools/apex/downloads/index.html" target="_blank" rel="noopener">www.oracle.com/technetwork/developer-tools/apex/downloads</a> and download latest version of APEX. For this blog it was <code>5.1.3</code></li>
-<li>ORDS: Go to <a href="http://www.oracle.com/technetwork/developer-tools/rest-data-services/downloads/index.html" target="_blank" rel="noopener">www.oracle.com/technetwork/developer-tools/rest-data-services/downloads</a> and download latest version of ORDS. For this blog it was <code>3.0.12</code></li>
-</ul>
-<h2 id="Laptop-Folder-Structure"><a href="#Laptop-Folder-Structure" class="headerlink" title="Laptop Folder Structure"></a>Laptop Folder Structure</h2><p>The following script will create a folder structure that looks like:</p>
-<table>
-<thead>
-<tr>
-<th>Path</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>~/docker</code></td>
-<td>root</td>
-</tr>
-<tr>
-<td><code>~/docker/apex</code></td>
-<td>To host APEX installation and images for each version</td>
-</tr>
-<tr>
-<td><code>~/docker/apex/5.1.3</code></td>
-<td>APEX 5.1.3 installation files</td>
-</tr>
-<tr>
-<td><code>~/docker/oracle</code></td>
-<td>Hold Oracle 12.2 data files</td>
-</tr>
-<tr>
-<td><code>~/docker/ords</code></td>
-<td>ORDS Dockerfile (to build ORDS image)</td>
-</tr>
-<tr>
-<td><code>~/docker/tmp</code></td>
-<td>Temp folder</td>
-</tr>
-</tbody></table>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">mkdir ~/docker</span><br><span class="line"></span><br><span class="line"><span class="comment"># The APEX folder structure allows for multiple versions of APEX to be hosted by different ORDS instances</span></span><br><span class="line">mkdir ~/docker/apex</span><br><span class="line">mkdir ~/docker/apex/5.1.3</span><br><span class="line"></span><br><span class="line"><span class="comment"># To store oracle data</span></span><br><span class="line">mkdir ~/docker/oracle</span><br><span class="line"><span class="comment">#Oracle REST Data Services</span></span><br><span class="line">mkdir ~/docker/ords</span><br></pre></td></tr></table></figure>
-
-<h2 id="Move-Downloaded-Files"><a href="#Move-Downloaded-Files" class="headerlink" title="Move Downloaded Files"></a>Move Downloaded Files</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ORDS (done in ORDS section)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># APEX</span></span><br><span class="line"><span class="built_in">cd</span> ~/docker/apex/</span><br><span class="line">mv ~/Downloads/apex_5.1.3.zip .</span><br><span class="line">unzip apex_5.1.3.zip</span><br><span class="line">mv apex 5.1.3</span><br><span class="line"></span><br><span class="line"><span class="comment"># Oracle Docker files</span></span><br><span class="line">mkdir ~/docker/tmp</span><br><span class="line"><span class="built_in">cd</span> ~/docker/tmp</span><br><span class="line">mv ~/Downloads/docker-images-master.zip .</span><br><span class="line">mv ~/Downloads/linuxx64_12201_database.zip .</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h2><h3 id="Build-Oracle-Docker-Image"><a href="#Build-Oracle-Docker-Image" class="headerlink" title="Build Oracle Docker Image"></a>Build Oracle Docker Image</h3><p>This will be a different setup then I <a href="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/">previously blogged about</a> in that this docker container will separate the data from the app. I.e. we can remove the container and rebuild it while keeping all the data in place. This allows for us to</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/docker/tmp</span><br><span class="line">unzip docker-images-master.zip</span><br><span class="line">mv linuxx64_12201_database.zip docker-images-master/OracleDatabase/dockerfiles/12.2.0.1</span><br><span class="line"><span class="built_in">cd</span> docker-images-master/OracleDatabase/dockerfiles</span><br><span class="line">./buildDockerImage.sh -v 12.2.0.1 -e</span><br><span class="line"></span><br><span class="line"><span class="comment"># Once completed should see a message like:</span></span><br><span class="line"><span class="comment"># Successfully built ad2c10d804a7</span></span><br><span class="line"><span class="comment"># Successfully tagged oracle/database:12.2.0.1-ee</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment">#   Oracle Database Docker Image for 'ee' version 12.2.0.1 is ready to be extended:</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment">#     --&gt; oracle/database:12.2.0.1-ee</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="comment">#   Build completed in 678 seconds.</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Setup-Docker-Network"><a href="#Setup-Docker-Network" class="headerlink" title="Setup Docker Network"></a>Setup Docker Network</h3><p>In order for the containers to “talk” to each other we need to setup a Docker network and associate all the containers on this network. Containers can reference each other by their respective container names. When referencing another container on the same Docker network the port used is the container’s native port <strong>not</strong> the mapped port on your laptop.</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">docker network create oracle_network</span><br><span class="line"></span><br><span class="line"><span class="comment"># Other docker network commands (don't need to run them as part of install)</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Connect and existing container to a docker network</span></span><br><span class="line"><span class="comment"># docker network connect &lt;network name&gt; &lt;container name&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># View a network and connected containers</span></span><br><span class="line"><span class="comment"># In this example "oracle_network" is the network we're interested in</span></span><br><span class="line">docker network inspect oracle_network</span><br></pre></td></tr></table></figure>
-
-<h3 id="Create-Oracle-Docker-Container"><a href="#Create-Oracle-Docker-Container" class="headerlink" title="Create Oracle Docker Container"></a>Create Oracle Docker Container</h3><p>The following command will create and run the Oracle Docker container. It’s TNS listener will be accesible via port <code>32712</code> on your laptop. The reference to the APEX installation files are necessary only whe installing APEX.</p>
-<p>Adding the <code>-e TZ</code> will set the appropriate timezine for the OS and the database. A full list of timezones can be found <a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones" target="_blank" rel="noopener">here</a>. If excluded it will default to UTC.</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">docker run \</span><br><span class="line">  --name oracle \</span><br><span class="line">  --network=oracle_network \</span><br><span class="line">  -e TZ=America/Edmonton \</span><br><span class="line">  -p 32712:1521 \</span><br><span class="line">  -v ~/docker/oracle:/opt/oracle/oradata \</span><br><span class="line">  -v ~/docker/apex/5.1.3:/tmp/apex-install \</span><br><span class="line">  oracle/database:12.2.0.1-ee</span><br><span class="line"></span><br><span class="line"><span class="comment"># Once the Docker image is working you'll see something like:</span></span><br><span class="line"><span class="comment"># #########################</span></span><br><span class="line"><span class="comment"># DATABASE IS READY TO USE!</span></span><br><span class="line"><span class="comment"># #########################</span></span><br><span class="line"><span class="comment"># It will then have a bunch of other information showing which you can ignore.</span></span><br></pre></td></tr></table></figure>
-
-<p>In another terminal tab, set the <code>sys</code> password to <code>Oradoc_db1</code> and install APEX</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker <span class="built_in">exec</span> oracle ./setPassword.sh Oradoc_db1</span><br></pre></td></tr></table></figure>
-
-<h3 id="Install-APEX"><a href="#Install-APEX" class="headerlink" title="Install APEX"></a>Install APEX</h3><p>In a terminal tab on your laptop run:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Install and configure APEX</span></span><br><span class="line">docker <span class="built_in">exec</span> -it oracle bash -c <span class="string">"source /home/oracle/.bashrc; bash"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">cd</span> /tmp/apex-install</span><br><span class="line">sqlplus sys/Oradoc_db1@localhost/orclpdb1 as sysdba</span><br></pre></td></tr></table></figure>
-
-<p>The above command will open a <code>SQL</code> prompt. Run the following scripts:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Install APEX</span></span><br><span class="line">@apexins.sql SYSAUX SYSAUX TEMP /i/</span><br><span class="line"></span><br><span class="line"><span class="comment">-- APEX REST configuration</span></span><br><span class="line">@apex_rest_config_core.sql oracle oracle</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Required for ORDS install</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> apex_public_user <span class="keyword">identified</span> <span class="keyword">by</span> <span class="keyword">oracle</span> <span class="keyword">account</span> <span class="keyword">unlock</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- From Joel's blog: "Create a network ACE for APEX (this is used when consuming Web services or sending outbound mail):"</span></span><br><span class="line"><span class="keyword">declare</span></span><br><span class="line">    l_acl_path <span class="built_in">varchar2</span>(<span class="number">4000</span>);</span><br><span class="line">    l_apex_schema varchar2(100);</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">    <span class="keyword">for</span> c1 <span class="keyword">in</span> (<span class="keyword">select</span> <span class="keyword">schema</span></span><br><span class="line">                 <span class="keyword">from</span> sys.dba_registry</span><br><span class="line">                <span class="keyword">where</span> comp_id = <span class="string">'APEX'</span>) <span class="keyword">loop</span></span><br><span class="line">        l_apex_schema := c1.schema;</span><br><span class="line">    <span class="keyword">end</span> <span class="keyword">loop</span>;</span><br><span class="line">    sys.dbms_network_acl_admin.append_host_ace(</span><br><span class="line">        host =&gt; '*',</span><br><span class="line">        ace =&gt; xs$ace_type(privilege_list =&gt; xs$name_list('connect'),</span><br><span class="line">        principal_name =&gt; l_apex_schema,</span><br><span class="line">        principal_type =&gt; xs_acl.ptype_db));</span><br><span class="line">    <span class="keyword">commit</span>;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Setup APEX Admin password</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">    apex_util.set_security_group_id( <span class="number">10</span> );</span><br><span class="line">    apex_util.create_user(</span><br><span class="line">        p_user_name =&gt; 'ADMIN',</span><br><span class="line">        p_email_address =&gt; 'martin@talkapex.com',</span><br><span class="line">        p_web_password =&gt; 'oracle',</span><br><span class="line">        p_developer_privs =&gt; 'ADMIN' );</span><br><span class="line">    apex_util.set_security_group_id( null );</span><br><span class="line">    <span class="keyword">commit</span>;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Exit SQL</span></span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
-
-<p>Now exit bash:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Exit bash</span></span><br><span class="line"><span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Create-ORDS-Container"><a href="#Create-ORDS-Container" class="headerlink" title="Create ORDS Container"></a>Create ORDS Container</h3><p>The following assumes that you’ve downloaded ORDS <code>3.0.12</code>. Referencing the ORDS version so that can create ORDS images for each ORDS release.</p>
-<p>The scripts below will first create the ORDS Docker image then create the containers.</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Uses https://github.com/martindsouza/docker-ords Dockerfile</span></span><br><span class="line"><span class="built_in">cd</span> ~/docker/ords</span><br><span class="line">git <span class="built_in">clone</span> git@github.com:martindsouza/docker-ords.git .</span><br><span class="line">mv ~/Downloads/ords.3.0.12.263.15.32.zip ~/docker/ords</span><br><span class="line"><span class="comment"># Only need ords.war from install</span></span><br><span class="line">unzip ~/docker/ords/ords.3.0.12.263.15.32.zip ords.war</span><br><span class="line"></span><br><span class="line"><span class="comment"># Build the Docker Image</span></span><br><span class="line">docker build -t ords:3.0.12 .</span><br><span class="line"></span><br><span class="line"><span class="comment"># Run ORDS</span></span><br><span class="line"><span class="comment"># Note: Leave DB_PORT=1521 as this is NOT the port that maps to your laptop,</span></span><br><span class="line"><span class="comment"># rather the internal docker network that was created. I.e. container to container</span></span><br><span class="line">docker run -t -i \</span><br><span class="line">  --name ords \</span><br><span class="line">  --network=oracle_network \</span><br><span class="line">  -e DB_HOSTNAME=oracle \</span><br><span class="line">  -e DB_PORT=1521 \</span><br><span class="line">  -e DB_SERVICENAME=ORCLPDB1 \</span><br><span class="line">  -e APEX_PUBLIC_USER_PASS=oracle \</span><br><span class="line">  -e APEX_LISTENER_PASS=oracle \</span><br><span class="line">  -e APEX_REST_PASS=oracle \</span><br><span class="line">  -e ORDS_PASS=oracle \</span><br><span class="line">  -e SYS_PASS=Oradoc_db1 \</span><br><span class="line">  --volume /Users/giffy/docker/apex/5.1.3/images:/usr/<span class="built_in">local</span>/tomcat/webapps/i \</span><br><span class="line">  -p 32713:8080 \</span><br><span class="line">  ords:3.0.12</span><br></pre></td></tr></table></figure>
-
-<p>You should now be able to go to <a href="http://localhost:32713/ords/" target="_blank" rel="noopener">localhost:32713/ords/</a> on your laptop to run APEX</p>
-<h2 id="Useful-Commands"><a href="#Useful-Commands" class="headerlink" title="Useful Commands"></a>Useful Commands</h2><h3 id="Docker-Start-Stop-Containers"><a href="#Docker-Start-Stop-Containers" class="headerlink" title="Docker Start/Stop Containers"></a>Docker Start/Stop Containers</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker stop -t 200 oracle</span><br><span class="line">docker stop -t 200 ords</span><br><span class="line"></span><br><span class="line"><span class="comment"># Start containers</span></span><br><span class="line">docker start oracle</span><br><span class="line"></span><br><span class="line"><span class="comment"># Wait a minute to start ORDS as Oracle will take a few minutes to boot</span></span><br><span class="line">docker start ords</span><br></pre></td></tr></table></figure>
-
-<h3 id="Connect-to-DB-from-laptop"><a href="#Connect-to-DB-from-laptop" class="headerlink" title="Connect to DB from laptop"></a>Connect to DB from laptop</h3><p><code>sqlcl</code> is my alias for <a href="http://www.oracle.com/technetwork/developer-tools/sqlcl/overview/index.html" target="_blank" rel="noopener">SQLcl</a>. More information on how to install SQLcl on MacOS <a href="http://www.talkapex.com/2015/04/installing-sqlcl/">here</a>.</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># CDB (not usually required)</span></span><br><span class="line">sqlcl sys/Oradoc_db1@localhost:32712:orclcdb as sysdba</span><br><span class="line"><span class="comment"># PDB</span></span><br><span class="line">sqlcl sys/Oradoc_db1@localhost:32712/orclpdb1 as sysdba</span><br><span class="line">sqlcl martin/martin@localhost:32712/orclpdb1</span><br></pre></td></tr></table></figure>
-
-<h3 id="Create-New-DB-User"><a href="#Create-New-DB-User" class="headerlink" title="Create New DB User"></a>Create New DB User</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">define new_user = 'martin'</span><br><span class="line"><span class="keyword">create</span> <span class="keyword">user</span> &amp;new_user. <span class="keyword">identified</span> <span class="keyword">by</span> &amp;new_user. <span class="keyword">container</span> = <span class="keyword">current</span>;</span><br><span class="line"><span class="keyword">grant</span> <span class="keyword">connect</span>, <span class="keyword">resource</span>, <span class="keyword">create</span> <span class="keyword">any</span> <span class="keyword">context</span> <span class="keyword">to</span> &amp;new_user;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> &amp;new_user <span class="keyword">quota</span> <span class="keyword">unlimited</span> <span class="keyword">on</span> <span class="keyword">users</span>;</span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/docker-oracle-and-apex/" data-id="ck75770kl00cs01mgdz92b351" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/10/docker-oracle-and-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/" rel="tag">oracle</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-setup-oracle-db-12-2-docker-container" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/10/how-to-setup-oracle-db-12-2-docker-container/" class="article-date">
-  <time datetime="2017-10-11T05:39:44.000Z" itemprop="datePublished">2017-10-10</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/10/how-to-setup-oracle-db-12-2-docker-container/">How to Setup Oracle DB 12.2 Docker Container</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><em>Update: I’ve moved my setup process to Dockerize Oracle and APEX to Github. It will be maintained with the latest steps I’m using it. The repository is <a href="https://github.com/martindsouza/docker-oracle-setup" target="_blank" rel="noopener">docker-oracle-setup</a>.</em></p>
-<p>I recently had a need to do a Proof of Concept (POC) on a new feature released in Oracle 12c R2 (12.2). My first instinct was to go to my DBAs and ask them to give me access to a 12.2 environment. Thankfully I was at the <a href="http://www.oracle.com/technetwork/community/oracle-ace/index.html" target="_blank" rel="noopener">Oracle ACE</a> annual Oracle Open World dinner and <a href="https://twitter.com/geraldvenzl?lang=en" target="_blank" rel="noopener">Gerald Venzl</a> (aka Mr.Oracle-Docker) was there and convinced me otherwise. I must thank Gerald for both pushing me to start using Docker again and also for some support when I ran into issues.</p>
-<p>The following post will cover how to get a 12.2 instance up and running using the Oracle Container Registry for your own personal instances</p>
-<h1 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h1><ul>
-<li>If you haven’t already done so, go install <a href="https://www.docker.com" target="_blank" rel="noopener">Docker</a>. If you’ve never heard of Docker before I suggest reading a bit about it so you have some understanding of what is and how it works.</li>
-<li>Go to <a href="https://container-registry.oracle.com" target="_blank" rel="noopener">container-registry.oracle.com</a> and use your Oracle Technology Network (OTN) login and register.<ul>
-<li>One logged in go to <code>Database &gt; Enterprise</code> and read and if you agree to the Terms and Conditions click the <code>Accept</code> button</li>
-</ul>
-</li>
-</ul>
-<h1 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h1><p>The following steps will pull the appropriate image(s) and setup your docker instance. I’ve added inline comments to describe each step. <em>If you’re new to Docker please read my comments rather than blindly running the code.</em></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Some Docker versions may complain about login credentials when calling the pull command</span></span><br><span class="line"><span class="comment"># If you aren't auto prompted for login credentials run the following and use your OTN credentials</span></span><br><span class="line"><span class="comment"># docker login container-registry.oracle.com</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># They're various docker 12c images. To help reduce the number (and size) of images on my laptop I only needed the 12.2 version</span></span><br><span class="line"><span class="comment"># This will take a while to run as the image size is around 3.5 GB</span></span><br><span class="line">docker pull container-registry.oracle.com/database/enterprise:12.2.0.1</span><br><span class="line"></span><br><span class="line"><span class="comment"># For all the examples below the name "OracleDB" was used.</span></span><br><span class="line"><span class="comment"># You can use any name you want or just use the docker container ID to reference it</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To run the image the documentation says to just use the -P option for something like:</span></span><br><span class="line"><span class="comment"># docker run -d -it --name OracleDB -P container-registry.oracle.com/database/enterprise:12.2.0.1</span></span><br><span class="line"><span class="comment"># This will auto map a local port on your laptop to the container's Oracle 1521 port.</span></span><br><span class="line"><span class="comment"># The problem with this approach is that each time you stop and start the container you may get a new local port</span></span><br><span class="line"><span class="comment"># To get around this restriction you can use the the "-p" option for a statically defined port.</span></span><br><span class="line"><span class="comment"># In this example I chose 32711</span></span><br><span class="line">docker run -d -it --name OracleDB -p 32711:1521 container-registry.oracle.com/database/enterprise:12.2.0.1</span><br><span class="line"></span><br><span class="line"><span class="comment"># It takes some time for the Oracle container to fully boot up. Before trying to connect to it check the container status by running:</span></span><br><span class="line">docker ps</span><br><span class="line"></span><br><span class="line"><span class="comment"># Look in the STATUS column for the container. During "boot" time it will say "... (health: starting)".</span></span><br><span class="line"><span class="comment"># Wait until it says (healthy) before trying anything else.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To review/confirm the port mapping run:</span></span><br><span class="line">docker port OracleDB</span><br><span class="line"><span class="comment"># Should result in something like: 1521/tcp -&gt; 0.0.0.0:32711</span></span><br></pre></td></tr></table></figure>
-
-<p>Your docker container should now be running. The following code shows how to connect to the instance using <a href="http://www.oracle.com/technetwork/developer-tools/sqlcl/overview/index.html" target="_blank" rel="noopener">SQLcl</a> along with creating a test account on the PDB. You can take the connection strings in the SQLcl demos and apply to <a href="http://www.oracle.com/technetwork/developer-tools/sql-developer/overview/index.html" target="_blank" rel="noopener">SQL Developer</a>.</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Note on my laptop I renamed "sql" to "sqlcl". Adjust the scripts accordingly or call sqlplus</span></span><br><span class="line"><span class="comment"># The difference between : and / at the end of the connection strings is :SID /SERVICE_NAME</span></span><br><span class="line"><span class="comment"># Note: Oradoc_db1 is the default password for the image</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To connect to the CDB (you probably won't need to do this)</span></span><br><span class="line"><span class="comment"># sqlcl sys/Oradoc_db1@localhost:32711:orclcdb as sysdba</span></span><br><span class="line"><span class="comment"># You'd then need to connect to PDB in SQL: alter session set container = orclpdb1;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To connect to the PDB to create schema to develop with</span></span><br><span class="line">sqlcl sys/Oradoc_db1@localhost:32711/orclpdb1.localdomain as sysdba</span><br></pre></td></tr></table></figure>
-
-<p>In <code>SQL&gt;</code>:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Create account to develop with</span></span><br><span class="line">define new_user = 'martin'</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">user</span> &amp;new_user. <span class="keyword">identified</span> <span class="keyword">by</span> &amp;new_user. <span class="keyword">container</span> = <span class="keyword">current</span>;</span><br><span class="line"><span class="keyword">grant</span> <span class="keyword">connect</span>, <span class="keyword">resource</span>, <span class="keyword">create</span> <span class="keyword">any</span> <span class="keyword">context</span> <span class="keyword">to</span> &amp;new_user;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> &amp;new_user <span class="keyword">quota</span> <span class="keyword">unlimited</span> <span class="keyword">on</span> <span class="keyword">users</span>;</span><br><span class="line"></span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
-
-<p>Connect to the PDB</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlcl martin/martin@localhost:32711/orclpdb1.localdomain</span><br></pre></td></tr></table></figure>
-
-<p>Note: In SQL Developer this connection looks like:</p>
-<img src="/2017/10/how-to-setup-oracle-db-12-2-docker-container/docker-sql-developer.png" class="">
-
-<p>In <code>SQL&gt;</code></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Create the emp and dept tables (<span class="doctag">note:</span> only works in SQLcl / SQL Dev. Not SQL*Plus)</span></span><br><span class="line">@https://raw.githubusercontent.com/OraOpenSource/OXAR/master/oracle/emp_dept.sql</span><br><span class="line"><span class="keyword">commit</span>;</span><br><span class="line">exit;</span><br></pre></td></tr></table></figure>
-
-<p>You can now do/test whatever you want to do in your PDB!</p>
-<h1 id="Common-docker-commands"><a href="#Common-docker-commands" class="headerlink" title="Common docker commands"></a>Common docker commands</h1><p>So now that you’ve started your Docker instance, and established a working connection to the PDB how do you manage the Docker container? Here are some useful Docker commands:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># See all containers (running or otherwise)</span></span><br><span class="line">docker ps -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># Stop the docker image</span></span><br><span class="line"><span class="comment"># docker stop OracleDB</span></span><br><span class="line"><span class="comment"># From Gerald Venzl: By default docker will kill the container after just 10 seconds.</span></span><br><span class="line"><span class="comment"># That usually means that your database will die and has to run through recovery when it restarts.</span></span><br><span class="line"><span class="comment"># I always do a "docker stop -t 100 &lt;container name&gt;". That gives it a minute and 40 secs.</span></span><br><span class="line"><span class="comment"># It won't need that, usually 30 - 40 secs is enough.</span></span><br><span class="line"><span class="comment"># Docker will shutdown as soon as the database is down as well.</span></span><br><span class="line">docker stop -t 100 OracleDB</span><br><span class="line"></span><br><span class="line"><span class="comment"># Start the docker image</span></span><br><span class="line">docker start OracleDB</span><br><span class="line"></span><br><span class="line"><span class="comment"># *** Cleanup ***</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete container</span></span><br><span class="line">docker rm OracleDB</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete Image</span></span><br><span class="line">docker rmi container-registry.oracle.com/database/enterprise:12.2.0.1</span><br></pre></td></tr></table></figure>
-
-<h1 id="Final-Thoughts"><a href="#Final-Thoughts" class="headerlink" title="Final Thoughts"></a>Final Thoughts</h1><p>I’ve just started to use the Docker 12.2 image and may launch a 12.1 container as well (will blog instructions if I do it).</p>
-<p>If I run into any issues doing my tests and “learning” development (i.e. kicking the 12.2 tires) I’ll write another article and link below. I also plan to look into upgrading APEX on the 12.2 container along with creating a simple web server container to test APEX with some 12.2 features. If I get this working I’ll blog about it.</p>
-<p>*<em>Update: *</em> <a href="https://twitter.com/RoelH" target="_blank" rel="noopener">Role Hartman</a> wrote a followup <a href="http://roelhartman.blogspot.ca/2017/10/dockerize-your-apex-development.html" target="_blank" rel="noopener">post</a> to this article that I highly suggest reading. I will update this article with some of his suggestions on how he sets up his Docker Oracle DB container.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/" data-id="ck75770i000cq01mghed95z09" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li></ul>
 
     </footer>
   </div>
@@ -829,7 +700,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">154</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">155</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">27</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -866,7 +737,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">13</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
