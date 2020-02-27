@@ -7,12 +7,11 @@ date: 2020-02-15 14:36:15
 alias:
 ---
 
-
 In APEX you can save Interactive Reports (IR) default reports as both Primary and Alternate. Both of these types of default reports are available to all users. To save an alternate report, click the `Actions` button then `Report > Save Report` (*Note you must be logged into the APEX developer to save default reports*). Select the option to save `As Default Report Settings` and the save screen will look like below:
 
 {% asset_img ir-save-report.png %}
 
-In the APEX developer you can now see the saved report (`Managers` in this case) and modify its alias. By default a random number will be assign as the alias.
+In the APEX developer you can now see the saved report (`Managers` in this case) and modify its alias. By default a random number will be assign as the alias. You can modify this alias name.
 
 {% asset_img ir-report-attributes.png %}
 
