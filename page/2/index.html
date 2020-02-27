@@ -68,6 +68,64 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-find-matching-sets-of-data-using-sql" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/11/how-to-find-matching-sets-of-data-using-sql/" class="article-date">
+  <time datetime="2019-11-24T05:20:59.000Z" itemprop="datePublished">2019-11-23</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/11/how-to-find-matching-sets-of-data-using-sql/">How to Find Matching Sets of Data Using SQL</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Suppose you have a set of data in Oracle, how can you find any other matching sets of data? This is different then most queries in SQL which just have “standard” predicates. For example most queries answer the question “<em>find me all cars that are red</em>“ (<code>where color = &#39;red&#39;</code>) whereas set comparison is answering the question “<em>find me all cars that are the same as a given set of cars</em>“.</p>
+<p>A good example of this problem is if you need to find orders that are <strong>exactly</strong> the same as a given order. An order can have multiple products in it. It’s not as easy as comparing one row to another, rather sets of rows to other sets of rows. </p>
+<h2 id="Set-Theory"><a href="#Set-Theory" class="headerlink" title="Set Theory"></a>Set Theory</h2><p>Before continuing it’s important to go over some basic set theory. One way to think of sets are as arrays of data. When comparing for equivalence of sets we need to ask two questions:</p>
+<ul>
+<li>Is everything in <code>A</code> in <code>B</code>? (i.e. <code>A - B = 0</code>)</li>
+<li>Is everything in <code>B</code> in <code>A</code>? (i.e. <code>B - A = 0</code>)</li>
+</ul>
+<p>At first glance, the second point may seem unnecessary but it isn’t as <code>A</code> may be a subset of <code>B</code>.</p>
+<p>Take for example the following arrays:</p>
+<ul>
+<li><code>A = 1,2,3</code></li>
+<li><code>B = 1,2,3,4</code></li>
+</ul>
+<p>In the above case, everything in <code>A</code> is in <code>B</code>, however everything in <code>B</code> (i.e. <code>4</code>) is not in <code>A</code>.</p>
+<h2 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h2><p>Suppose we have a table (<code>tab_a</code>) and we want to find any other tables with the exact same column definition.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Base table to be compared against</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> tab_a (</span><br><span class="line">  <span class="keyword">id</span> <span class="built_in">number</span>,</span><br><span class="line">  first_name <span class="built_in">varchar2</span>(<span class="number">255</span>),</span><br><span class="line">  birth_date <span class="built_in">date</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Close to tab_a but has an additional column (last_name)</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> tab_b (</span><br><span class="line">  <span class="keyword">id</span> <span class="built_in">number</span>,</span><br><span class="line">  first_name <span class="built_in">varchar2</span>(<span class="number">255</span>),</span><br><span class="line">  last_name <span class="built_in">varchar2</span>(<span class="number">255</span>),</span><br><span class="line">  birth_date <span class="built_in">date</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Same as tab_a</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> tab_c (</span><br><span class="line">  <span class="keyword">id</span> <span class="built_in">number</span>,</span><br><span class="line">  first_name <span class="built_in">varchar2</span>(<span class="number">255</span>),</span><br><span class="line">  birth_date <span class="built_in">date</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>The above script will create three tables. If we start with <code>tab_a</code> only <code>tab_c</code> is the exact same. Using the set theory logic above, and the <a href="https://docs.oracle.com/en/database/oracle/oracle-database/19/sqlrf/Set-Operators.html#GUID-5CB549AF-5A4F-453E-B164-49CAC8F94CBF" target="_blank" rel="noopener"><code>minus</code></a> set operator clause in Oracle you can find matching tables using the following query:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> at_match.table_name</span><br><span class="line"><span class="keyword">from</span> dual</span><br><span class="line">  <span class="comment">-- Using the all_tables view so we have a large data set to compare against</span></span><br><span class="line">  <span class="keyword">join</span> all_tables at_src <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">join</span> all_tables at_match <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">    <span class="comment">-- Exclude the same table</span></span><br><span class="line">    <span class="keyword">and</span> at_match.table_name != at_src.table_name</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> at_src.table_name = <span class="string">'TAB_A'</span></span><br><span class="line">  <span class="comment">-- A - B = 0</span></span><br><span class="line">  <span class="keyword">and</span> <span class="keyword">not</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> atc.column_name, atc.data_type</span><br><span class="line">    <span class="keyword">from</span> all_tab_columns atc</span><br><span class="line">    <span class="keyword">where</span> atc.table_name = at_src.table_name</span><br><span class="line">    <span class="keyword">minus</span></span><br><span class="line">    <span class="keyword">select</span> atc.column_name, atc.data_type</span><br><span class="line">    <span class="keyword">from</span> all_tab_columns atc</span><br><span class="line">    <span class="keyword">where</span> atc.table_name = at_match.table_name</span><br><span class="line">  )</span><br><span class="line">  <span class="comment">-- B - A = 0</span></span><br><span class="line">  <span class="keyword">and</span> <span class="keyword">not</span> <span class="keyword">exists</span> (</span><br><span class="line">    <span class="keyword">select</span> atc.column_name, atc.data_type</span><br><span class="line">    <span class="keyword">from</span> all_tab_columns atc</span><br><span class="line">    <span class="keyword">where</span> atc.table_name = at_match.table_name</span><br><span class="line">    <span class="keyword">minus</span></span><br><span class="line">    <span class="keyword">select</span> atc.column_name, atc.data_type</span><br><span class="line">    <span class="keyword">from</span> all_tab_columns atc</span><br><span class="line">    <span class="keyword">where</span> atc.table_name = at_src.table_name</span><br><span class="line">  )</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">TABLE_NAME</span><br><span class="line"><span class="comment">----------</span></span><br><span class="line">TAB_C</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ck757714c00is01mg4wj68q4b" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-validating-dates-and-numbers-in-oracle-12-2" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/03/validating-dates-and-numbers-in-oracle-12-2/" class="article-date">
@@ -100,7 +158,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ck6opmp5900gg01ls4cnn0mue" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ck757714g00iw01mgd268ep8n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -158,7 +216,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="ck6opmp4800g601ls08x47ky1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="ck757713w00im01mge6i9da3x" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -235,7 +293,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="ck6opmp5500ge01ls62z17x6y" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="ck757713z00io01mg47n16jrc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -297,7 +355,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="ck6opmp3x00g001ls2zkgc8s3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="ck757713l00ig01mgd1iy3484" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -356,7 +414,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="ck6opmp4100g201ls98nrfog8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="ck757713f00id01mgbupb9c37" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -418,7 +476,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="ck6opmp2r00fr01ls7l8vdvyt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="ck757713700i901mgdckn1dow" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -467,7 +525,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="ck6opmp4g00g801lsdrz9cjoc" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="ck757713v00ik01mgc9hl9x9x" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -518,7 +576,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="ck6opmp3n00fv01ls8sodey6x" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="ck757714600iq01mg1eu3c2c1" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -568,83 +626,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/" data-id="ck6opmp4500g401ls5vfk79zx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/" data-id="ck757712o00hz01mg3kfi2ovi" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-5-chrome-dev-tools-for-apex-developers" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/02/5-chrome-dev-tools-for-apex-developers/" class="article-date">
-  <time datetime="2019-02-25T01:00:32.000Z" itemprop="datePublished">2019-02-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/02/5-chrome-dev-tools-for-apex-developers/">5 Chrome Dev Tools For APEX Developers</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><a href="https://www.google.com/chrome/" target="_blank" rel="noopener">Google Chrome</a> has a lot of great <a href="https://developers.google.com/web/tools/chrome-devtools/" target="_blank" rel="noopener">DevTools</a>. Here are 5 tools that may help with your APEX development.</p>
-<h1 id="Live-Expressions"><a href="#Live-Expressions" class="headerlink" title="Live Expressions"></a>Live Expressions</h1><p>If you had a hidden APEX page item that you wanted to monitor you constantly had to go into the console and type in write out <code>console.log(...)</code> to view its value. This can be annoying if the value will change multiple times as you test the page. <a href="https://developers.google.com/web/updates/2018/08/devtools#watch" target="_blank" rel="noopener">Live Expressions</a> (introduced in Chrome 70) resolves this issue by being able to track output by updating the value every 250 milliseconds.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/live-expressions.gif" class="">
-
-<p>The nice thing is that Live Expressions are preserved when you refresh a page. It’s hard to tell in the example above but I refreshed the page at one point.</p>
-<h1 id="Command-Menu"><a href="#Command-Menu" class="headerlink" title="Command Menu"></a>Command Menu</h1><p>Chrome DevTools have a lot of settings and features that you may not know about, let alone know where to access. Thankfully it has the Command Menu which is like Spotlight in MacOS. Anywhere in the DevTools type <code>Cmd+Shift+P</code> (Windows users <code>Ctrl+Shift+P</code>) to enable them. These shortcut keys are the same in <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">Visual Studio Code</a> so developers that use VSC will be very familiar with the behavior.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/command-menu.gif" class="">
-
-<p>In the last part of the above demo I typed in <code>Cmd+P</code> (Windows users <code>Ctrl+P</code>). This will open a file that the webpage loaded or that you have in your workspace (shown below)</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/command-menu-workspace.png" class="">
-
-
-<h1 id="Dark-Mode"><a href="#Dark-Mode" class="headerlink" title="Dark Mode"></a>Dark Mode</h1><p>A long time ago I changed my editor to a dark theme. Since then a lot of applications (including APEX 19.1 and MacOS Mojave) support dark themes. Chrome DevTools now supports dark mode.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/dark-mode.gif" class="">
-
-<h1 id="Persist-CSS-Changes"><a href="#Persist-CSS-Changes" class="headerlink" title="Persist CSS Changes"></a>Persist CSS Changes</h1><p>A lot of times when doing basic UI / CSS debugging you may inspect an element and modify its CSS properties. When you refresh the page you lose all your changes. This is especially frustrating if doing live-CSS edits with end users to do quick proof of concepts.</p>
-<p>You can persist CSS changes using the Chrome Overrides feature. To enable this go to <code>Sources &gt; Overrides &gt; +</code> to add a folder. This can be any empty folder you want.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/overrides-config.png" class="">
-
-<p>When you do this you’ll get the following warning message. Be sure to <code>Allow</code> Chrome to access the folder. You’ll only need to do this setup once.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/overrides-permission.png" class="">
-
-<p>Now when you modify a CSS property and refresh the page it’ll persist even after you reload the page:</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/overrides-demo.gif" class="">
-
-<p>If you want to quickly reset all the changes you’ve made just delete everything in your <code>overrides</code> folder.</p>
-<h1 id="Adding-Breakpoints-in-Code"><a href="#Adding-Breakpoints-in-Code" class="headerlink" title="Adding Breakpoints in Code"></a>Adding Breakpoints in Code</h1><p>They’re various ways to add <a href="https://developers.google.com/web/tools/chrome-devtools/javascript/breakpoints" target="_blank" rel="noopener">breakpoints</a> to help you debug. Sometimes you know exactly where in you JS code you want to add breakpoints but don’t want to manage it via the UI. In this case you can add breakpoints directly in your code by adding the <code>debugger;</code> command.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/breakpoints.gif" class="">
-
-<h1 id="Offline-Fun"><a href="#Offline-Fun" class="headerlink" title="Offline Fun"></a>Offline Fun</h1><p>This won’t exactly help you with your APEX development, nor is it a DevTool feature. If you’re ever offline and really bored Chrome’s got you covered. Simply hit the <code>spacebar</code> when you see the dinosaur to start and use the <code>up</code> and <code>down</code> arrows to move it around.</p>
-<img src="/2019/02/5-chrome-dev-tools-for-apex-developers/chrome-fun.gif" class="">
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/" data-id="ck6opmp2t00ft01ls96ma4i5s" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/chrome/" rel="tag">chrome</a></li></ul>
 
     </footer>
   </div>
@@ -691,7 +678,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">153</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">154</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -728,7 +715,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

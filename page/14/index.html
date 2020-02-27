@@ -68,6 +68,58 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-logger-200-session-specific-logging" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/05/logger-200-session-specific-logging/" class="article-date">
+  <time datetime="2013-05-08T13:30:00.000Z" itemprop="datePublished">2013-05-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/05/logger-200-session-specific-logging/">Logger 2.0.0 - Session Specific Logging - Advanced Features</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>In preparation for the release of <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility" target="_blank" rel="noopener">Logger 2.0.0 </a> I’ve decided to write a few posts highlighting some of the new features.</em></p>
+<p>In my <a href="http://www.talkapex.com/2013/05/logger-200-enable-session-specific.html">previous post</a> I covered how to set and unset session specific logging based on the Client Identifier. In this post I’ll cover some advanced options for this functionality. Before continuing, please be sure to read the previous post or else this won’t make sense.</p>
+<p>In the previous post the demo code to set a session specific logging level only used two parameters: the logging level and the Client Identifier. In <code>logger.set_level</code> they’re actually four parameters:</p>
+<p><strong><code>p_level</code></strong>: This is the level to set. If p_client_id is null then it will set the system level configuration in <code>logger_prefs</code> &gt; <code>LEVEL</code>.</p>
+<p>The additional parameters are only valid if <code>p_client_id</code> is defined.</p>
+<p><strong><code>p_client_id</code></strong>: If not null, will apply <code>p_level</code> for the specific client_id only. If null then <code>p_level</code> will be applied for the system level configuration.</p>
+<p><strong><code>p_include_call_stack</code></strong>: Determines if the call stack should be stored. If null then will use the default setting in <code>logger_prefs</code> &gt; <code>INCLUDE_CALL_STACK</code>. Valid values are <code>TRUE</code> and <code>FALSE</code> (strings).</p>
+<p><strong><code>p_client_id_expire_hours</code></strong>: Will end session specific logging after set hours. If not defined then the default setting will be used<code>logger_prefs</code> &gt; <code>PREF_BY_CLIENT_ID_EXPIRE_HOURS</code>. Note that this will not be exact as a job is run hourly to clean up expired session specific logging that has expired for a given client_id. Instead of waiting for the job to clean up expired sessions you can explicitly <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#unset-client-specific-logging" target="_blank" rel="noopener">unset</a> them.</p>
+<h2 id="How-to-View-All-Client-id-Settings"><a href="#How-to-View-All-Client-id-Settings" class="headerlink" title="How to View All Client_id Settings"></a>How to View All Client_id Settings</h2><p>To view the system level settings you can use the <a href="https://github.com/tmuth/Logger---A-PL-SQL-Logging-Utility#status" target="_blank" rel="noopener"><code>logger.status</code></a> procedure. There was debate as to whether or not we include all the client_id settings in this procedure. In the end we did not include it list them in this procedure as the list may get very long. To view all the session specific logging configurations use the following query:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> *</span><br><span class="line"><span class="keyword">from</span> logger_prefs_by_client_id;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Renewing"><a href="#Renewing" class="headerlink" title="Renewing"></a>Renewing</h2><p>When calling <code>logger.set_level</code> with a <code>client_id</code>that already exists in <code>logger_prefs_by_client_id</code> it will update the values and update the expiry date (i.e. you extend the setting).</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/" data-id="ck75770yq00g101mgbti602mf" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2013/05/logger-200-session-specific-logging/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/" rel="tag">logger</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-logger-200-enable-session-specific" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2013/05/logger-200-enable-session-specific/" class="article-date">
@@ -111,7 +163,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/" data-id="ck6opmoog008c01ls76auc6v5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/" data-id="ck75770ym00fz01mghr4p9j2h" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-enable-session-specific/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -166,7 +218,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-logging-parameters/" data-id="ck6opmonx008001ls7kp13b8m" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-logging-parameters/" data-id="ck75770yj00fx01mggjy8h1qs" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-logging-parameters/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -212,7 +264,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/05/logger-200-beta/" data-id="ck6opmoos008i01lsbkl7dj5j" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/05/logger-200-beta/" data-id="ck75770yf00fv01mg9ukn1bcx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/05/logger-200-beta/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -265,7 +317,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/04/logger-200-alpha/" data-id="ck6opmop1008p01ls2n9ifr57" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/04/logger-200-alpha/" data-id="ck75770zr00gp01mg5ka21wnh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/04/logger-200-alpha/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -308,7 +360,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/04/console-wrapper-104/" data-id="ck6opmop7008u01ls9l3lgjnj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/04/console-wrapper-104/" data-id="ck75770yc00ft01mggkysc189" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/04/console-wrapper-104/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -367,7 +419,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/" data-id="ck6opmooq008g01ls6hmg5y2g" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/" data-id="ck75770zv00gr01mgeo2ebsxm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/oracle-instant-client-on-mac-os-x/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -413,7 +465,7 @@ In case you can't see it, the error is `Object doesn't support property or metho
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/console-wrapper-104-beta/" data-id="ck6opmoob008801ls6jebc493" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/console-wrapper-104-beta/" data-id="ck75770y500fp01mg76972kyu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/console-wrapper-104-beta/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -472,7 +524,7 @@ In case you can't see it, the error is `Object doesn't support property or metho
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/and-winner-is/" data-id="ck6opmonm007s01ls8svt0y00" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/and-winner-is/" data-id="ck75770y900fr01mg7y4s2vsz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/and-winner-is/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -516,63 +568,12 @@ In case you can't see it, the error is `Object doesn't support property or metho
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="ck6opmooi008e01lsfnqbbmnc" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="ck75770xx00fl01mgaencfq0f" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/kscope-13/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/kscope/" rel="tag">kscope</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-whos-birthday-is-it-in-n-number-of-days" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/03/whos-birthday-is-it-in-n-number-of-days/" class="article-date">
-  <time datetime="2013-03-11T13:00:00.000Z" itemprop="datePublished">2013-03-11</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/03/whos-birthday-is-it-in-n-number-of-days/">Who&#39;s Birthday is it in n number of days?</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>A friend of mine recently asked me the following question: “<em>I have a table with names and birthdays. How do I find who’s birthday is coming up in the next 15 days</em>“. Initially this it appears to be a simple question but it’s a bit more complex than I originally thought.</p>
-<p>I was going to post my solution here, then <a href="https://twitter.com/AllThingsOracle" target="_blank" rel="noopener">James Murtagh</a>, from Red Gate, offered me two five-user licenses for their new product called <a href="http://www.red-gate.com/source-control-for-oracle" target="_blank" rel="noopener">Source Control for Oracle</a> to give away to the readers of this blog. Instead, I’m going to run an informal contest to give away these sets of licenses (each valued at $1475). As with all contests, please read the <a href="http://www.red-gate.com/products/oracle-development/source-control-for-oracle/source-control-oracle-prize-terms" target="_blank" rel="noopener">terms and conditions</a> from Redgate.</p>
-<p>So here’s the question (similar to my friend’s question about birthday’s but on the common <code>EMP</code> table): <em>Suppose that I’m the HR manager and am planning to recognize the anniversary date that each employee was hired on. I’d like to know all the employees who’s anniversary hire date is in the next 30 days.</em></p>
-<p>Please post your solution in the comments section below. Every answer with a correct solution will have their name entered into the draw. Answers must be submitted by end of day on Friday March 15th. I’ll announce the winners next week.</p>
-<p>Notes:</p>
-<ul>
-<li>Use <code>SYSDATE</code> for today’s date. I’ll just alter the <a href="http://www.talkapex.com/2012/08/setting-sysdate-in-oracle-for-testing.html"><code>FIXED_DATE</code></a> setting in oracle to set the <code>SYSDATE</code> value for my testing.  </li>
-<li>Write your query for the default <code>EMP</code> table. If you don’t have the <code>EMP</code> table in your schema <a href="http://www.scribd.com/doc/55324111/Oracle-Emp-Table-Script" target="_blank" rel="noopener">this article</a> contains the scripts to generate it.</li>
-</ul>
-<p>I’m looking forward to everyone’s solutions!</p>
-<p>_<strong>Update</strong>: Please read the <a href="http://www.talkapex.com/2013/03/and-winner-is.html">follow up post</a> to see how I tested this solution.<br>_</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/" data-id="ck6opmons007w01lsfotd57gd" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
 
     </footer>
   </div>
@@ -619,7 +620,7 @@ In case you can't see it, the error is `Object doesn't support property or metho
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">153</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">154</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">16</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -656,7 +657,7 @@ In case you can't see it, the error is `Object doesn't support property or metho
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">10</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
