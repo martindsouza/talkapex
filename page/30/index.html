@@ -68,6 +68,62 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-invalid-set-of-rows-requested-source" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/03/invalid-set-of-rows-requested-source/" class="article-date">
+  <time datetime="2009-03-18T04:18:00.000Z" itemprop="datePublished">2009-03-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/03/invalid-set-of-rows-requested-source/">Invalid set of rows requested, the source data of the report has been modified. - Explanation</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When I first started using APEX I occasionally got the following pagination error message: <code>Invalid set of rows requested, the source data of the report has been modified. reset pagination</code></p>
+<p>At first I had no clue what was causing the error but after a while I finally figured it out. The best way to describe the error is to see exactly what is happening. Full example is here</p>
+<p><strong>Create a report</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line">  <span class="keyword">FROM</span> emp</span><br><span class="line"> <span class="keyword">WHERE</span> <span class="keyword">UPPER</span> (ename) <span class="keyword">LIKE</span> <span class="string">'%'</span> || <span class="keyword">UPPER</span> (:P800_LETTER) || <span class="string">'%'</span></span><br></pre></td></tr></table></figure>
+
+
+<p>When creating the report, change the number of rows from <code>15</code> to <code>5</code> for this example. <strong>This is important for this demonstration!</strong></p>
+<p>Now create a page item called <code>P800_LETTER</code> and a submit button who submits and redirect to <code>P800</code>.</p>
+<p>If things went well you’d have a report that looks like this:</p>
+<p><img src="http://1.bp.blogspot.com/_33EF80fk9sM/ScB3T-xfUyI/AAAAAAAADnA/RKxPha9YmBk/s400/01_reset_pagination.bmp" alt=""></p>
+<p>To illustrate the problem click on the <code>Next</code> pagination link so that we are seeing rows <code>6~10</code>.<br>Now, in the text box enter the letter <code>I</code> (this will restrict to 4 rows) and click submit. You should see the following error message:</p>
+<p><img src="http://1.bp.blogspot.com/_33EF80fk9sM/ScB30k-IF-I/AAAAAAAADnI/BSuRiX4RT0I/s400/02_reset_pagination.bmp" alt=""></p>
+<p>To summarize what just happened, you initially requested a report with 14 rows and told APEX to display 5 at a time. When you clicked the <code>Next</code> pagination button you told APEX for the report you’re currently looking at display rows <code>6~10</code>. So now, if you were to refresh the page APEX would continue to show rows <code>6~10</code>. When you filtered the report, by restricting to employees with the letter <code>I</code> in their name, you get a result with only 4 rows however APEX is still trying to display rows <code>6~10</code>. I hope you now see the problem with this.</p>
+<p>So now that we’ve demonstrated the problem, how do you fix it? Well there’s several ways. To solve our current issue, on <code>P800</code> in the submit branch we could check the <code>reset pagination for this page</code>. This means that each time you submit the page APEX will set the display rows back to <code>1~5</code>.</p>
+<p>There are also other ways to reset the pagination automatically. You can reset pagination in the URL: In the <code>Clear Cache</code> section you can enter <code>RP</code> to clear the page’s cache. Please see the <a href="http://download.oracle.com/docs/cd/E14373_01/appdev.32/e11838/concept.htm#BEIFCDGF" target="_blank" rel="noopener">APEX documentation</a> for more information. There is also a page process to reset the pagination. This allows you to also set the scope of the current page, multiple pages, or all pages.</p>
+<p>I know the issue has come up to reset the pagination for an individual report rather than the entire page. I currently don’t know of any method, however if you do please post!</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/" data-id="ck7o9y9bg004t01otemey5vig" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-q-function-escape-single-quotes" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/03/q-function-escape-single-quotes/" class="article-date">
@@ -123,7 +179,7 @@ END;</pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="ck7nd1ck0002f01ntey6ehr2i" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="ck7o9y9b7004k01otdyuv6aep" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -173,7 +229,7 @@ END;</pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="ck7nd1cjj002501nt0v3ad0l0" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="ck7o9y9be004r01ot1l8q5h1g" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/test-data-in-production-applications/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -221,7 +277,7 @@ END;</pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/02/application-id-reserved-fix/" data-id="ck7nd1cjp002a01nt79v05ko5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/02/application-id-reserved-fix/" data-id="ck7o9y9b9004m01ot4e2h892w" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/02/application-id-reserved-fix/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -319,7 +375,7 @@ Please note there may be better/faster ways to implement the SQL code etc.</li>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/" data-id="ck7nd1cjx002d01nt3bs612m6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/" data-id="ck7o9y9bc004p01otd8lc0bfm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -366,7 +422,7 @@ Please note there may be better/faster ways to implement the SQL code etc.</li>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/" data-id="ck7nd1cjh002301ntcarxbngp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/" data-id="ck7o9y95y001c01otaifhaa9g" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -418,7 +474,7 @@ Please note there may be better/faster ways to implement the SQL code etc.</li>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/" data-id="ck7nd1cjd001y01nt0t320za3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/" data-id="ck7o9y93j000b01otd7fdgmf0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -471,7 +527,7 @@ from apex_dictionary
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/11/how-to-list-apex-dictionary-views-using/" data-id="ck7nd1cjn002801ntdazl78mn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/11/how-to-list-apex-dictionary-views-using/" data-id="ck7o9y95t001801ot7rcv8fio" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/11/how-to-list-apex-dictionary-views-using/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -515,7 +571,7 @@ from apex_dictionary
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/11/css-specificity/" data-id="ck7nd1cje002001nt0d4a3sui" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/11/css-specificity/" data-id="ck7o9y95l001501otczzi3lii" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/11/css-specificity/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -759,7 +815,7 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/08/manually-creating-tabular-form/" data-id="ck7nd1cj8001t01ntfqiv80vq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/08/manually-creating-tabular-form/" data-id="ck7o9y93n000c01otfygh35cn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/08/manually-creating-tabular-form/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -811,7 +867,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">156</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">156</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -848,7 +904,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">15</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">16</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
