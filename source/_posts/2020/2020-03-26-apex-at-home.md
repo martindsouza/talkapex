@@ -23,4 +23,4 @@ The full schedule and links to talk can be found [here](http://apexatho.me). The
 
 [APEX@Home](http://apexatho.me) is for the community, by the community. Please help spread the word to your friends, colleagues, schools, clients, etc!
 
-- Adrian, Martin, and Trent
+\- Adrian, Martin, and Trent
