@@ -49,8 +49,8 @@ alter table users drop constraint users_ck1;
 -- nvl2(home_phone, 1, 0) + ....
 alter table users add constraint users_ck1 check(
   decode(home_phone, null, 0, 1) + 
-  decode(work_phone, null, 0, 1)
-  = 1
+  decode(work_phone, null, 0, 1) +
+  0 = 1
 )
 ;  
 ```
@@ -63,8 +63,8 @@ alter table users drop constraint users_ck1;
 alter table users add constraint users_ck1 check(
   decode(home_phone, null, 0, 1) + 
   decode(work_phone, null, 0, 1) +
-  decode(cell_phone, null, 0, 1)
-  = 1
+  decode(cell_phone, null, 0, 1) +
+  0 = 1
 )
 ;  
 ```
