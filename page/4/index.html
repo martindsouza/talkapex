@@ -119,7 +119,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/" data-id="ck9jfe1qw00fi01q95v614h3v" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/" data-id="ckbzxjthr00ff01rp4otq6vhd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -165,15 +165,15 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">drop</span> <span class="keyword">constraint</span> users_ck1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">add</span> <span class="keyword">constraint</span> users_ck1 <span class="keyword">check</span>(</span><br><span class="line">  <span class="number">1</span>=<span class="number">2</span></span><br><span class="line">  <span class="keyword">or</span> (home_phone <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">and</span> work_phone <span class="keyword">is</span> <span class="literal">null</span> <span class="keyword">and</span> cell_phone <span class="keyword">is</span> <span class="literal">null</span>)</span><br><span class="line">  <span class="keyword">or</span> (home_phone <span class="keyword">is</span> <span class="literal">null</span> <span class="keyword">and</span> work_phone <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">null</span> <span class="keyword">and</span> cell_phone <span class="keyword">is</span> <span class="literal">null</span>)</span><br><span class="line">  <span class="keyword">or</span> (home_phone <span class="keyword">is</span> <span class="literal">null</span> <span class="keyword">and</span> work_phone <span class="keyword">is</span> <span class="literal">null</span> <span class="keyword">and</span> cell_phone <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">null</span>)</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
 
 <p>A different approach that is easier to write and maintain is to use the <code>decode</code> function to apply a number (<code>0</code> or <code>1</code>) to represent if the column has a value or not. </p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">drop</span> <span class="keyword">constraint</span> users_ck1;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- <span class="doctag">Note:</span> could use nvl2 instead of decode as well</span></span><br><span class="line"><span class="comment">-- nvl2(home_phone, 1, 0) + ....</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">add</span> <span class="keyword">constraint</span> users_ck1 <span class="keyword">check</span>(</span><br><span class="line">  <span class="keyword">decode</span>(home_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) + </span><br><span class="line">  <span class="keyword">decode</span>(work_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">  = <span class="number">1</span></span><br><span class="line">)</span><br><span class="line">;</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">drop</span> <span class="keyword">constraint</span> users_ck1;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- <span class="doctag">Note:</span> could use nvl2 instead of decode as well</span></span><br><span class="line"><span class="comment">-- nvl2(home_phone, 1, 0) + ....</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">add</span> <span class="keyword">constraint</span> users_ck1 <span class="keyword">check</span>(</span><br><span class="line">  <span class="keyword">decode</span>(home_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) + </span><br><span class="line">  <span class="keyword">decode</span>(work_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) +</span><br><span class="line">  <span class="number">0</span> = <span class="number">1</span></span><br><span class="line">)</span><br><span class="line">;</span><br></pre></td></tr></table></figure>
 
 <p>Updating the constraint to handle a new column is very simple. Using the previous example, the following snippet shows how easy it is to add <code>cell_phone</code> to the constraint:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">drop</span> <span class="keyword">constraint</span> users_ck1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">add</span> <span class="keyword">constraint</span> users_ck1 <span class="keyword">check</span>(</span><br><span class="line">  <span class="keyword">decode</span>(home_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) + </span><br><span class="line">  <span class="keyword">decode</span>(work_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) +</span><br><span class="line">  <span class="keyword">decode</span>(cell_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>)</span><br><span class="line">  = <span class="number">1</span></span><br><span class="line">)</span><br><span class="line">;</span><br></pre></td></tr></table></figure>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">drop</span> <span class="keyword">constraint</span> users_ck1;</span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">table</span> <span class="keyword">users</span> <span class="keyword">add</span> <span class="keyword">constraint</span> users_ck1 <span class="keyword">check</span>(</span><br><span class="line">  <span class="keyword">decode</span>(home_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) + </span><br><span class="line">  <span class="keyword">decode</span>(work_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) +</span><br><span class="line">  <span class="keyword">decode</span>(cell_phone, <span class="literal">null</span>, <span class="number">0</span>, <span class="number">1</span>) +</span><br><span class="line">  <span class="number">0</span> = <span class="number">1</span></span><br><span class="line">)</span><br><span class="line">;</span><br></pre></td></tr></table></figure>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/" data-id="ck9jfe1qr00fd01q90mf55wqu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/" data-id="ckbzxjti900fx01rp1dpp6h0e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -227,7 +227,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" data-id="ck9jfe1qm00fb01q99a3e1x3g" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" data-id="ckbzxjtho00fb01rp3ma4envj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -276,7 +276,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" data-id="ck9jfe1qj00f801q9bi4j52n4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" data-id="ckbzxjthh00f201rp3idog4g0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -342,7 +342,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="ck9jfe1qb00f301q919j0fpes" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="ckbzxjthi00f401rp7q9wbo3h" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -402,7 +402,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="ck9jfe1q700ey01q97v74exjg" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="ckbzxjthp00fd01rp73dac3wz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/docker-as-a-micro-service/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -454,7 +454,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="ck9jfe1qh00f601q9c2f39zth" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="ckbzxjthk00f601rp9jm6deju" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -534,7 +534,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="ck9jfe1pu00ep01q96ptg50jk" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="ckbzxjthf00f001rp1bk3feci" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -591,7 +591,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="ck9jfe1qa00f101q9d9z8at3g" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="ckbzxjth900et01rp9th02pgx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/custom-apex-notification-messages/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -665,7 +665,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="ck9jfe1q500ew01q99es99rtq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="ckbzxjthm00f801rpg7om7hzz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/#disqus_thread" class="article-comment-link">Comments</a>
       
