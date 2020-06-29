@@ -46,3 +46,24 @@ Add a button to this region called `RELOAD_MODAL`:
 Demo of the Reload button in action
 
 {% asset_img reaload-button.gif %}
+
+
+**Update** (moving the button to the button bar)
+
+The screenshots and demo above all show the Reload button at the top of the page. This changes the UI behavior in dev. To move it to the modal button bar, on Page 0 do the following:
+
+- Add a new DA: `DEV_ONLY: onPageLoad`
+  - Event: Page Load
+  - Action: Execute JavaScript Code
+    - Affected Elements
+      - Selection Type: `Button`
+      - Button: `RELOAD_MODAL`
+      - JavaScript Code:
+
+```javascript
+// Bottom left button container
+var btnContainer = $('.t-Dialog-footer').find('.t-ButtonRegion-col--left > .t-ButtonRegion-buttons');
+
+// Move to button container
+this.affectedElements.appendTo(btnContainer);
+```
