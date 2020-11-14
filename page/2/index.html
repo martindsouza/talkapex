@@ -68,6 +68,58 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-changing-the-maximum-session-idle-time-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/02/changing-the-maximum-session-idle-time-in-apex/" class="article-date">
+  <time datetime="2020-02-16T13:44:16.000Z" itemprop="datePublished">2020-02-16</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/02/changing-the-maximum-session-idle-time-in-apex/">Changing the Maximum Session Idle Time in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>APEX allows you to set the maximum idle time for a given session. This is an application level attribute that is set in <code>Shared Components &gt; Security Attributes</code>. Under the <code>Session Management</code> there is a setting for <code>Maximum Session Idle Time in Seconds</code> which defaults to <code>3600</code> seconds:</p>
+<img src="/2020/02/changing-the-maximum-session-idle-time-in-apex/max-idle-setting.png" class="">
+
+<p>When a new session is created in APEX, the max idle time is “copied” from the application settings directly into the user’s session settings. If you change the setting at an application level <strong>only new sessions will use the new value</strong>. <strong>Existing sessions will use the old value</strong>.</p>
+<p>The following example demonstrates when changes take effect. The current max idle time is set to <code>3600</code> and one session is active (i.e. one user is logged in):</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- App setting</span></span><br><span class="line"><span class="keyword">select</span> aa.maximum_session_idle_seconds</span><br><span class="line"><span class="keyword">from</span> apex_applications aa</span><br><span class="line"><span class="keyword">where</span> aa.application_id = <span class="number">101</span></span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">   MAXIMUM_SESSION_IDLE_SECONDS</span><br><span class="line">_______________________________</span><br><span class="line">                           3600</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Active sessions</span></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">  ws.apex_session_id,</span><br><span class="line">  ws.session_max_idle_sec</span><br><span class="line"><span class="keyword">from</span> apex_workspace_sessions ws</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">   APEX_SESSION_ID    SESSION_MAX_IDLE_SEC</span><br><span class="line">__________________ _______________________</span><br><span class="line">    10974491127217                    3600</span><br></pre></td></tr></table></figure>
+
+<p>The <code>Maximum Session Idle Time in Seconds</code> setting is is changed to <code>200</code> seconds and then a new user logs in (i.e. a new session is created):</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- App setting</span></span><br><span class="line"><span class="keyword">select</span> aa.maximum_session_idle_seconds</span><br><span class="line"><span class="keyword">from</span> apex_applications aa</span><br><span class="line"><span class="keyword">where</span> aa.application_id = <span class="number">101</span></span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">   MAXIMUM_SESSION_IDLE_SECONDS</span><br><span class="line">_______________________________</span><br><span class="line">                            200</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Active sessions</span></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">  ws.apex_session_id,</span><br><span class="line">  ws.session_max_idle_sec</span><br><span class="line"><span class="keyword">from</span> apex_workspace_sessions ws</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">   APEX_SESSION_ID    SESSION_MAX_IDLE_SEC</span><br><span class="line">__________________ _______________________</span><br><span class="line">     3565745405186                     200</span><br><span class="line">    10974491127217                    3600</span><br></pre></td></tr></table></figure>
+
+<p>You can see that the older session (<code>10974491127217</code>) still retains the old max idle time (<code>3600</code> seconds) whereas the new session (<code>3565745405186</code>) uses the new value (<code>200</code> seconds).</p>
+<p>When testing these settings it’s important that you create a new session each time a change is made.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2020/02/changing-the-maximum-session-idle-time-in-apex/" data-id="ckhhrt63500f901qh12pv7jpv" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2020/02/changing-the-maximum-session-idle-time-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-apex-ir-saved-report-aliases" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/02/apex-ir-saved-report-aliases/" class="article-date">
@@ -105,7 +157,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/02/apex-ir-saved-report-aliases/" data-id="ckbzxjtka00hw01rph6ku1y5q" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/02/apex-ir-saved-report-aliases/" data-id="ckhhrt5wc00ez01qh8yom98ek" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/02/apex-ir-saved-report-aliases/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -152,7 +204,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/02/upgrading-to-nice-switch-in-apex-19/" data-id="ckbzxjtkn00ia01rp66ckh3sk" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/02/upgrading-to-nice-switch-in-apex-19/" data-id="ckhhrt5zt00f401qhbtm92aw2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/02/upgrading-to-nice-switch-in-apex-19/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -202,7 +254,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/02/how-to-reduce-width-of-ir-link-column-in-apex/" data-id="ckbzxjtkh00i301rp8ab0dwer" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/02/how-to-reduce-width-of-ir-link-column-in-apex/" data-id="ckhhrt61h00f701qhdv2jfavt" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/02/how-to-reduce-width-of-ir-link-column-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -266,7 +318,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/02/docker-for-oracle-sql-plus/" data-id="ckbzxjtk700ht01rpe1scafqs" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/02/docker-for-oracle-sql-plus/" data-id="ckhhrt5yf00f201qhee1fd87o" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/02/docker-for-oracle-sql-plus/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -319,7 +371,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/02/docker-image-for-oracle-sqlcl/" data-id="ckbzxjtkj00i501rp5kfr0o48" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/02/docker-image-for-oracle-sqlcl/" data-id="ckhhrt5uu00ey01qhbtol6l8p" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/02/docker-image-for-oracle-sqlcl/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -382,7 +434,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/01/using-docker-for-cli-applications/" data-id="ckbzxjtk500hr01rp6qoz8mem" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/01/using-docker-for-cli-applications/" data-id="ckhhrt5sy00ew01qh90on6ilz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/01/using-docker-for-cli-applications/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -449,7 +501,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/01/how-to-stage-part-of-a-file-in-git/" data-id="ckbzxjtjx00hi01rp8e27gh0g" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/01/how-to-stage-part-of-a-file-in-git/" data-id="ckhhrt5sn00es01qhbxza7f9x" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/01/how-to-stage-part-of-a-file-in-git/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -514,7 +566,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/" data-id="ckbzxjtk100hn01rp58hfgn9i" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/" data-id="ckhhrt5ss00eu01qh9p5scebt" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -572,58 +624,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ckbzxjtje00h101rp9ejm3lc1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ckhhrt6b700j601qh422h0d83" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-validating-dates-and-numbers-in-oracle-12-2" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/03/validating-dates-and-numbers-in-oracle-12-2/" class="article-date">
-  <time datetime="2019-03-26T21:16:41.000Z" itemprop="datePublished">2019-03-26</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/03/validating-dates-and-numbers-in-oracle-12-2/">Validating Dates and Numbers in Oracle 12.2</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Prior to 12.2 validating dates and numbers was a bit of a pain as you had to write your own custom PL/SQL function. <a href="http://github.com/oraopenSource/oos-utils/" target="_blank" rel="noopener">OOS-Utils</a> has a quick solution to this issue and I recommend using <a href="https://github.com/OraOpenSource/oos-utils/blob/master/docs/oos_util_validation.md#is_number" target="_blank" rel="noopener"><code>oos_util_validation.is_number</code></a> and <a href="https://github.com/OraOpenSource/oos-utils/blob/master/docs/oos_util_validation.md#is_date" target="_blank" rel="noopener"><code>oos_util_validation.is_date</code></a>.</p>
-<p>If you’re using Oracle 12.2 or above you can (and should) use <a href="https://docs.oracle.com/en/database/oracle/oracle-database/18/sqlrf/VALIDATE_CONVERSION.html#GUID-DC485EEB-CB6D-42EF-97AA-4487884CB2CD" target="_blank" rel="noopener"><code>validation_conversion</code></a> instead. Here are some examples of how to use it along with results:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">  validate_conversion(<span class="string">'123.34'</span> <span class="keyword">as</span> <span class="built_in">number</span>, <span class="string">'999.00'</span>) valid_number,</span><br><span class="line">  validate_conversion(<span class="string">'abc'</span> <span class="keyword">as</span> <span class="built_in">number</span>) invalid_number,</span><br><span class="line">  validate_conversion(<span class="string">'01-Jan-19'</span> <span class="keyword">as</span> <span class="built_in">date</span>, <span class="string">'DD-MON-YYYY'</span>) valid_date,</span><br><span class="line">  validate_conversion(<span class="string">'01-BAD-19'</span> <span class="keyword">as</span> <span class="built_in">date</span>, <span class="string">'DD-MON-YYYY'</span>) invalid_date</span><br><span class="line"><span class="keyword">from</span> dual</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">VALID_NUMBER INVALID_NUMBER VALID_DATE INVALID_DATE</span><br><span class="line"><span class="comment">------------ -------------- ---------- ------------</span></span><br><span class="line">           1              0          1            0</span><br></pre></td></tr></table></figure>
-
-<p><code>validate_conversion</code> will return <code>1</code> for valid conversions and <code>0</code> for invalid conversions. </p>
-<p><em>Note: in the next release of OOS Utils, the validation functions will use</em> <code>validate_conversion</code> <em>if your database is 12.2 or older internally.</em></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ckbzxjtir00gc01rphcklfnxm" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
 
     </footer>
   </div>
@@ -670,7 +676,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">157</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">157</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -707,7 +713,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">18</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

@@ -68,6 +68,55 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-select-into-techinques" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2012/06/select-into-techinques/" class="article-date">
+  <time datetime="2012-06-07T17:01:00.000Z" itemprop="datePublished">2012-06-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2012/06/select-into-techinques/">SELECT INTO Techinques</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>One thing that bothers a lot of PL/SQL developers is when they have to select some data from a table into local variables. The problem is that the data may or may not exist (i.e. return 0..1 rows). They’re several ways to write this code, some taking longer than others which is the pain point for developers.  </p>
+<p>I’ve listed out various ways to do this below and hopefully it’ll help you find some easier ways to solve this issue.</p>
+<p> The first example is the classic case of handling the 0..1 rows issue in PL/SQL. They’re a few issues (not problems) that I have with this. The first is that it adds some additional lines of code (highlighted) which can make the code harder to follow. The other issue is that instead of using “<em>WHEN no_data_found</em>“ some developers tend to use “<em>WHEN OTHERS</em>“ which is guaranteed to give you some false positives in the long run.  <pre class="brush: sql; highlight: [6,11,12,13,14]"><br>DECLARE<br>  l_sal emp.sal%TYPE;<br>  p_empno emp.empno%TYPE := 123; -- Invalid empno number<br>BEGIN</p>
+<p>  BEGIN<br>    SELECT sal<br>    INTO l_sal<br>    FROM emp<br>    WHERE empno = p_empno;<br>  EXCEPTION<br>    WHEN no_data_found THEN<br>      l_sal := 0;<br>  END;</p>
+<p>END;<br>/<br></pre> Another way to get the value from the table is to use the aggregate function <em>MAX</em>. Since you’re expecting 0..1 rows this will always return 1 row and eliminates the need to have the “<em>BEGIN …</em>“ block of code which saves 5 lines of code. You can handle what to do when no value is found by using the <em>NVL</em> function.  <pre class="brush: sql; highlight: [6]"><br>DECLARE<br>  l_sal emp.sal%TYPE;<br>  p_empno emp.empno%TYPE := 123; -- Invalid empno number<br>BEGIN</p>
+<p>  SELECT NVL(MAX(sal), 0)<br>  INTO l_sal<br>  FROM emp<br>  WHERE empno = p_empno;</p>
+<p>END;<br>/<br></pre> The only issue with the above example is when you can have 0..n rows but should only get 0..1. Ideally you should have table constraints in order to guarantee 0..1 rows but it’s not always the case in some system. The following example shows how you can use the same technique as above but it will trigger an exception if n rows are found (which is what you want to do):  <pre class="brush: sql; highlight: [10]"><br>DECLARE<br>  l_sal emp.sal%TYPE;<br>  p_empno emp.empno%TYPE := 123; -- Invalid empno number<br>BEGIN</p>
+<p>  SELECT NVL(MAX(sal), 0)<br>  INTO l_sal<br>  FROM emp<br>  WHERE empno = p_empno<br>  HAVING count(1) <= 1;</p>
+<p>END;<br>/<br></pre></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2012/06/select-into-techinques/" data-id="ckhhrt66t00gh01qhhb0mb1ml" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2012/06/select-into-techinques/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-nthvalue-windowing-clause" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2012/06/nthvalue-windowing-clause/" class="article-date">
@@ -138,7 +187,7 @@ ACCOUNTING     MILLER           1300              2450
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="ckbzxjtbp008j01rp3geggc35" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/" data-id="ckhhrt66q00gf01qhf3xx6kx4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/06/nthvalue-windowing-clause/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -309,7 +358,7 @@ RESEARCH       SMITH             800              3
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="ckbzxjtd000a401rpcwd0f7pw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/" data-id="ckhhrt66o00gd01qhfkpr5j2e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/05/some-interesting-oracle-analytic/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -352,7 +401,7 @@ RESEARCH       SMITH             800              3
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/" data-id="ckbzxjtbk008b01rpbw6d99i9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/" data-id="ckhhrt66i00g901qh2n5e3b8h" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/05/clarifit-from-to-date-picker-101-update/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -480,7 +529,7 @@ EXIT;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/04/command-line-backups-for-apex/" data-id="ckbzxjtbn008h01rpdk9kevmf" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/04/command-line-backups-for-apex/" data-id="ckhhrt66f00g701qh4k1fglco" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/04/command-line-backups-for-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -530,7 +579,7 @@ EXIT;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group/" data-id="ckbzxjtbl008d01rp9fo2g4h3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group/" data-id="ckhhrt66l00gb01qhhy2fho17" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/04/presenting-at-calgary-oracle-user-group/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -576,7 +625,7 @@ EXIT;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/" data-id="ckbzxjtbi008901rp7v4ihuw9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/" data-id="ckhhrt66900g301qhc8h45mkt" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/03/odtug-apex-plug-in-competition/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -652,7 +701,7 @@ PL/SQL procedure successfully completed.
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/q-function-inside-q-function/" data-id="ckbzxjtbb008101rpd2ai1sdh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/03/q-function-inside-q-function/" data-id="ckhhrt66c00g501qhh30g60bv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/03/q-function-inside-q-function/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -702,7 +751,7 @@ Be sure to take note of your plugin application level settings before updating a
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading/" data-id="ckbzxjtbm008f01rp5v6h00yj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading/" data-id="ckhhrt66300fz01qhhoii17ck" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/03/things-to-watch-out-for-when-upgrading/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -927,68 +976,9 @@ END;
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/" data-id="ckbzxjtb8007x01rp7tyc1n6w" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/" data-id="ckhhrt66500g101qh4pgw77oz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/03/how-apex-processes-various-conditions/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-process-condition-with-multiple" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2011/12/apex-process-condition-with-multiple/" class="article-date">
-  <time datetime="2011-12-13T14:00:00.000Z" itemprop="datePublished">2011-12-13</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2011/12/apex-process-condition-with-multiple/">APEX Process Condition with Multiple Buttons</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>For new APEX developers, adding a page process condition can be a bit confusing at first when basing it on multiple buttons. This post will go through a scenario on how to easily use multiple buttons in a page condition.</p>
-<p><strong><span style="font-size: small;">The Setup</span></strong><br>A classic example of having multiple buttons on a page is when you want to save or update a record. The Save button should only appear for new records, whereas the Update button should only appear for existing records. The catch is that when saving and updating the page you may need to run the same process.</p>
-<p>The following setup highlights this classic example. Create a region in a page with two fields: P1_X and P1_Y. Then create three buttons: Save, Update, and Cancel. All three buttons should submit the page and an example of the page is shown below</p>
-<div class="separator" style="clear: both; text-align: center;">[![](http://4.bp.blogspot.com/-Th7GcS6UnvY/TtpJnsNnnqI/AAAAAAAAEFQ/yTphEesUKKo/s1600/process_condition_setup.png)](http://4.bp.blogspot.com/-Th7GcS6UnvY/TtpJnsNnnqI/AAAAAAAAEFQ/yTphEesUKKo/s1600/process_condition_setup.png)</div>
-Create the following page process:
-Name: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">Update P1_Y</span>
-Process Point: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">On Submit - After Computations and Validations</span>
-Process: <span style="font-family: &quot;Courier New&quot;,Courier,monospace;">:P1_Y := :P1_X * 2;</span>
-
-<p><strong>The Problem</strong><br>You’d like this process to run when both the Save and Update buttons are clicked. If you scroll down to the process’s conditions area you’ll notice that it has an option to restrict the process when a particular button is clicked (shown below).</p>
-<div class="separator" style="clear: both; text-align: center;">[![](http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png)](http://4.bp.blogspot.com/-jnbkgSKISeE/TtpJnS7sy6I/AAAAAAAAEE8/UNvhZ31djzg/s1600/process_condition_condition.png)</div>
-As you can see you can only select one button from the list. At first glance the only option that you have to resolve the two button issue is to create a new process, which is a copy of the existing process, and set the condition to the other button. That doesn't necessarily make sense and can be an obvious maintenance nightmear.
-
-<p>The good news is that there is a very simple way to get around this issue. When you click a button it actually sets the <a href="http://docs.oracle.com/cd/E23903_01/doc/doc.41/e21674/concept_sub.htm#BEIFJJBC" target="_blank" rel="noopener">REQUEST</a> variable to the button name. The button name is defined in the button. For example the Save button’s request is actually SAVE (shown below).</p>
-<div class="separator" style="clear: both; text-align: center;">[![](http://4.bp.blogspot.com/-NAhzVX9cpf0/TtpJn8-vFYI/AAAAAAAAEFM/kJn-_bwXs-Q/s1600/process_condition_button.png)](http://4.bp.blogspot.com/-NAhzVX9cpf0/TtpJn8-vFYI/AAAAAAAAEFM/kJn-_bwXs-Q/s1600/process_condition_button.png)</div>
-Going back to the original problem, and leveraging what we know about the REQUEST variable, you can modify the process's condition to have it run when either the Save or Update buttons are selected as shown below.
-
-<div class="separator" style="clear: both; text-align: center;">[![](http://3.bp.blogspot.com/-M_w6hjuT-EQ/TtpJngA96WI/AAAAAAAAEFA/PZTYRg5XwX4/s1600/process_condition_condition_good.png)](http://3.bp.blogspot.com/-M_w6hjuT-EQ/TtpJngA96WI/AAAAAAAAEFA/PZTYRg5XwX4/s1600/process_condition_condition_good.png)</div>
-_Note: They're other ways to use the REQUEST variable in the conditions section. This one highlights a very simple use._
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/" data-id="ckbzxjt2d002201rpfbl5gp8g" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2011/12/apex-process-condition-with-multiple/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
@@ -1038,7 +1028,7 @@ _Note: They're other ways to use the REQUEST variable in the conditions section.
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">157</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">157</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -1075,7 +1065,7 @@ _Note: They're other ways to use the REQUEST variable in the conditions section.
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">18</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
