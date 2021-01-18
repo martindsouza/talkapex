@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>How to build templates in APEX Office Print | TalkApex</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="If you ever need to generate PDF reports, Excel files, or Word documents based on data from your APEX application (or from within your Oracle database) APEX Office Print (AOP) is the tool for you. If">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How to build templates in APEX Office Print">
+<meta property="og:url" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/index.html">
+<meta property="og:site_name" content="TalkApex">
+<meta property="og:description" content="If you ever need to generate PDF reports, Excel files, or Word documents based on data from your APEX application (or from within your Oracle database) APEX Office Print (AOP) is the tool for you. If">
+<meta property="og:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/aop-template.gif">
+<meta property="og:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/office-365-share-01.png">
+<meta property="og:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/office-365-share-02.png">
+<meta property="og:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/office-365-embed-01.png">
+<meta property="og:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/office-365-embed-02.png">
+<meta property="og:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/office-365-embed-03.png">
+<meta property="og:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/apex-setup-region.png">
+<meta property="og:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/apex-da-execute-plsql.png">
+<meta property="og:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/apex-da-aop-plugin.png">
+<meta property="article:published_time" content="2021-01-18T00:24:25.000Z">
+<meta property="article:modified_time" content="2021-01-18T13:26:12.783Z">
+<meta property="article:author" content="Martin Giffy D&#39;Souza">
+<meta property="article:tag" content="aop">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/aop-template.gif">
+<meta name="twitter:creator" content="@martindsouza">
+  
+    <link rel="alternate" href="/atom.xml" title="TalkApex" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <!-- <div id="banner"></div> -->
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <img src="/images/header-banner.png" alt="" />
+      <!-- <h1 id="logo-wrap">
+        <a href="/" id="logo">TalkApex</a>
+      </h1> -->
+      <!-- 
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">Martin Giffy D&#39;Souza on Oracle APEX</a>
+        </h2>
+       -->
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://www.talkapex.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-how-to-build-templates-in-aop" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/01/how-to-build-templates-in-aop/" class="article-date">
+  <time datetime="2021-01-18T00:24:25.000Z" itemprop="datePublished">2021-01-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      How to build templates in APEX Office Print
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>If you ever need to generate PDF reports, Excel files, or Word documents based on data from your APEX application (or from within your Oracle database) <a href="https://www.apexofficeprint.com/" target="_blank" rel="noopener">APEX Office Print</a> (AOP) is the tool for you. If you’ve never used or heard of AOP before you should review it before continuing with this article.</p>
+<p>This is the desired outcome of the article below. To summarize the solution will allow me to quickly edit a Word template using Office 365. Then view the generated PDF in APEX with a minimal amount of effort.</p>
+<img src="/2021/01/how-to-build-templates-in-aop/aop-template.gif" class="">
+
+<h2 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h2><p>AOP has two common uses cases (personal opinion). The first is providing users the ability to download their reports exactly as they’re shown in any format they’d like. For example if they build an Interactive Report (IR) with row highlighting etc and click “Download”, AOP will make the report look exactly as the user defined it. The second, which this article focuses on, is to create customizable documents based on data in Oracle. A good example of this is generating a invoice for a customer.</p>
+<h2 id="Problem"><a href="#Problem" class="headerlink" title="Problem"></a>Problem</h2><p>Using the later case, to generate a PDF invoice you need to create a Word or Excel file and use substitution string for AOP to replace data with. For example, to show the Invoice Number based on the column <code>invoice_num</code> you would reference <code>{invoice_num}</code> in your Word document. AOP with then “fill in” the substitution strings with your data. In this case the process is as follows:</p>
+<ol>
+<li>Define your query (with all the data)<ul>
+<li>One time task unless more data is required </li>
+</ul>
+</li>
+<li>Upload Word template file<ul>
+<li>They’re various options as to where to store a file (more on this later)</li>
+</ul>
+</li>
+<li>Generate the PDF<ul>
+<li>This will involved downloading and then opening the PDF on your laptop</li>
+</ul>
+</li>
+</ol>
+<p>When initially building a template file the last two steps can happen many times. I.e. I want to see what the invoice would look like if I move some text over a bit. I’d need to re-upload the file then re-generate and download the PDF. This process has a few problems:</p>
+<ul>
+<li>It’s not good for multiple people working on the same template at the same time</li>
+<li>There’s lots of steps involved once making a change to the template to see the resulting PDF</li>
+</ul>
+<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>To resolve the issues described above I created the following process to allow me to quickly build and view invoices using AOP and APEX. These steps require that you have an <a href="https://www.office.com" target="_blank" rel="noopener">Office 365</a> account. (<em>Note: if using a coporate Office 365 you’ll need the ability to share files with people outside of your organization. If you’re not allowed to use a personal account to host the template file</em>)</p>
+<h3 id="Host-Template-on-OneDrive"><a href="#Host-Template-on-OneDrive" class="headerlink" title="Host Template on OneDrive"></a>Host Template on OneDrive</h3><ul>
+<li>Go to <a href="https://onedrive.live.com/" target="_blank" rel="noopener">One Drive</a> and upload a new Word document<ul>
+<li><strong>Note:</strong> <em>For some reason when creating the Word document directly in One Drive AOP can’t process the file. To get around this create a Word document on your desktop and upload</em></li>
+<li><em>Note: the same steps can be used for any type of Office document (ex: Excel)</em></li>
+</ul>
+</li>
+<li>Generate Share URL<ul>
+<li>This will be a link to give others to work on modifying the Word template file</li>
+<li>We’ll refer to this URL as the “Share URL”</li>
+<li>Right click on the file and click <code>Share</code></li>
+</ul>
+</li>
+</ul>
+<img src="/2021/01/how-to-build-templates-in-aop/office-365-share-01.png" class="">
+
+<ul>
+<li>A new modal box pops up. Make sure to select the appropriate permissions (not critical that everyone can edit but does make it easy to share the link)</li>
+<li>Select <code>Copy link</code> and save this link somewhere<ul>
+<li>In my example the link is: <code>https://1drv.ms/w/s!AmD6WK_LJIvHq8xyy0JR-JT6ihJdPQ?e=xC88lZ</code></li>
+</ul>
+</li>
+</ul>
+<img src="/2021/01/how-to-build-templates-in-aop/office-365-share-02.png" class="">
+
+<ul>
+<li>Generate Embed URL<ul>
+<li>This will be used by your database to download the template file and send to AOP</li>
+<li>We’ll refer to this URL as the “Embed URL”</li>
+<li>Right click on the file and click <code>Embed</code></li>
+</ul>
+</li>
+</ul>
+<img src="/2021/01/how-to-build-templates-in-aop/office-365-embed-01.png" class="">
+
+<ul>
+<li>A new slider pops up on the right hand side. Click <code>Generate</code></li>
+</ul>
+<img src="/2021/01/how-to-build-templates-in-aop/office-365-embed-02.png" class="">
+
+<ul>
+<li>Copy the <code>iframe</code> HTML tag and save this link<ul>
+<li>In my example the HTML is: <code>&lt;iframe src=&quot;https://onedrive.live.com/embed?cid=C78B24CBAF58FA60&amp;resid=C78B24CBAF58FA60%21714354&amp;authkey=AKLKkXB0W5OfUZ4&amp;em=2&quot; width=&quot;476&quot; height=&quot;288&quot; frameborder=&quot;0&quot; scrolling=&quot;no&quot;&gt;&lt;/iframe&gt;</code></li>
+</ul>
+</li>
+</ul>
+<img src="/2021/01/how-to-build-templates-in-aop/office-365-embed-03.png" class="">
+
+
+
+<h3 id="APEX-Setup"><a href="#APEX-Setup" class="headerlink" title="APEX Setup"></a>APEX Setup</h3><p>Make sure that your APEX application has the latest <a href="http://www.apexofficeprint.com/docs/#apex-plug-in" target="_blank" rel="noopener">AOP plugins</a> installed. </p>
+<p>Create a new page with a new region. Add the following text page items (<em>Note: you can change to hidden later on / load from a table</em>)</p>
+<ul>
+<li><code>P3120_ONEDRIVE_EMBED_IFRAME</code></li>
+</ul>
+<p>In the region add the following in the <code>Source &gt; Text</code> box:</p>
+<p><code>&lt;div id=&quot;pdf&quot; data-aop-inline-pdf=&quot;onClick: Generate PDF&quot; style=&quot;width:100%;height:600px;&quot;&gt;&lt;/div&gt;</code></p>
+<img src="/2021/01/how-to-build-templates-in-aop/apex-setup-region.png" class="">
+
+
+<p>Create a new region button called <code>GENERATE_PDF</code></p>
+<ul>
+<li>Set the <code>Button Position</code> to <code>Edit</code></li>
+<li>Right click on the button and <code>Create Dynamic Action</code><ul>
+<li><code>Name</code>: <code>onClick: Generate PDF</code><ul>
+<li>Note: <strong>Do Not</strong> this name must match the <code>data-aop-inline-pdf</code> from the previous <code>div</code> tag</li>
+</ul>
+</li>
+<li>Add the following actions:<ul>
+<li><code>Execute Server Side Code</code><ul>
+<li>Items to Submit: <code>P3120_ONEDRIVE_EMBED_IFRAME</code></li>
+<li>PL/SQL Code:</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_download_url <span class="built_in">varchar2</span>(<span class="number">4000</span>);</span><br><span class="line">  l_blob blob;</span><br><span class="line">  l_file_name varchar2(4000);</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="comment">-- Need to replace ampersand with amp; for XML parsing</span></span><br><span class="line">  <span class="comment">-- Need to do in SQL as extractvalue not PL/SQL</span></span><br><span class="line">  <span class="keyword">select</span> <span class="keyword">replace</span>(extractvalue(<span class="keyword">xmltype</span>(<span class="keyword">replace</span>(:p3120_onedrive_embed_iframe, <span class="keyword">chr</span>(<span class="number">38</span>), <span class="keyword">chr</span>(<span class="number">38</span>) || <span class="string">'amp;'</span>)), <span class="string">'/iframe/@src'</span>), <span class="string">'embed'</span>, <span class="string">'download'</span>)</span><br><span class="line">  <span class="keyword">into</span> l_download_url</span><br><span class="line">  <span class="keyword">from</span> dual;</span><br><span class="line">  </span><br><span class="line"></span><br><span class="line">  <span class="comment">-- Need to download the blob here as AOP expects a filename in the URL. The Office downloads don't have that.</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">-- Download the file into a blob</span></span><br><span class="line">  l_blob := apex_web_service.make_rest_request_b(</span><br><span class="line">    p_url =&gt; l_download_url,</span><br><span class="line">    p_http_method =&gt; 'GET');</span><br><span class="line"></span><br><span class="line">  <span class="comment">-- Need to extract filename so that we can get the file extension</span></span><br><span class="line">  for i in 1.. apex_web_service.g_headers.count loop</span><br><span class="line">    if apex_web_service.g_headers(i).name = 'Content-Disposition' then</span><br><span class="line">      <span class="comment">-- Value will look like: attachment; filename="wo-test.docx"</span></span><br><span class="line">      l_file_name := trim('"' from  regexp_substr(apex_web_service.g_headers(i).value, '".*"'));</span><br><span class="line">      exit; <span class="comment">-- Don't need to parse headers anymore</span></span><br><span class="line">    <span class="keyword">end</span> <span class="keyword">if</span>;</span><br><span class="line">  <span class="keyword">end</span> <span class="keyword">loop</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">-- Store in Collection for retrieval from AOP</span></span><br><span class="line">  apex_collection.create_or_truncate_collection(</span><br><span class="line">    p_collection_name =&gt; 'AOP_TEMPLATE');</span><br><span class="line"></span><br><span class="line">  <span class="comment">-- Load</span></span><br><span class="line">  apex_collection.add_member(</span><br><span class="line">    p_collection_name =&gt; 'AOP_TEMPLATE',</span><br><span class="line">    p_c001 =&gt; l_file_name,</span><br><span class="line">    p_c002 =&gt; apex_string_util.get_file_extension(l_file_name),</span><br><span class="line">    p_blob001 =&gt; l_blob</span><br><span class="line">  );</span><br><span class="line"><span class="keyword">end</span>;</span><br></pre></td></tr></table></figure>
+
+<img src="/2021/01/how-to-build-templates-in-aop/apex-da-execute-plsql.png" class="">
+
+
+<ul>
+<li>Plugin: <code>UC - APEX Office Print (AOP) - DA [Plug-In]</code><ul>
+<li><em>Note: You’ll to have installed the AOP Plugins for this to show up in list</em></li>
+<li>Settings:<ul>
+<li>Template Type: <code>SQL</code></li>
+<li>Template Source:</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">  ac.c002 file_ext,</span><br><span class="line">  ac.blob001 blob_contents</span><br><span class="line"><span class="keyword">from</span> apex_collections ac</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> ac.collection_name = <span class="string">'AOP_TEMPLATE'</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li>Data Type: <code>SQL</code></li>
+<li>Data Source:</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Change this to reference you tables etc</span></span><br><span class="line"><span class="keyword">select</span></span><br><span class="line">  <span class="string">'demo'</span> <span class="keyword">as</span> <span class="string">"filename"</span>,</span><br><span class="line">  <span class="keyword">cursor</span>(</span><br><span class="line">    <span class="keyword">select</span> to_char(<span class="keyword">sysdate</span>, <span class="string">'DD-MON-YYYY'</span>) <span class="keyword">as</span> <span class="string">"today"</span></span><br><span class="line">    <span class="keyword">from</span> dual</span><br><span class="line">  ) <span class="keyword">as</span> <span class="string">"data"</span></span><br><span class="line"><span class="keyword">from</span> dual</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>Output Type: <code>PDF</code><ul>
+<li><em>Note you can change this to a different type of file later but for the preview in APEX, PDF is required</em></li>
+</ul>
+</li>
+<li>Output To: <code>Inline Region (pdf/html/md/txt only)</code><ul>
+<li><em>This is what will make the PDF show up in APEX</em></li>
+</ul>
+</li>
+</ul>
+<img src="/2021/01/how-to-build-templates-in-aop/apex-da-aop-plugin.png" class="">
+
+
+<p>Using the iFrame URL, users should be able to see the preview in APEX based on changes made in Office 365 (see video at top of article)</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/" data-id="ckk2lta3400gg01ny13hq0mp3" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/aop/" rel="tag">aop</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2020/11/sqldeveloper-in-macos-big-sur/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">SQLDeveloper in macOS Big Sur</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<section id="comments">
+  <div id="disqus_thread">
+    <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript" target="_blank" rel="noopener">comments powered by Disqus.</a></noscript>
+  </div>
+</section>
+</section>
+        
+          <aside id="sidebar">
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Martin Giffy D'Souza</h3>
+  <div class="widget aced">
+    <img src="/images/profile-martin.jpg" alt="">&nbsp;&nbsp;<a href="http://goo.gl/IOHra" target="_blank" rel="noopener"><img src="/images/aced-logo.gif" alt="" /></a>
+  </div>
+</div>
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Links</h3>
+  <div class="widget">
+    <ul>
+      <li><a id="sidebar-link-oos" href="https://github.com/oraopensource/" target="_blank">OraOpenSource</a></li>
+      <li><a id="sidebar-link-podcast" href="http://apex.press/talkshow" target="_blank">Oracle APEX Podcast</a></li>
+      <li><a id="sidebar-link-rss" href="/atom.xml">RSS Feed</a></li>
+      <li><a id="sidebar-link-email" href="mailto:martin@talkapex.com">Email me</a></li>
+      <li><a id="sidebar-link-twitter" href="https://twitter.com/martindsouza" target="_blank">Twitter</a></li>
+      <li><a id="sidebar-link-linkedin" href="http://www.linkedin.com/in/martingiffydsouza" target="_blank">LinkedIn</a></li>
+    </ul>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">157</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+    </div>
+  </div>
+
+
+  
+    <div class="widget-wrap">
+  <h3 class="widget-title">Books</h3>
+  <div class="widget">
+    <table class="books">
+      <tbody>
+        <tr>
+          <td><img src="/images/book-apex-plugins.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-5.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/089zi" target="_blank" rel="noopener">APEX Plugins</a></td>
+          <td><a href="http://bit.ly/talkapex-book-expert-2nd-ed" target="_blank" rel="noopener">Expert APEX 5</a></td>
+        </tr>
+        <tr>
+          <td><img src="/images/book-begin-apex-4.jpeg" alt=""></td>
+          <td><img src="/images/book-expert-apex-4.jpeg" alt=""></td>
+        </tr>
+        <tr>
+          <td><a href="http://goo.gl/NxHoF" target="_blank" rel="noopener">Beginning APEX 4</a></td>
+          <td><a href="http://goo.gl/tXm3P" target="_blank" rel="noopener">Expert APEX 4</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+    </div>
+  </div>
+
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2021 Martin Giffy D&#39;Souza<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+<script>
+  var disqus_shortname = 'talkapex';
+  
+  var disqus_url = 'http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/';
+  
+  (function(){
+    var dsq = document.createElement('script');
+    dsq.type = 'text/javascript';
+    dsq.async = true;
+    dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+    (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+  })();
+</script>
+
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+<!-- Google Analytics -->
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-8016477-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+<!-- End Google Analytics -->
+
+
+
+
+  </div>
+</body>
+</html>
