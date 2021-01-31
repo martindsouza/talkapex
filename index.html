@@ -68,6 +68,111 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-find-which-item-has-been-changed-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/01/how-to-find-which-item-has-been-changed-in-apex/" class="article-date">
+  <time datetime="2021-01-31T22:07:51.000Z" itemprop="datePublished">2021-01-31</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/01/how-to-find-which-item-has-been-changed-in-apex/">How to Find Which Item has Been Changed in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>I was recently developing an APEX page that had a lot of page items and a lot of Dynamic Actions (DA) on it. This is not usually a recommended approach (given that it can add complexity) but was justified given the business requirements. When testing the page I kept getting the <code>This page is asking you to confirm that you want to leave - data you have entered may not be saved.</code> when navigating away from the page despite not having explicitly changed any values. </p>
+<img src="/2021/01/how-to-find-which-item-has-been-changed-in-apex/warning-message.png" class="">
+
+<p>If you’re not too familiar with how this message works / is configured read <a href="/2021/01/apex-warn-on-unsaved-changes/" title="APEX: Warn on Unsaved Changes">APEX: Warn on Unsaved Changes</a></p>
+<p>I tried a few quick checks to see if I could isolate which page item was causing the issue but wasn’t able to easily find it. Instead I created a script to find out which page item had changed. Here is the script I created to find out which item(s) changed which is based on <a href="https://www.sitepoint.com/detect-html-form-changes/" target="_blank" rel="noopener">this</a> article:</p>
+<p><em>I’ve included a direct reference got Github Gist so that if updated it’ll be reflected here</em></p>
+<script src="https://gist.github.com/martindsouza/e03b97ca7ac25ba5d5286a647187bca6.js"></script>
+
+<p>A few notes / enhancements:</p>
+<ul>
+<li>Consider using <a href="https://docs.oracle.com/en/database/oracle/application-express/20.2/aexjs/item.html#isChanged" target="_blank" rel="noopener"><code>apex.item().isChanged()</code></a> syntax</li>
+<li>Could explicitly loop through all APEX page items using the undocumented function <a href="https://blog.neilfernandez.com/loop-through-all-page-items-in-apex/" target="_blank" rel="noopener"><code>apex.page.forEachPageItem</code></a> that <a href="https://twitter.com/neilbfernandez" target="_blank" rel="noopener">Neil Fernandez</a> wrote about</li>
+</ul>
+<p>Once I found the problem item I could easily resolve why it was changing and the warning didn’t show up any more. </p>
+<p>If you think there’s some additional elements that I should add to this list please update the <a href="https://gist.github.com/martindsouza/e03b97ca7ac25ba5d5286a647187bca6#file-apex-detect-changed-items-js" target="_blank" rel="noopener">Gist</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2021/01/how-to-find-which-item-has-been-changed-in-apex/" data-id="ckkl9azsd00iv01pd6lrwd5nd" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2021/01/how-to-find-which-item-has-been-changed-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-apex-warn-on-unsaved-changes" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/01/apex-warn-on-unsaved-changes/" class="article-date">
+  <time datetime="2021-01-31T21:07:51.000Z" itemprop="datePublished">2021-01-31</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/01/apex-warn-on-unsaved-changes/">APEX: Warn on Unsaved Changes</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When an user makes a change to a form (ex: updates their phone number) and tries to navigate away (ex: hit back button, close tab, etc) without saving their changes they’ll get the following warning message: <code>This page is asking you to confirm that you want to leave - data you have entered may not be saved.</code></p>
+<img src="/2021/01/apex-warn-on-unsaved-changes/warning-message.png" class="">
+
+<p>To configure this option at a page level modify the page attribute <code>Warn on Unsaved Changes</code></p>
+<img src="/2021/01/apex-warn-on-unsaved-changes/page-setting.png" class="">
+
+<p>In some cases some page items will be changed but users shouldn’t be warned about them. Usually these are items that you have to store “temporary data” to be used in Dynamic Actions. To ignore these page items from change warnings, modify the page item and set its <code>Warn on Unsaved Changes</code>:</p>
+<img src="/2021/01/apex-warn-on-unsaved-changes/item-setting.png" class="">
+
+<p><em>Follow up article: <a href="/2021/01/how-to-find-which-item-has-been-changed-in-apex/" title="How to Find Which Item has Been Changed in APEX">How to Find Which Item has Been Changed in APEX</a></em></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2021/01/apex-warn-on-unsaved-changes/" data-id="ckkl9azrx00iq01pdb6h07iuq" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2021/01/apex-warn-on-unsaved-changes/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/" class="article-date">
@@ -104,7 +209,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/" data-id="ckkl7qi4t00gg01pp2pk87otv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/" data-id="ckkl9azsf00ix01pddw39a6aj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -160,7 +265,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/" data-id="ckkl7qi5000gn01ppaltbejpt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/" data-id="ckkl9azsh00iz01pd4qi0210n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -211,7 +316,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/" data-id="ckkl7qi4y00gl01pp24rk9me5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/" data-id="ckkl9azs000it01pd78eu1g32" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -392,7 +497,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/" data-id="ckkl7qi4v00gi01pp6yt91gga" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/" data-id="ckkl9azrs00io01pdecra66yu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -444,7 +549,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/" data-id="ckkl7qi3s00fn01ppgcck13nz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/" data-id="ckkl9b04d00kt01pd53vaad4y" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -495,7 +600,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/" data-id="ckkl7qi3e00fc01pp2lxyfe1g" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/" data-id="ckkl9b04t00kv01pd5y1i40kh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -548,7 +653,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/apex-at-home/" data-id="ckkl7qi3o00fl01pp8q3x0o6x" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/03/apex-at-home/" data-id="ckkl9b03y00kn01pd8pcp7ebn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/03/apex-at-home/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -608,167 +713,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/apex-19-form-pl-sql-processing/" data-id="ckkl7qi3d00fa01pp49ptbsj5" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/03/apex-19-form-pl-sql-processing/" data-id="ckkl9b04900kr01pd7cgv5oyl" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/03/apex-19-form-pl-sql-processing/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-easily-reload-modal-pages-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/03/how-to-easily-reload-modal-pages-in-apex/" class="article-date">
-  <time datetime="2020-03-12T13:00:00.000Z" itemprop="datePublished">2020-03-12</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/03/how-to-easily-reload-modal-pages-in-apex/">How to Easily Reload Modal Pages in APEX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>If you’ve created a modal page in APEX you’ve inevitably run into the issue of needing to refresh a modal page after changing it. You can’t use the normal browser’s refresh button or use the keyboard shortcut <code>ctrl/cmd + r</code> as it refreshes the underlying page, not just the modal page. Instead you either need to close and reopen the modal page or right click and select the reload frame option as shown below:</p>
-<img src="/2020/03/how-to-easily-reload-modal-pages-in-apex/rclick-reload.png" class="">
-
-<p>Instead of struggling with the reload situation I usually create a “Modal Reload” button that will show up in all modal pages and only work in development environments. Here’s how to add one:</p>
-<p>On <code>Page 0</code>, add a region called <code>DEV_ONLY Modal</code>. The region will be automatically included on modal pages.</p>
-<ul>
-<li><code>Appearance &gt; Template: Blank with Attributes</code></li>
-<li><code>Configuration &gt; Build Option: DEV_ONLY</code><ul>
-<li>This assumes you have a <a href="http://www.grassroots-oracle.com/2010/06/oracle-apex-build-options.html" target="_blank" rel="noopener">Build Option</a> called <code>DEV_ONLY</code>. If not it’s fairly easy to create.</li>
-</ul>
-</li>
-<li><code>Server-side Condition &gt; Type: Rows Returned</code>. <code>SQL Query</code>:</li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">from</span> apex_application_pages aap</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> aap.application_id = :app_id</span><br><span class="line">  <span class="keyword">and</span> aap.page_id = :app_page_id</span><br><span class="line">  <span class="keyword">and</span> <span class="keyword">lower</span>(aap.page_mode) = <span class="string">'modal dialog'</span></span><br></pre></td></tr></table></figure>
-
-<p>Add a button to this region called <code>RELOAD_MODAL</code>:</p>
-<ul>
-<li><code>Button Name: RELOAD_MODAL</code></li>
-<li>Behavior<ul>
-<li><code>Action: Redirect to URL</code></li>
-<li>Target<ul>
-<li><code>Type: URL</code></li>
-<li><code>URL: javascript:location.reload();</code></li>
-</ul>
-</li>
-</ul>
-</li>
-<li>Optional (that I used for this demo)<ul>
-<li><code>Button Template: Text with Icon</code></li>
-<li><code>Template Options &gt; Type: Warning</code></li>
-<li><code>Icon: fa-refresh</code></li>
-</ul>
-</li>
-</ul>
-<p>Demo of the Reload button in action</p>
-<img src="/2020/03/how-to-easily-reload-modal-pages-in-apex/reaload-button.gif" class="">
-
-
-<p><strong>Update</strong> (moving the button to the button bar)</p>
-<p>The screenshots and demo above all show the Reload button at the top of the page. This changes the UI behavior in dev. To move it to the modal button bar, on Page 0 do the following:</p>
-<ul>
-<li>Add a new DA: <code>DEV_ONLY: onPageLoad</code><ul>
-<li>Event: Page Load</li>
-<li>Action: Execute JavaScript Code<ul>
-<li>Affected Elements<ul>
-<li>Selection Type: <code>Button</code></li>
-<li>Button: <code>RELOAD_MODAL</code></li>
-<li>JavaScript Code:</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Bottom left button container</span></span><br><span class="line"><span class="keyword">var</span> btnContainer = $(<span class="string">'.t-Dialog-footer'</span>).find(<span class="string">'.t-ButtonRegion-col--left &gt; .t-ButtonRegion-buttons'</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// Move to button container</span></span><br><span class="line"><span class="keyword">this</span>.affectedElements.appendTo(btnContainer);</span><br></pre></td></tr></table></figure>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/how-to-easily-reload-modal-pages-in-apex/" data-id="ckkl7qi3700f701ppabuf4elg" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2020/03/how-to-easily-reload-modal-pages-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-share-sqlcl-aliases" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/03/how-to-share-sqlcl-aliases/" class="article-date">
-  <time datetime="2020-03-11T09:46:00.000Z" itemprop="datePublished">2020-03-11</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/03/how-to-share-sqlcl-aliases/">How to Share SQLcl Aliases</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><a href="https://www.oracle.com/ca-en/database/technologies/appdev/sqlcl.html" target="_blank" rel="noopener">SQLcl</a> supports <a href="https://docs.oracle.com/en/database/oracle/sql-developer-command-line/19.2/sqcug/working-sqlcl.html#GUID-0EF19838-E7C0-481B-8B09-202DF8277C65" target="_blank" rel="noopener">aliases</a> which can save a lot of time when running the same queries or scripts by not having to type them each time. A simple example of an aliases is to show the current date. Instead of having to type <code>select sysdate from dual;</code> each time you could do this:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Only do this once</span></span><br><span class="line">alias today=</span><br><span class="line">  <span class="keyword">select</span> <span class="keyword">sysdate</span></span><br><span class="line">  <span class="keyword">from</span> dual</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- To run it just type: today</span></span><br><span class="line"></span><br><span class="line">SQL&gt; today</span><br><span class="line">     SYSDATE</span><br><span class="line">____________</span><br><span class="line">11-MAR-20</span><br></pre></td></tr></table></figure>
-
-<p><em>If you are new to SQLcl aliases or the concept of <code>login.sql</code> (which runs each time SQLcl is launched) I suggest reading the following articles before continuing with this article.</em></p>
-<ul>
-<li><em><a href="https://www.thatjeffsmith.com/archive/2015/11/object-search-in-sqlcl/" target="_blank" rel="noopener">Intro to aliases by Jeff Smith</a></em></li>
-<li><a href="/2015/05/sqlcl-and-loginsql/" title="login.sql">login.sql</a>
-
-
-</li>
-</ul>
-<p>If you use multiple machines or want to share aliases you may think you’re limited to sending code snippets to people or blogging about them. Luckily SQLcl can reference files stored on the web! I’ve posted some of my SQLcl aliases on Github <a href="https://github.com/martindsouza/oracle-sqlcl" target="_blank" rel="noopener">here</a>. To load them just run <a href="https://raw.githubusercontent.com/martindsouza/oracle-sqlcl/master/aliases.sql" target="_blank" rel="noopener"><code>@https://raw.githubusercontent.com/martindsouza/oracle-sqlcl/master/aliases.sql</code></a> in SQLcl. If you want to constantly get an updated version of these aliases just add the line above to your <code>login.sql</code> file. I’m currently working on fine tuning my SQLcl aliases and will keep Github file up to date.</p>
-<p>One example of a alias I have is called <code>invalid</code> which lists all invalid objects in your schema. Example:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">SQL&gt; invalid</span><br><span class="line">                OBJECT_NAME     OBJECT_TYPE</span><br><span class="line">___________________________ _______________</span><br><span class="line">BIU_OOW_DEMO_EVENT_LOG      TRIGGER</span><br><span class="line">BI_OOW_DEMO_HIST_GEN_LOG    TRIGGER</span><br><span class="line">EBA_DEMO_IG_TEXT_PKG        PACKAGE BODY</span><br><span class="line">OOW_DEMO_GEN_DATA_PKG       PACKAGE BODY</span><br><span class="line">OOW_DEMO_PREFERENCES_BIU    TRIGGER</span><br><span class="line">PKG_ORDS                    PACKAGE BODY</span><br><span class="line">PKG_ORDS                    PACKAGE</span><br></pre></td></tr></table></figure>
-
-<p>Some closing thoughts:</p>
-<ul>
-<li>If referencing other people’s aliases (via the web / <code>.sql</code> file) be careful to either review the file or ensure it comes from a trusted source as malicious code could be easily added.</li>
-<li>Instead of having a lot of content in your <code>login.sql</code> file you can keep it to one line (referencing a file on Github for example) and keep the Github file updated with everything. This way if you change machines or use multiple machines they’ll all have the same experience.</li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/how-to-share-sqlcl-aliases/" data-id="ckkl7qi3500f501pp3wv672x3" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2020/03/how-to-share-sqlcl-aliases/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a></li></ul>
 
     </footer>
   </div>
@@ -815,7 +765,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">159</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">161</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -852,7 +802,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

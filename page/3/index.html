@@ -68,6 +68,123 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-docker-for-oracle-sql-plus" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/02/docker-for-oracle-sql-plus/" class="article-date">
+  <time datetime="2020-02-15T01:19:32.000Z" itemprop="datePublished">2020-02-14</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/02/docker-for-oracle-sql-plus/">Docker for Oracle SQL*Plus</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>This article is part of a series on using Docker for CLI tools. You can read the original article <a href="/2020/01/using-docker-for-cli-applications/" title="here">here</a>.</em></p>
+<p>Oracle SQL*Plus is the Command Line (CLI) tool to connect to Oracle. It is part of the <a href="https://www.oracle.com/ca-en/database/technologies/instant-client.html" target="_blank" rel="noopener">Oracle Instant Client</a> set of tools. I’ve always found the installation process to be cumbersome as it requires a few steps (not a straight install or base executable like <a href="https://www.oracle.com/ca-en/database/technologies/appdev/sqlcl.html" target="_blank" rel="noopener">SQLcl</a>).</p>
+<p>Oracle has made the Instant Client files now available on a pre-built Docker image. This article covers how to download the Docker image and use it to run SQl*Plus in a container rather than a local install.</p>
+<h2 id="Accept-License-Agreements"><a href="#Accept-License-Agreements" class="headerlink" title="Accept License Agreements"></a>Accept License Agreements</h2><p>Oracle has its own <a href="https://container-registry.oracle.com" target="_blank" rel="noopener">container registry</a>. Before using any of their pre-built images you must accept the license agreements (this only has to be done once).</p>
+<ul>
+<li>Go to <a href="https://container-registry.oracle.com" target="_blank" rel="noopener">container registry</a></li>
+<li>Search for <code>instantclient</code> (all one word)<ul>
+<li>Select the <code>instantclient</code> link</li>
+</ul>
+</li>
+<li>Sign In (image below) and accept the license agreements</li>
+</ul>
+<img src="/2020/02/docker-for-oracle-sql-plus/oracle-container-registry.png" class="">
+
+
+<h2 id="Docker-Login-to-Oracle’s-Container-Registry"><a href="#Docker-Login-to-Oracle’s-Container-Registry" class="headerlink" title="Docker Login to Oracle’s Container Registry"></a>Docker Login to Oracle’s Container Registry</h2><p>In your terminal run: </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker login container-registry.oracle.com</span><br></pre></td></tr></table></figure>
+
+<p>You will be required to enter in your Oracle SSO login credentials (only need to do this once).</p>
+<h2 id="Setup-sqlplus-alias"><a href="#Setup-sqlplus-alias" class="headerlink" title="Setup sqlplus alias"></a>Setup <code>sqlplus</code> alias</h2><p>In <code>~/.bash_profile</code> or <code>~/.zshrc</code> add the following alias</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> sqlplus=<span class="string">'docker run -it --rm \</span></span><br><span class="line"><span class="string">  -e ORACLE_PATH=/oracle/ \</span></span><br><span class="line"><span class="string">  -e TNS_ADMIN=\$TNS_ADMIN \</span></span><br><span class="line"><span class="string">  -w /myhost \</span></span><br><span class="line"><span class="string">  --network="host" \</span></span><br><span class="line"><span class="string">  -v ~/Documents/Oracle/:/oracle/ \</span></span><br><span class="line"><span class="string">  -v `pwd`:/myhost \</span></span><br><span class="line"><span class="string">  container-registry.oracle.com/database/instantclient:latest \</span></span><br><span class="line"><span class="string">  sqlplus '</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Run-SQL-Plus"><a href="#Run-SQL-Plus" class="headerlink" title="Run SQL*Plus"></a>Run SQL*Plus</h2><p>Start a new terminal (so the alias is registered) and just run <code>sqlplus</code> as you normally would. </p>
+<h2 id="Considerations"><a href="#Considerations" class="headerlink" title="Considerations"></a>Considerations</h2><p>The current image from Oracle is using Instant Client <code>12.2.0.1.0</code> where as at the time of writing the most current version is <code>19.3.0.0.0</code>. If you want to build your own image so you can run the latest version, you can use Oracle’s <a href="https://github.com/oracle/docker-images/tree/master/OracleInstantClient" target="_blank" rel="noopener">Docker Image files</a> (just search for the version you want). </p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2020/02/docker-for-oracle-sql-plus/" data-id="ckkl9b01a00jx01pdbtyfgf7c" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2020/02/docker-for-oracle-sql-plus/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-docker-image-for-oracle-sqlcl" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/02/docker-image-for-oracle-sqlcl/" class="article-date">
+  <time datetime="2020-02-01T12:11:00.000Z" itemprop="datePublished">2020-02-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/02/docker-image-for-oracle-sqlcl/">Docker Image for Oracle SQLcl</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><em>This article is part of a series on using Docker for CLI tools. You can read the original article <a href="/2020/01/using-docker-for-cli-applications/" title="here">here</a>.</em></p>
+<p>Oracle <a href="https://www.oracle.com/ca-en/database/technologies/appdev/sqlcl.html" target="_blank" rel="noopener">SQLcl</a> is the new command line (CLI) tool for connecting to the database. I prefer to use it instead of SQL*Plus as it has a lot of new features and is constantly upgraded.</p>
+<p>SQLcl is fairly easy to install. Just download and unzip the file then you can run it. The caveat is that it requires Java Runtime Engine (JRE) 8. For most people the JRE dependency isn’t an issue but for some it may cause problems. </p>
+<p>I built a Docker image for SQLcl and it is available on <a href="https://github.com/martindsouza/docker-oracle-sqlcl" target="_blank" rel="noopener">Github</a>. The catch is that you need to clone the repo and build the image yourself (due to Oracle licensing restrictions). If this changes in the future I’ll update the repo so a Docker image is available on <a href="https://hub.docker.com/" target="_blank" rel="noopener">Docker Hub</a>.</p>
+<p>The Github page covers how to clone and setup the <code>alias</code> to run SQLcl via a Docker container. A demo of it in action is included below. A few notes about the demo:</p>
+<ul>
+<li>The initial command <code>docker ps |grep sql</code> shows all the active docker containers</li>
+<li>SQLcl is run via a bash alias (<em>see <a href="https://github.com/martindsouza/docker-oracle-sqlcl" target="_blank" rel="noopener">Github</a> instructions for how to do this</em>).<ul>
+<li>It kicks off my local <code>login.sql</code> script that is on my laptop (not on the docker container).</li>
+</ul>
+</li>
+<li><code>docker ps |grep sql</code> is run again (in different terminal) to show that SQLcl is actually being run as a Docker container</li>
+</ul>
+<img src="/2020/02/docker-image-for-oracle-sqlcl/docker-sqlcl.gif" class="">
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2020/02/docker-image-for-oracle-sqlcl/" data-id="ckkl9b01p00jz01pdfyl0cwyg" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2020/02/docker-image-for-oracle-sqlcl/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-using-docker-for-cli-applications" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2020/01/using-docker-for-cli-applications/" class="article-date">
@@ -117,7 +234,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/01/using-docker-for-cli-applications/" data-id="ckkl7qi2h00eh01pp4au1ci7i" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/01/using-docker-for-cli-applications/" data-id="ckkl9b00900js01pd77yw9gq0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/01/using-docker-for-cli-applications/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -184,7 +301,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/01/how-to-stage-part-of-a-file-in-git/" data-id="ckkl7qi2900ec01pp5b5o0rro" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/01/how-to-stage-part-of-a-file-in-git/" data-id="ckkl9b00i00ju01pdavho1718" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/01/how-to-stage-part-of-a-file-in-git/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -249,7 +366,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/" data-id="ckkl7qi2600ea01ppfdph5643" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/" data-id="ckkl9azzb00jq01pdgikpalnu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -307,7 +424,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ckkl7qi4o00gc01pp1mg25ehh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ckkl9azyt00jm01pd7a2afjtn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -353,7 +470,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ckkl7qi4k00ga01pp0oq537qg" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ckkl9azyp00jk01pdewyn54yj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -411,7 +528,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="ckkl7qi4e00g401pp9yh80gvp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="ckkl9azym00ji01pd6hlmag8s" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -488,7 +605,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="ckkl7qi4q00ge01ppeo72ex1p" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="ckkl9azz300jo01pd13rfhym2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -550,130 +667,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="ckkl7qi4h00g801pp7qted5os" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="ckkl9azxh00je01pdbvei7u53" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-execute-queries-in-sql-developer" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/02/how-to-execute-queries-in-sql-developer/" class="article-date">
-  <time datetime="2019-02-28T04:12:55.000Z" itemprop="datePublished">2019-02-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/02/how-to-execute-queries-in-sql-developer/">How to Execute Queries in SQL Developer</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>They’re certain things in life that absolutely drive me crazy. I can probably start an entire blog on this topic but instead will focus on something I see many developers do in <a href="https://www.oracle.com/database/technologies/appdev/sql-developer.html" target="_blank" rel="noopener">SQL Developer</a>.</p>
-<p>Unfortunately I’ve see a lot of developers run their queries using a mouse instead of a keyboard shortcut (note no semicolon between queries) as demonstrated below:</p>
-<img src="/2019/02/how-to-execute-queries-in-sql-developer/sqldev-inefficient.gif" class="">
-
-<p>You’ll notice that my second query had an error with it so I had to select it again, then click the run button to execute it.</p>
-<p>At first glance this may not seem like a big deal however if you run hundreds of queries a day that are much longer than two lines the inefficiencies really start to add up. With the use of the right syntax you can execute everything in SQL Developer via keyboard shortcuts. In the example below everything is run using <code>ctrl+enter</code></p>
-<img src="/2019/02/how-to-execute-queries-in-sql-developer/sqldev-correct.gif" class="">
-
-<p>The syntax structure that you need to use is very simple:</p>
-<ul>
-<li>After every query have a semicolon (<code>;</code>)</li>
-<li>After every PL/SQL block end with a semicolon (<code>;</code>) and then a forward slash (<code>/</code>)</li>
-</ul>
-<p>The following code sample is what was used in the second demo:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> *</span><br><span class="line"><span class="keyword">from</span> emp</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> *</span><br><span class="line"><span class="keyword">from</span> dept</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  dbms_output.put_line(<span class="string">'hello'</span>);</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="ckkl7qi4g00g601ppbsye84cv" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-disable-an-apex-application-during-a-release" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/02/how-to-disable-an-apex-application-during-a-release/" class="article-date">
-  <time datetime="2019-02-28T03:42:09.000Z" itemprop="datePublished">2019-02-27</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/02/how-to-disable-an-apex-application-during-a-release/">How to Disable an APEX Application During a Release</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>All my releases are done via scripts. In other words I don’t deploy APEX applications from the browser, rather straight from <a href="https://www.oracle.com/ca-en/database/technologies/appdev/sqlcl.html" target="_blank" rel="noopener">SQLcl</a>. Since some of my releases can take a while and puts the code in an unstable state I usually disable the application for the duration of the release. This article will show how to disable an APEX application in PL/SQL.</p>
-<p>You can manually disable an application via <code>Shared Components &gt; Application Definition &gt; Availability &gt; Status</code>:</p>
-<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/status-options.png" class="">
-
-<p>When setting the <code>Status</code> to <code>Unavailable</code> it will look like this for users:</p>
-<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/disabled-app.png" class="">
-
-<p>Note: they’re various status options which allow you to determine how to define the status message.</p>
-<p>Going back to releases, the overall order things occur in are:</p>
-<ol>
-<li>Disable APEX application</li>
-<li>Run release (DDL, DML, etc)</li>
-<li>Update APEX application (this will clear the disabled setting that was manually done in the first step.</li>
-</ol>
-<p>PL/SQL code to disable an APEX application:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_app_id apex_applications.application_id%<span class="keyword">type</span> := <span class="number">102</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="comment">-- Pre APEX 18.x</span></span><br><span class="line">  <span class="comment">-- oos_util_apex.create_session(</span></span><br><span class="line">  <span class="comment">--   p_app_id =&gt; l_app_id,</span></span><br><span class="line">  <span class="comment">--   p_user_name =&gt; 'RELEASE'</span></span><br><span class="line">  <span class="comment">-- );</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">-- APEX 18.x +</span></span><br><span class="line">  apex_session.create_session (</span><br><span class="line">    p_app_id =&gt; l_app_id,</span><br><span class="line">    p_page_id =&gt; <span class="number">1</span>,</span><br><span class="line">    p_username =&gt; <span class="string">'RELEASE'</span>);</span><br><span class="line"></span><br><span class="line">  apex_util.set_application_status(</span><br><span class="line">    p_application_id =&gt; l_app_id,</span><br><span class="line">    p_application_status =&gt; 'UNAVAILABLE',</span><br><span class="line">    p_unavailable_value =&gt; 'Updating application');</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">commit</span>;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
-
-<p>If using a version lower than APEX 18.x you’ll need to install <a href="https://github.com/OraOpenSource/oos-utils" target="_blank" rel="noopener">OOS Utils</a> to create an APEX session in SQL. </p>
-<p>Before running the above code you’ll need to enable the runtime API by going to <code>Shared Components &gt; Security Attributes &gt; Database Session &gt; Runtime API Usage</code> and check <code>Modify This Application</code>.</p>
-<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/runtime-api.png" class="">
-
-<p>Documention for <a href="https://docs.oracle.com/database/apex-18.1/AEAPI/SET_APPLICATION_STATUS-Procedure.htm#AEAPI-GUID-59E0FE99-8911-41B3-823A-36D4C705ACA4" target="_blank" rel="noopener"><code>apex_util.set_application_status</code></a>.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="ckkl7qi4700fy01pp6jrmayef" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
@@ -723,7 +719,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">159</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">161</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -760,7 +756,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

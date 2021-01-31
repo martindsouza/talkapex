@@ -68,6 +68,127 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-execute-queries-in-sql-developer" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/02/how-to-execute-queries-in-sql-developer/" class="article-date">
+  <time datetime="2019-02-28T04:12:55.000Z" itemprop="datePublished">2019-02-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/02/how-to-execute-queries-in-sql-developer/">How to Execute Queries in SQL Developer</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>They’re certain things in life that absolutely drive me crazy. I can probably start an entire blog on this topic but instead will focus on something I see many developers do in <a href="https://www.oracle.com/database/technologies/appdev/sql-developer.html" target="_blank" rel="noopener">SQL Developer</a>.</p>
+<p>Unfortunately I’ve see a lot of developers run their queries using a mouse instead of a keyboard shortcut (note no semicolon between queries) as demonstrated below:</p>
+<img src="/2019/02/how-to-execute-queries-in-sql-developer/sqldev-inefficient.gif" class="">
+
+<p>You’ll notice that my second query had an error with it so I had to select it again, then click the run button to execute it.</p>
+<p>At first glance this may not seem like a big deal however if you run hundreds of queries a day that are much longer than two lines the inefficiencies really start to add up. With the use of the right syntax you can execute everything in SQL Developer via keyboard shortcuts. In the example below everything is run using <code>ctrl+enter</code></p>
+<img src="/2019/02/how-to-execute-queries-in-sql-developer/sqldev-correct.gif" class="">
+
+<p>The syntax structure that you need to use is very simple:</p>
+<ul>
+<li>After every query have a semicolon (<code>;</code>)</li>
+<li>After every PL/SQL block end with a semicolon (<code>;</code>) and then a forward slash (<code>/</code>)</li>
+</ul>
+<p>The following code sample is what was used in the second demo:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> *</span><br><span class="line"><span class="keyword">from</span> emp</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> *</span><br><span class="line"><span class="keyword">from</span> dept</span><br><span class="line">;</span><br><span class="line"></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  dbms_output.put_line(<span class="string">'hello'</span>);</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="ckkl9azx200j901pd3tufdqdc" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-how-to-disable-an-apex-application-during-a-release" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/02/how-to-disable-an-apex-application-during-a-release/" class="article-date">
+  <time datetime="2019-02-28T03:42:09.000Z" itemprop="datePublished">2019-02-27</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/02/how-to-disable-an-apex-application-during-a-release/">How to Disable an APEX Application During a Release</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>All my releases are done via scripts. In other words I don’t deploy APEX applications from the browser, rather straight from <a href="https://www.oracle.com/ca-en/database/technologies/appdev/sqlcl.html" target="_blank" rel="noopener">SQLcl</a>. Since some of my releases can take a while and puts the code in an unstable state I usually disable the application for the duration of the release. This article will show how to disable an APEX application in PL/SQL.</p>
+<p>You can manually disable an application via <code>Shared Components &gt; Application Definition &gt; Availability &gt; Status</code>:</p>
+<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/status-options.png" class="">
+
+<p>When setting the <code>Status</code> to <code>Unavailable</code> it will look like this for users:</p>
+<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/disabled-app.png" class="">
+
+<p>Note: they’re various status options which allow you to determine how to define the status message.</p>
+<p>Going back to releases, the overall order things occur in are:</p>
+<ol>
+<li>Disable APEX application</li>
+<li>Run release (DDL, DML, etc)</li>
+<li>Update APEX application (this will clear the disabled setting that was manually done in the first step.</li>
+</ol>
+<p>PL/SQL code to disable an APEX application:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_app_id apex_applications.application_id%<span class="keyword">type</span> := <span class="number">102</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="comment">-- Pre APEX 18.x</span></span><br><span class="line">  <span class="comment">-- oos_util_apex.create_session(</span></span><br><span class="line">  <span class="comment">--   p_app_id =&gt; l_app_id,</span></span><br><span class="line">  <span class="comment">--   p_user_name =&gt; 'RELEASE'</span></span><br><span class="line">  <span class="comment">-- );</span></span><br><span class="line"></span><br><span class="line">  <span class="comment">-- APEX 18.x +</span></span><br><span class="line">  apex_session.create_session (</span><br><span class="line">    p_app_id =&gt; l_app_id,</span><br><span class="line">    p_page_id =&gt; <span class="number">1</span>,</span><br><span class="line">    p_username =&gt; <span class="string">'RELEASE'</span>);</span><br><span class="line"></span><br><span class="line">  apex_util.set_application_status(</span><br><span class="line">    p_application_id =&gt; l_app_id,</span><br><span class="line">    p_application_status =&gt; 'UNAVAILABLE',</span><br><span class="line">    p_unavailable_value =&gt; 'Updating application');</span><br><span class="line">  </span><br><span class="line">  <span class="keyword">commit</span>;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+<p>If using a version lower than APEX 18.x you’ll need to install <a href="https://github.com/OraOpenSource/oos-utils" target="_blank" rel="noopener">OOS Utils</a> to create an APEX session in SQL. </p>
+<p>Before running the above code you’ll need to enable the runtime API by going to <code>Shared Components &gt; Security Attributes &gt; Database Session &gt; Runtime API Usage</code> and check <code>Modify This Application</code>.</p>
+<img src="/2019/02/how-to-disable-an-apex-application-during-a-release/runtime-api.png" class="">
+
+<p>Documention for <a href="https://docs.oracle.com/database/apex-18.1/AEAPI/SET_APPLICATION_STATUS-Procedure.htm#AEAPI-GUID-59E0FE99-8911-41B3-823A-36D4C705ACA4" target="_blank" rel="noopener"><code>apex_util.set_application_status</code></a>.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="ckkl9azy400jg01pdbenqb73h" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-how-to-intercept-interactive-report-save-and-delete-functions-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" class="article-date">
@@ -103,7 +224,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="ckkl7qi4a00g001pp0c2u1g4v" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="ckkl9azxc00jb01pd716wgbpv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -154,7 +275,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="ckkl7qi4400fv01ppde9dbcub" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="ckkl9azwi00j601pddofgb36n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -204,7 +325,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/" data-id="ckkl7qi4c00g201pp13lh58ml" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/" data-id="ckkl9azw400j401pda7pq8f4s" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -275,7 +396,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/" data-id="ckkl7qi4100ft01pp48rkclew" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/" data-id="ckkl9azu800j201pdb0lz62b9" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/5-chrome-dev-tools-for-apex-developers/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -321,7 +442,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/10/oracle-xe-18-docker-image/" data-id="ckkl7qi0d00cp01pp6ixa1xz4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/10/oracle-xe-18-docker-image/" data-id="ckkl9azr200ic01pd4ezdac2x" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/10/oracle-xe-18-docker-image/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -386,7 +507,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/" data-id="ckkl7qi0e00cr01ppdjiredbz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/" data-id="ckkl9azqu00i801pdbkwnffuc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/10/ansi-join-left-join-with-an-inner-join/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -440,7 +561,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/" data-id="ckkl7qi0400ch01ppblsaa2fx" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/" data-id="ckkl9azqq00i401pde8pd7c9k" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/08/oracle-constraint-so-only-one-of-several-columns-has-a-value/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -494,127 +615,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" data-id="ckkl7qi0b00cm01pp0fam7oof" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/" data-id="ckkl9azqs00i601pd2tycguid" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/07/exporting-apex-application-in-sqlcl-with-build-status-override/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" class="article-date">
-  <time datetime="2018-05-16T04:36:15.000Z" itemprop="datePublished">2018-05-15</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/">One Thing You Need To Do Before Calling apex_web_service.make_rest_request</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Can you spot the bug in the following code? (<em>Hint: it compiles and no run-time errors</em>)</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- ...</span></span><br><span class="line">l_json := apex_web_service.make_rest_request(</span><br><span class="line">  p_url =&gt; 'http://someurl.com/data',</span><br><span class="line">  p_http_method =&gt; 'GET'</span><br><span class="line">);</span><br><span class="line"><span class="comment">-- ...</span></span><br></pre></td></tr></table></figure>
-
-<p>It’s not so obvious until I expose the code that preceded it. So let’s try this again (with more information). Can you spot the bug in the following code?</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- ...</span></span><br><span class="line">apex_web_service.g_request_headers(1).name := 'Authorization';</span><br><span class="line">apex_web_service.g_request_headers(1).value := 'Bearer token123';</span><br><span class="line">l_json := apex_web_service.make_rest_request(</span><br><span class="line">  p_url =&gt; 'http://a-differnt-url.com/data',</span><br><span class="line">  p_http_method =&gt; 'GET'</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">l_json := apex_web_service.make_rest_request(</span><br><span class="line">  p_url =&gt; 'http://someurl.com/data',</span><br><span class="line">  p_http_method =&gt; 'GET'</span><br><span class="line">);</span><br><span class="line"><span class="comment">-- ...</span></span><br></pre></td></tr></table></figure>
-
-<p>The issue with the second call to <code>apex_web_service.make_rest_request</code> is that it will use the request headers that were set for the first call (to <code>a-differnt-url.com</code>). If the second web service (<code>someurl.com</code>) doesn’t want/need/expect that header it can cause some unintended issues and may result in an invalid RESTful call.</p>
-<p>To get around this simply clear the request headers each time before setting them / calling <code>apex_web_service.make_rest_request</code>. You can do this by calling <code>apex_web_service.g_request_headers.delete();</code> The following code is the correct way to run the previous example:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- ...</span></span><br><span class="line">apex_web_service.g_request_headers.delete();</span><br><span class="line">apex_web_service.g_request_headers(1).name := 'Authorization';</span><br><span class="line">apex_web_service.g_request_headers(1).value := 'Bearer token123';</span><br><span class="line">l_json := apex_web_service.make_rest_request(</span><br><span class="line">  p_url =&gt; 'http://a-differnt-url.com/data',</span><br><span class="line">  p_http_method =&gt; 'GET'</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line">apex_web_service.g_request_headers.delete();</span><br><span class="line">l_json := apex_web_service.make_rest_request(</span><br><span class="line">  p_url =&gt; 'http://someurl.com/data',</span><br><span class="line">  p_http_method =&gt; 'GET'</span><br><span class="line">);</span><br><span class="line"><span class="comment">-- ...</span></span><br></pre></td></tr></table></figure>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/" data-id="ckkl7qhzv00c801pp8kjued3r" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2018/05/one-thing-you-need-to-do-before-calling-apex-web-service-make-rest-request/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-page-item-source-vs-default" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2018/04/apex-page-item-source-vs-default/" class="article-date">
-  <time datetime="2018-04-05T04:50:45.000Z" itemprop="datePublished">2018-04-04</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2018/04/apex-page-item-source-vs-default/">APEX Page Item Source vs Default</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Someone recently asked me about the difference between an APEX page item’s <code>Source</code>  and <code>Default</code> attributes. I’ve always been confused about these options so I decided to further investigate them. This post will cover the differences between Source and Default along with some additional info.</p>
-<img src="/2018/04/apex-page-item-source-vs-default/source-default.png" class="">
-
-<h2 id="Order-of-Operations"><a href="#Order-of-Operations" class="headerlink" title="Order of Operations"></a>Order of Operations</h2><p>Page items can be set in different ways and there is an order of operations to which “setting” takes precedence:</p>
-<ol>
-<li><strong>Session State</strong>: What ever is in session state will always trump the page item’s Source or Default settings_*_</li>
-<li><strong>Source</strong>: Source comes next. For most people this is <code>null</code> or <code>Database Column</code> (if using <code>Automatic Row Fetch</code>)</li>
-<li><strong>Default</strong>: If the page item is still null then Default will be used. This attribute doesn’t have as many options as Source (just <code>Static Value</code>, <code>PL/SQL Expression</code>, and <code>PL/SQL Function Body</code>)</li>
-</ol>
-<p><em>* The Source attribute has an option to ignore the current session state value.</em></p>
-<h2 id="Session-State-vs-On-Screen"><a href="#Session-State-vs-On-Screen" class="headerlink" title="Session State vs On Screen"></a>Session State vs On Screen</h2><p>Neither Source or Default saves the value to session state_*_. Instead it is what is shown on screen. If Source or Default is used the value will only be saved to session state once the page is submitted.</p>
-<p><em>* Read below as the value is temporarily used in session state for the remaining duration of the page load.</em></p>
-<h2 id="Additional-Info"><a href="#Additional-Info" class="headerlink" title="Additional Info"></a>Additional Info</h2><h3 id="Is-Default-always-Necessary"><a href="#Is-Default-always-Necessary" class="headerlink" title="Is Default always Necessary?"></a>Is Default always Necessary?</h3><p>I think a lot of the confusion with Source and Default is that in some cases Default is redundant and unnecessary. I think Default is only required when the Source is set to <code>Database Column</code>, <code>Item</code>, or <code>Preference</code>. For the other options (see below) you can wrap the returned value with a <code>nvl</code>.</p>
-<img src="/2018/04/apex-page-item-source-vs-default/source-types.png" class="">
-
-<h3 id="Source-Used-Attribute"><a href="#Source-Used-Attribute" class="headerlink" title="Source Used Attribute"></a>Source <code>Used</code> Attribute</h3><p>Source has additional attribute that Default does not: <code>Used</code></p>
-<img src="/2018/04/apex-page-item-source-vs-default/source-used.png" class="">
-
-<p>If the <code>used</code> option is set to <code>Always, replacing any existing value in session state</code> this means that after the page has loaded the value in Session State may have a value that is different than the value that is shown on the screen. The following image shows the result of this situation (i.e. different session state vs on screen value).</p>
-<img src="/2018/04/apex-page-item-source-vs-default/session-source-diff.png" class="">
-
-<h3 id="Temporary-Change-of-Session-State"><a href="#Temporary-Change-of-Session-State" class="headerlink" title="Temporary Change of Session State"></a>Temporary Change of Session State</h3><p>Suppose that a <code>Before Header</code> computation exists and sets <code>P1_DEMO</code> to a static value: <code>From Computation</code>. This means that during page load, right after the computation is run, the session state value for <code>P1_DEMO</code> is <code>From Computation</code>. </p>
-<p><code>P1_DEMO</code> Source is set to <code>From Source</code> and <code>Always, replacing any existing value in session state</code> is used. After <code>P1_DEMO</code> is “loaded” during the page load computation, the session state of <code>P1_DEMO</code> is <code>From Source</code> for the duration of the page load. After the page is loaded the session state value is <code>From Computation</code>. The following image highlights this. For both the <code>Before</code> and <code>After</code> display only items the Source was set to <code>&amp;P1_DEMO.</code></p>
-<img src="/2018/04/apex-page-item-source-vs-default/session-state-temp-change.png" class="">
-
-<p>This can cause some weird behaviors on a page that has AJAX calls. The value in session state changes during the page load process. After the page is loaded it may flip flop and the AJAX call could use the “old” session state value (see screen shot above).</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/" data-id="ckkl7qi0300cf01ppbgo87pqr" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2018/04/apex-page-item-source-vs-default/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -661,7 +667,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">159</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">161</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -698,7 +704,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
