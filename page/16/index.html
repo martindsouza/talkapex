@@ -68,6 +68,65 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-and-winner-is" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2013/03/and-winner-is/" class="article-date">
+  <time datetime="2013-03-25T05:26:00.000Z" itemprop="datePublished">2013-03-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2013/03/and-winner-is/">And the Winner Is...</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Two weeks ago I posted a question/contest for <a href="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days.html">Who’s Birthday is it in “n” number of days?</a> I received 63 answers (within the time limit) all with some interesting and unique approaches. Here’s how I went about picking the winners:</p>
+<p><strong>Leap Year</strong></p>
+<p>One thing that most people got wrong was what happened if the hire date was on Feb 29th (during a leap year) while the current year did not have a leap year. I could do a search online to find some recent leap years, instead I decided to wrote a query to find recent leap years.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Find past leap years</span></span><br><span class="line"><span class="comment">-- https://forums.oracle.com/forums/thread.jspa?threadID=1128019</span></span><br><span class="line"><span class="keyword">select</span> yr,</span><br><span class="line">  <span class="keyword">case</span></span><br><span class="line">    <span class="keyword">when</span> <span class="keyword">mod</span>(yr,<span class="number">400</span>) = <span class="number">0</span> <span class="keyword">or</span> <span class="keyword">mod</span>(yr,<span class="number">4</span>) = <span class="number">0</span><span class="keyword">then</span> <span class="string">'Leap Year'</span></span><br><span class="line">    <span class="keyword">else</span> <span class="literal">null</span></span><br><span class="line">  <span class="keyword">end</span> leap</span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">  <span class="keyword">select</span> <span class="keyword">extract</span> (<span class="keyword">year</span> <span class="keyword">from</span> add_months(<span class="keyword">sysdate</span>, <span class="number">-8</span>*<span class="number">12</span>)) + <span class="keyword">level</span> - <span class="number">1</span> yr</span><br><span class="line">  <span class="keyword">from</span> dual</span><br><span class="line">  <span class="keyword">connect</span> <span class="keyword">by</span> <span class="keyword">level</span> &lt;= <span class="number">8</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+<p><strong>Test Data</strong></p>
+<p>Instead of testing against the main sample <code>EMP</code> table I recreated the <code>EMP</code> table with all the dates in a given leap year (2008). I kept the same structure as the <code>EMP</code> table so that it would be easy to test your solutions against.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">drop</span> <span class="keyword">table</span> emp;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- create mock emp table with all the dates (including leap year</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> emp <span class="keyword">as</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">level</span> empno, <span class="keyword">level</span> ename, <span class="keyword">level</span> job, <span class="keyword">level</span> mgr, <span class="keyword">to_date</span>(<span class="string">'01-01-2008'</span>, <span class="string">'DD-MM-YYYY'</span>) + <span class="keyword">level</span> - <span class="number">1</span> hiredate, <span class="keyword">level</span> sal, <span class="keyword">level</span> comm, <span class="keyword">level</span> deptno</span><br><span class="line"><span class="keyword">from</span> dual</span><br><span class="line"><span class="keyword">connect</span> <span class="keyword">by</span> <span class="keyword">level</span> &lt;= <span class="number">366</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Picking the winner and testing solution:</strong></p>
+<p>Since we had 63 entries I wasn’t going to test them all. Instead I decided to randomly pick solutions (based on the entry number) and validate their solution. If they were correct I’d mark them as a winner. If not, I’d move on to the next entry until I found 2 winners.</p>
+<p>Here’s how I picked the random entries:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Chose random winners</span></span><br><span class="line"><span class="keyword">select</span> trunc(dbms_random.value(<span class="number">1</span>,<span class="number">63</span>))</span><br><span class="line"><span class="keyword">from</span> dual;</span><br></pre></td></tr></table></figure>
+
+<p>To test the solutions I set my current <code>SYSDATE</code> to 1-Feb-2013 so that it would have to encounter people that were hired on 29-Feb (even though 29-Feb doesn’t exist in 2013).</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SYSTEM</span> <span class="keyword">SET</span> fixed_date=<span class="string">'2013-02-01-14:10:00'</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Winners</strong></p>
+<p>The winners are <em>Erik van Roon (aka “Belly”)</em> and <em>Iudith Mentzel</em>. Please email me (my email address is top right corner of blog) and I will forward your information to <a href="http://www.red-gate.com/" target="_blank" rel="noopener">Red Gate</a> so that you can claim your prize.</p>
+<p>Thanks for all the entries and thanks again to <a href="http://www.red-gate.com/" target="_blank" rel="noopener">Red Gate</a> for offering up the prizes (licenses to their new product: <a href="http://www.red-gate.com/products/oracle-development/source-control-for-oracle/" target="_blank" rel="noopener">Source Control for Oracle</a>). If you haven’t already seen what <a href="http://www.red-gate.com/products/oracle-development/source-control-for-oracle/" target="_blank" rel="noopener">Source Control for Oracle</a> is or want to download a free trial I encourage you to check it out.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2013/03/and-winner-is/" data-id="ckkl6u20d00ar01r34r1rgdst" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2013/03/and-winner-is/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/" rel="tag">meta</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-kscope-13" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2013/03/kscope-13/" class="article-date">
@@ -98,7 +157,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="ckkl5byc1008801ppgv26bk81" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/kscope-13/" data-id="ckkl6u20n00av01r3hrkq94cm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/kscope-13/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -149,7 +208,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/" data-id="ckkl5bybg007w01pphoxfhu84" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/" data-id="ckkl6u21100az01r3dgdvg1xy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/03/whos-birthday-is-it-in-n-number-of-days/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -203,7 +262,7 @@ In this case you'll need to manually run the Supporting Objects > Install Suppor
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex-where/" data-id="ckkl5bybj007y01pp8xbh1mxh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex-where/" data-id="ckkl6u20300an01r33j1m87dx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/01/embedding-files-within-apex-where/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -260,7 +319,7 @@ At this point in time, APEX will encode (base64) the file (in **it's current sta
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex-supporting/" data-id="ckkl5bybe007u01ppdgrshjx2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex-supporting/" data-id="ckkl6u1zd00ac01r3a2k66exy" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/01/embedding-files-within-apex-supporting/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -309,7 +368,7 @@ At this point in time, APEX will encode (base64) the file (in **it's current sta
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex/" data-id="ckkl5byb0007s01pp1elg99yv" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/01/embedding-files-within-apex/" data-id="ckkl6u20000al01r3d7f5adoi" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/01/embedding-files-within-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -353,7 +412,7 @@ At this point in time, APEX will encode (base64) the file (in **it's current sta
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/01/oracle-magazine-on-code-reviews-and/" data-id="ckkl5byap007m01pphz9mbbfu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/01/oracle-magazine-on-code-reviews-and/" data-id="ckkl6u1zs00aj01r3e6erbx6m" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/01/oracle-magazine-on-code-reviews-and/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -395,7 +454,7 @@ At this point in time, APEX will encode (base64) the file (in **it's current sta
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/01/odtug-marketing-committee/" data-id="ckkl5bya2007i01pp9aj6aioh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/01/odtug-marketing-committee/" data-id="ckkl6u1yx00a301r3br7ug5vn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/01/odtug-marketing-committee/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -465,7 +524,7 @@ At this point in time, APEX will encode (base64) the file (in **it's current sta
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/12/decoding-decode-data-types/" data-id="ckkl5bync00ev01ppa6lo8nqa" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/12/decoding-decode-data-types/" data-id="ckkl6u1na002e01r34rar5wb4" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/12/decoding-decode-data-types/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -529,56 +588,12 @@ At this point in time, APEX will encode (base64) the file (in **it's current sta
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/11/session-state-protection-in-detail/" data-id="ckkl5bymy00ep01pp0eho98jc" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2012/11/session-state-protection-in-detail/" data-id="ckkl6u1n4002501r30e0h05vc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2012/11/session-state-protection-in-detail/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apexposed-down-under" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2012/10/apexposed-down-under/" class="article-date">
-  <time datetime="2012-10-15T05:30:00.000Z" itemprop="datePublished">2012-10-14</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2012/10/apexposed-down-under/">APEXposed Down Under</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><strong><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">In a few weeks <a href="http://dpeake.blogspot.ca/" target="_blank" rel="noopener">David Peake</a> (Oracle APEX </span><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">Product Manager</span><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: italic; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;"> </span><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;"><em>and native Australian)</em> and I will be<b> **</span></b><span style="-webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; color: black; font-family: 'Times New Roman'; font-size: small; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;"><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">h</span></span></strong><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">eading to New Zealand and Australia for <a href="http://www.odtugapextraining.com/presentersAU.html" target="_blank" rel="noopener">ODTUG APEXposed</a></span>.</p>
-<p><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">The conference will offer talks that will be relevant for all levels of APEX developers ranging from </span><strong><span style="-webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; color: black; font-family: 'Times New Roman'; font-size: small; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;"><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">beginners </span></span></strong><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">(and those interested in learning about the product) all the way to advanced<b> <strong>APEX development. Of course if there isn’t something covered you can always bring your questions and ask me or David during the Q</span></b><span style="-webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; color: black; font-family: 'Times New Roman'; font-size: small; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;"><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">&amp;</span></span></strong><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">A panel. You can see the entire agenda <a href="http://www.odtugapextraining.com/agendaAU.html" target="_blank" rel="noopener">here</a>.</span></p>
-<p><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">This will be a two day event in both Auckland (Nov </span><strong><span style="-webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; color: black; font-family: 'Times New Roman'; font-size: small; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;"><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">5-6</span></span></strong><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">) and then we’re going to do it all over again in Melbourne on (</span><strong><span style="-webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; color: black; font-family: 'Times New Roman'; font-size: small; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;"><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">Nov 8-9</span></span></strong><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">).</span><strong><span style="-webkit-text-size-adjust: auto; -webkit-text-stroke-width: 0px; color: black; font-family: 'Times New Roman'; font-size: small; font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: 2; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px;"><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;"> If you haven’t already <a href="http://www.odtugapextraining.com/registrationAU.html" target="_blank" rel="noopener">registered</a> you can still take advantage of the early bird discount until Oct 24th.&nbsp;</span></span><br>**<span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;"><b>&nbsp;</strong></span><br><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">I look forward to seeing everyone there<strong>.</strong></span></p>
-<p><span style="background-color: transparent; color: black; font-family: Arial; font-size: 15px; font-style: normal; font-variant: normal; font-weight: normal; text-decoration: none; vertical-align: baseline; white-space: pre-wrap;">Martin</span></b></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2012/10/apexposed-down-under/" data-id="ckkl5byml00ej01pp5osee2ji" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2012/10/apexposed-down-under/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/odtug/" rel="tag">odtug</a></li></ul>
 
     </footer>
   </div>
@@ -625,7 +640,7 @@ At this point in time, APEX will encode (base64) the file (in **it's current sta
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">158</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">159</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -662,7 +677,7 @@ At this point in time, APEX will encode (base64) the file (in **it's current sta
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

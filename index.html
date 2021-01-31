@@ -68,6 +68,62 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-the-biggest-hidden-bug-in-your-apex-application" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/01/the-biggest-hidden-bug-in-your-apex-application/" class="article-date">
+  <time datetime="2021-01-31T20:03:23.000Z" itemprop="datePublished">2021-01-31</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/01/the-biggest-hidden-bug-in-your-apex-application/">The Biggest Hidden Bug in Your APEX Application</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Let’s start with a little quiz. Without checking, what do you think happens/returns running the following query:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Note the two digit year</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">to_date</span>(<span class="string">'24-Jan-21'</span>, <span class="string">'DD-MON-YYYY'</span>)</span><br><span class="line"><span class="keyword">from</span> dual;</span><br></pre></td></tr></table></figure>
+
+<p>I recently <a href="https://twitter.com/martindsouza/status/1353550672919023617" target="_blank" rel="noopener">asked this same question</a> on Twitter and the results were quite interesting given that this <em>should</em> be a very straight forward answer. Over 50% of the people got it wrong:</p>
+<img src="/2021/01/the-biggest-hidden-bug-in-your-apex-application/twitter-results.png" class="">
+
+
+<p>The correct answer is that the query returns: <code>24-Jan-0021</code>. If you thought an error would be raised you’re in good company. I reached out to several <a href="https://developer.oracle.com/ace/" target="_blank" rel="noopener">Oracle ACE</a>s (i.e. world leading Oracle experts) and they all got it wrong as well (myself included).</p>
+<p>By using a date format of <code>DD-MON-YYYY</code> if a user does not explicitly enter a four digit year, Oracle will left pad the number with <code>0</code>s. I.e. <code>21</code> becomes <code>0021</code>. This makes sense that one would expect <code>5-Jan-2021</code> to really be <code>05-Jan-2021</code>. </p>
+<p>What does this have to do with your APEX application? In all my applications I tend to set the default date format to <code>DD-MON-YYYY</code> as it’s very explicit. <em>Note: to set the default date format in APEX go to <code>Shared Components &gt; Globalization &gt; Application Date Format</code>.</em> Most of the Date items that I use allow users to either enter the date manually or select from the date picker (via button click). Since entering a two digit year is a valid date neither APEX or Oracle raises an error so it’s extremely difficult to catch.</p>
+<p>To get around this issue you can change the Application Date Format to: <code>DD-MON-RRRR</code>. From the <a href="https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Format-Models.html#GUID-6C75461E-2E18-4C35-9EB4-038A7E1C9C1F" target="_blank" rel="noopener">Oracle documentation</a>:</p>
+<p><em>The RR datetime format element is similar to the YY datetime format element, but it provides additional flexibility for storing date values in other centuries. The RR datetime format element lets you store 20th century dates in the 21st century by specifying only the last two digits of the year.</em> </p>
+<p>Using our initial example</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">to_date</span>(<span class="string">'24-Jan-21'</span>, <span class="string">'DD-MON-YYYY'</span>)</span><br><span class="line"><span class="keyword">from</span> dual;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Returns</span></span><br><span class="line">24-jan-2021</span><br></pre></td></tr></table></figure>
+
+<p>The nice thing about using the <code>RRRR</code> format is you can still display years as four digits but users can enter them in as two digits with expected results. If users are entering past dates (ex: cataloging old library books) I suggest you read the <a href="https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Format-Models.html#GUID-6C75461E-2E18-4C35-9EB4-038A7E1C9C1F" target="_blank" rel="noopener">documentation</a> to see if the <code>RRRR</code> format is the right setting for your application.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/" data-id="ckkl6u28700e501r36eqagr3j" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/" rel="tag">oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-inline-function-in-dynamic-action-javascript-expression-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/" class="article-date">
@@ -105,7 +161,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/" data-id="ckkl5byp700fv01pp4au4bare" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/" data-id="ckkl6u23w00c901r392iw2ukl" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -286,7 +342,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/" data-id="ckkl5byow00fo01pp982tc848" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/" data-id="ckkl6u24400cd01r3hvcf80kl" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -338,7 +394,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/" data-id="ckkl5byvy00lg01ppagoz6t8x" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/" data-id="ckkl6u2lq00i401r31pnh20ld" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -389,7 +445,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/" data-id="ckkl5bytz00ia01pphdpz3gne" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/" data-id="ckkl6u2lw00i701r3fiw1dy6e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -442,7 +498,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/apex-at-home/" data-id="ckkl5bytw00i801pp3o8a9kee" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/03/apex-at-home/" data-id="ckkl6u2ln00i201r3hzk24vt6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/03/apex-at-home/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -502,7 +558,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/apex-19-form-pl-sql-processing/" data-id="ckkl5byvs00lf01ppcp2u6ylh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/03/apex-19-form-pl-sql-processing/" data-id="ckkl6u2le00hv01r36leue7eq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/03/apex-19-form-pl-sql-processing/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -597,7 +653,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/how-to-easily-reload-modal-pages-in-apex/" data-id="ckkl5bytu00i601pp27nbf76t" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/03/how-to-easily-reload-modal-pages-in-apex/" data-id="ckkl6u2lh00hx01r3cpf80v9k" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/03/how-to-easily-reload-modal-pages-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -657,7 +713,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/how-to-share-sqlcl-aliases/" data-id="ckkl5byth00i201pp5olgfua9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/03/how-to-share-sqlcl-aliases/" data-id="ckkl6u2l800hq01r31z7v95nj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/03/how-to-share-sqlcl-aliases/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -709,64 +765,9 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/catching-no-data-needed-exception-in-pipelined-functions/" data-id="ckkl5byto00i401pp03yfghtf" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/03/catching-no-data-needed-exception-in-pipelined-functions/" data-id="ckkl6u2lj00hz01r30cx68jzm" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/03/catching-no-data-needed-exception-in-pipelined-functions/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-conditional-update-triggers-in-oracle" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/03/conditional-update-triggers-in-oracle/" class="article-date">
-  <time datetime="2020-03-04T14:00:00.000Z" itemprop="datePublished">2020-03-04</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/03/conditional-update-triggers-in-oracle/">Conditional UPDATE Triggers in Oracle</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>In Oracle, most triggers are defined similar to the snippet below:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">trigger</span> trigger_name</span><br><span class="line">  <span class="keyword">before</span> <span class="keyword">insert</span> <span class="keyword">or</span> <span class="keyword">update</span> <span class="keyword">or</span> <span class="keyword">delete</span></span><br><span class="line">  <span class="keyword">on</span> my_table <span class="keyword">for</span> <span class="keyword">each</span> <span class="keyword">row</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p><em>All demos below reference the following table:</em></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> demo_table(col_x <span class="built_in">varchar2</span>(<span class="number">10</span>), col_y <span class="built_in">varchar2</span>(<span class="number">10</span>));</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> demo_table <span class="keyword">values</span>(<span class="string">'hello'</span>, <span class="string">'world'</span>);</span><br><span class="line"><span class="keyword">commit</span>;</span><br></pre></td></tr></table></figure>
-
-<p>They’re some cases where you only want the trigger to be run when updating specific columns. They’re various ways to do this which are shown below.</p>
-<h2 id="In-Trigger-Definition-update-of"><a href="#In-Trigger-Definition-update-of" class="headerlink" title="In Trigger Definition (update of ...)"></a>In Trigger Definition (<code>update of ...</code>)</h2><p>Using the <code>update of</code> clause you can explicitly list the columns that will execute the trigger when updated.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">trigger</span> demo_trigger</span><br><span class="line">  <span class="keyword">before</span> <span class="keyword">update</span> <span class="keyword">of</span> col_x</span><br><span class="line">  <span class="keyword">on</span> demo_table <span class="keyword">for</span> <span class="keyword">each</span> <span class="keyword">row</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  dbms_output.put_line(<span class="string">'***COL_X*** is being updated: '</span> || :new.col_x);</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br><span class="line"></span><br><span class="line"><span class="keyword">set</span> serveroutput <span class="keyword">on</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- Update another column</span></span><br><span class="line"><span class="keyword">update</span> demo_table</span><br><span class="line"><span class="keyword">set</span> col_y = <span class="string">'world'</span>;</span><br><span class="line"></span><br><span class="line">1 row updated.</span><br><span class="line"></span><br><span class="line"><span class="comment">-- <span class="doctag">Note:</span> trigger wasn't run as it's not in the list of columns defined in "update of ..."</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">-- Update the "triggered" column</span></span><br><span class="line"><span class="keyword">update</span> demo_table</span><br><span class="line"><span class="keyword">set</span> col_x = <span class="string">'goodby'</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- <span class="doctag">Note:</span> This output shows the trigger was executed</span></span><br><span class="line">***COL_X*** is being updated: goodby</span><br><span class="line"></span><br><span class="line">1 row updated.</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Checking-Column-updating-39-col-name-39"><a href="#Checking-Column-updating-39-col-name-39" class="headerlink" title="Checking Column (updating(&#39;col_name&#39;))"></a>Checking Column (<code>updating(&#39;col_name&#39;)</code>)</h2><p>In this example, the trigger will run for all <code>update</code> statements and explicit checks can be added to see if a given column is being updated.</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">or</span> <span class="keyword">replace</span> <span class="keyword">trigger</span> demo_trigger</span><br><span class="line">  <span class="keyword">before</span> <span class="keyword">update</span></span><br><span class="line">  <span class="keyword">on</span> demo_table <span class="keyword">for</span> <span class="keyword">each</span> <span class="keyword">row</span></span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line"></span><br><span class="line">  dbms_output.put_line(<span class="string">'Trigger started'</span>);</span><br><span class="line"></span><br><span class="line">  if updating('col_x') then</span><br><span class="line">    dbms_output.put_line('***COL_X*** is being updated: ' || :new.col_x);</span><br><span class="line">  <span class="keyword">end</span> <span class="keyword">if</span>;</span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Running the same examples as first demo</span></span><br><span class="line"><span class="keyword">set</span> serveroutput <span class="keyword">on</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- Update another column</span></span><br><span class="line"><span class="keyword">update</span> demo_table</span><br><span class="line"><span class="keyword">set</span> col_y = <span class="string">'world'</span>;</span><br><span class="line"></span><br><span class="line">Trigger started</span><br><span class="line"></span><br><span class="line">1 row updated.</span><br><span class="line"></span><br><span class="line"><span class="comment">-- <span class="doctag">Note:</span> trigger was run (as shown by "Trigger Started" message) but COL_X wasn't updated</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- Update the "triggered" column</span></span><br><span class="line"><span class="keyword">update</span> demo_table</span><br><span class="line"><span class="keyword">set</span> col_x = <span class="string">'goodby'</span>;</span><br><span class="line"></span><br><span class="line">Trigger started</span><br><span class="line">***COL_X*** is being updated: goodby</span><br><span class="line"></span><br><span class="line">1 row updated.</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Trigger was run and COL_X was updated</span></span><br></pre></td></tr></table></figure>
-
-<p>I recommend reading the Oracle documentation on <a href="https://docs.oracle.com/en/database/oracle/oracle-database/12.2/lnpls/plsql-triggers.html#GUID-EC6A8FA1-9E60-4374-9905-639F4F100D83" target="_blank" rel="noopener">Conditional Predicates for Detecting Triggering DML Statement</a></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/conditional-update-triggers-in-oracle/" data-id="ckkl5bytb00hx01ppc5dd9bg6" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2020/03/conditional-update-triggers-in-oracle/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
@@ -816,7 +817,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">158</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">159</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -853,7 +854,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

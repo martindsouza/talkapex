@@ -68,6 +68,58 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-custom-code-for-tabular-forms-part-2" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2015/09/custom-code-for-tabular-forms-part-2/" class="article-date">
+  <time datetime="2015-09-14T03:46:00.000Z" itemprop="datePublished">2015-09-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2015/09/custom-code-for-tabular-forms-part-2/">Custom Code for Tabular Forms (Part 2)</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>The <a href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1.html">previous article</a> covered how to create a Tabular Form with manual code rather than automatic row processing. This article will demonstrate how to change the Tabular Form to modify data from multiple tables using the same Tabular Form.</p>
+<h3 id="Modify-Tabular-Form"><a href="#Modify-Tabular-Form" class="headerlink" title="Modify Tabular Form"></a>Modify Tabular Form</h3><p>Using the example from the <a href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1.html">previous article</a>, modify the Tabular Form and change the query to:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">  e.empno,</span><br><span class="line">  e.empno empno_display,</span><br><span class="line">  e.ename,</span><br><span class="line">  e.sal,</span><br><span class="line">  d.dname</span><br><span class="line"><span class="keyword">from</span> emp e, dept d</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">  <span class="keyword">and</span> e.deptno = d.deptno</span><br></pre></td></tr></table></figure>
+
+<h3 id="Edit-DNAME"><a href="#Edit-DNAME" class="headerlink" title="Edit DNAME"></a>Edit <code>DNAME</code></h3><p>Edit the newly added <code>DNAME</code> column with the following changes:</p>
+<div class="separator" style="clear: both; text-align: center;">[![](http://2.bp.blogspot.com/-cTlLNsZvGeU/VfY-iM4PCAI/AAAAAAABGeU/UkfeWjEPUSQ/s320/Snip20150819_8.png)](http://2.bp.blogspot.com/-cTlLNsZvGeU/VfY-iM4PCAI/AAAAAAABGeU/UkfeWjEPUSQ/s1600/Snip20150819_8.png)</div><div class="separator" style="clear: both; text-align: center;">
+</div>
+
+<h3 id="Modify-Page-process"><a href="#Modify-Page-process" class="headerlink" title="Modify Page process"></a>Modify Page process</h3><p>Change the page process to use the code snippet below. <em>Note: This isn’t the best example, as the below code will update the department name for each modified employee record. It does highlight is that you can reference and modify data from multiple tables.</em></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">if :empno is null then</span><br><span class="line">  <span class="comment">-- code to insert emp</span></span><br><span class="line">  null;</span><br><span class="line">else</span><br><span class="line">  <span class="keyword">update</span> emp</span><br><span class="line">  <span class="keyword">set</span></span><br><span class="line">    ename = :ename,</span><br><span class="line">    sal = :sal</span><br><span class="line">  <span class="keyword">where</span> empno = :empno;</span><br><span class="line"></span><br><span class="line">  <span class="comment">-- Update dept name</span></span><br><span class="line">  <span class="keyword">update</span> dept d</span><br><span class="line">  <span class="keyword">set</span> dname = :dname</span><br><span class="line">  <span class="keyword">where</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">    <span class="keyword">and</span> d.deptno = (</span><br><span class="line">      <span class="keyword">select</span> e.deptno</span><br><span class="line">      <span class="keyword">from</span> emp e</span><br><span class="line">      <span class="keyword">where</span> e.empno = :empno)</span><br><span class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</span><br></pre></td></tr></table></figure>
+
+<p>If you’ve ever developed a true manual tabular form using collections, the above approach covered in this article may be a better alternative to manage and maintain.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-2/" data-id="ckkl6u2ht00fn01r38wcy936x" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-2/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-custom-code-for-tabular-forms-part-1" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2015/09/custom-code-for-tabular-forms-part-1/" class="article-date">
@@ -116,7 +168,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1/" data-id="ckkl5byj300cg01pp584i3o70" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1/" data-id="ckkl6u2hf00fg01r30rylc8j2" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/09/custom-code-for-tabular-forms-part-1/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -181,7 +233,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/09/report-with-checkboxes-update/" data-id="ckkl5byjk00cr01pp5rclc8q6" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/09/report-with-checkboxes-update/" data-id="ckkl6u2ho00fi01r3354ja977" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/09/report-with-checkboxes-update/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -236,7 +288,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/08/oracle-developer-choice-awards-1-week/" data-id="ckkl5byja00cl01ppg9v1bg6y" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/08/oracle-developer-choice-awards-1-week/" data-id="ckkl6u2hq00fl01r3edrlcgi8" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/08/oracle-developer-choice-awards-1-week/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -283,7 +335,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/08/apex-meetup-montreal-this-thursday/" data-id="ckkl5byiv00cc01pp7maccbki" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/08/apex-meetup-montreal-this-thursday/" data-id="ckkl6u2hc00fe01r36ns35o2e" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/08/apex-meetup-montreal-this-thursday/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -374,7 +426,7 @@ Using the following code, Region Two is moved above Region One:
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted/" data-id="ckkl5byj600ci01ppf34l46gy" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted/" data-id="ckkl6u2h300fa01r3dohtbmtf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/07/apex-and-order-items-are-submitted/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -437,7 +489,7 @@ Using the following code, Region Two is moved above Region One:
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/07/apex-and-html-form/" data-id="ckkl5byir00c801ppgx8n5wr4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/07/apex-and-html-form/" data-id="ckkl6u2h800fc01r33iph0kre" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/07/apex-and-html-form/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -508,7 +560,7 @@ Using the following code, Region Two is moved above Region One:
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/07/back-to-basics-html-form/" data-id="ckkl5byit00ca01ppb0r894xn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/07/back-to-basics-html-form/" data-id="ckkl6u2gm00ey01r37iyl9gsd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/07/back-to-basics-html-form/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -552,7 +604,7 @@ Using the following code, Region Two is moved above Region One:
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/06/a-new-chapter/" data-id="ckkl5byin00c401pp4tez7u11" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/06/a-new-chapter/" data-id="ckkl6u2gx00f601r3bm899wwj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/06/a-new-chapter/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -595,57 +647,12 @@ Using the following code, Region Two is moved above Region One:
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/apex-meetups-calgary/" data-id="ckkl5byj200ce01ppgi6b1iim" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2015/05/apex-meetups-calgary/" data-id="ckkl6u2gz00f801r36m0kgv8p" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2015/05/apex-meetups-calgary/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/meta/" rel="tag">meta</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-sqlcl-and-loginsql" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2015/05/sqlcl-and-loginsql/" class="article-date">
-  <time datetime="2015-05-18T14:59:00.000Z" itemprop="datePublished">2015-05-18</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2015/05/sqlcl-and-loginsql/">SQLcl and login.sql</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>In SQL*Plus you can configure it to automatically run login scripts, typically used to configure your session. These are stored in the files <code>glogin.sql</code> and <code>login.sql</code>. Some examples that you’d find in these files are statements like: <code>set serveroutput on</code>.  You can read more about login scripts <a href="http://www.adp-gmbh.ch/ora/sqlplus/login.html" target="_blank" rel="noopener">here</a>.</p>
-<p>SQLcl also handles login scripts, however it may require some additional configuration. The easiest way to leverage this is to create a file called <code>login.sql</code> in your current directory, then call SQLcl from that directory.</p>
-<p>If you’re like me and launch SQLcl from many directories that approach won’t work. Instead, you can create one <code>login.sql</code> file and have it automatically referenced. To do this create <code>login.sql</code> in a folder (in my case it was <code>Documents/Oracle</code>) and then add the following to <code>~/.bashprofile</code>:  <code>export SQLPATH=~/Documents/Oracle/</code>. <em>For those that use <a href="https://github.com/robbyrussell/oh-my-zsh" target="_blank" rel="noopener">oh-my-zsh</a> modify <code>~/.zshrc</code> instead.</em></p>
-<p>Now when you run SQLcl anywhere it will reference your <code>login.sql</code> file.</p>
-<p><em>Thanks to <a href="https://twitter.com/krisrice" target="_blank" rel="noopener">Kris Rice</a> and <a href="https://twitter.com/thatjeffsmith" target="_blank" rel="noopener">Jeff Smith</a> for helping with this.</em></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/" data-id="ckkl5byiq00c601ppekaycxb1" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2015/05/sqlcl-and-loginsql/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/" rel="tag">oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a></li></ul>
 
     </footer>
   </div>
@@ -692,7 +699,7 @@ Using the following code, Region Two is moved above Region One:
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">158</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">159</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -729,7 +736,7 @@ Using the following code, Region Two is moved above Region One:
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

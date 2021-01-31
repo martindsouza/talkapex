@@ -68,6 +68,54 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-parsing-imperfect-json" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2014/01/parsing-imperfect-json/" class="article-date">
+  <time datetime="2014-01-08T14:00:00.000Z" itemprop="datePublished">2014-01-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2014/01/parsing-imperfect-json/">Parsing Imperfect JSON</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>In JavaScript, each JSON attribute name should be wrapped in quotes for it to be parsed correctly. Sometimes you may receive a JSON string that isn’t properly formed because of the missing quotes. You can still parse it using the technique described below.</p>
+<p>To start, here’s an example of malformed JSON using <a href="http://json.parse/" target="_blank" rel="noopener"><code>JSON.parse</code></a> and jQuery’s <a href="http://api.jquery.com/jQuery.parseJSON/" target="_blank" rel="noopener"><code>$.parseJSON</code></a>. You’ll notice that it doesn’t parse the JSON string since it doesn’t have its names wrapped with quotes.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//Using native JS: JSON.parse</span></span><br><span class="line"><span class="comment">//Similar result for jQuery $.parseJSON</span></span><br><span class="line"><span class="keyword">var</span> jsonStr = <span class="string">'&#123;ename : "martin", sal: 100&#125;'</span>;</span><br><span class="line"><span class="keyword">var</span> jsonObj = <span class="built_in">JSON</span>.parse(jsonStr);</span><br><span class="line"></span><br><span class="line"><span class="comment">//Raises error:</span></span><br><span class="line"><span class="built_in">SyntaxError</span>: <span class="built_in">JSON</span>.parse: expected property name or <span class="string">'&#125;'</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//Correct JSON object (notice attribute names are quoted)</span></span><br><span class="line"><span class="keyword">var</span> jsonStr = <span class="string">'&#123;"ename" : "martin", "sal": 100&#125;'</span>;</span><br><span class="line"><span class="keyword">var</span> jsonObj = <span class="built_in">JSON</span>.parse(jsonStr);</span><br><span class="line"><span class="built_in">console</span>.log (jsonObj);</span><br><span class="line"></span><br><span class="line"><span class="comment">//Returns JSON object</span></span><br><span class="line"><span class="built_in">Object</span> &#123; ename=<span class="string">"martin"</span>, sal=<span class="number">100</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>To get around this issue you can use JavaSript’s <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval" target="_blank" rel="noopener"><code>eval</code></a> method. It’s not pretty but it does the job and will probably save you a lot of time trying to correct your JSON object.</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> jsonStr = <span class="string">'&#123;ename : "martin", sal: 100&#125;'</span>;</span><br><span class="line"><span class="built_in">eval</span>(<span class="string">'jsonObj = '</span> + jsonStr + <span class="string">';'</span>);</span><br><span class="line"><span class="built_in">console</span>.log(jsonObj);</span><br><span class="line"></span><br><span class="line"><span class="comment">//Returns JSON object</span></span><br><span class="line"><span class="built_in">Object</span> &#123; ename=<span class="string">"martin"</span>, sal=<span class="number">100</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>I’ve found this technique really helpful when passing back JSON strings from APEX AJAX calls (via a Dynamic Action, Plugin, or custom AJAX).</p>
+<p><strong>Update</strong>: Please read John’s comment below as he makes a good point that the data should be data that you control otherwise perfect area for a JS injection attack.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2014/01/parsing-imperfect-json/" data-id="ckkl6u1wn008r01r31tiodmr9" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2014/01/parsing-imperfect-json/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/javascript/" rel="tag">javascript</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-derived-columns-in-apex-standard-reports" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2014/01/derived-columns-in-apex-standard-reports/" class="article-date">
@@ -104,7 +152,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/derived-columns-in-apex-standard-reports/" data-id="ckkl5bynm00ez01ppf8zp39ok" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/01/derived-columns-in-apex-standard-reports/" data-id="ckkl6u1xe009101r37l6chuy6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/01/derived-columns-in-apex-standard-reports/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -163,7 +211,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2014/01/2014-speaking-engagements/" data-id="ckkl5byn600er01ppgc85gdyz" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2014/01/2014-speaking-engagements/" data-id="ckkl6u1xk009501r3gwgwc20b" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2014/01/2014-speaking-engagements/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -206,7 +254,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/12/seattle-come-meet-some-oracle-ace/" data-id="ckkl5byfd00a501ppgbpsf2kn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/12/seattle-come-meet-some-oracle-ace/" data-id="ckkl6u24700cf01r3c22qfo9c" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/12/seattle-come-meet-some-oracle-ace/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -273,7 +321,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/12/oracleapexcom/" data-id="ckkl5byei009s01pp7whkf1jb" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/12/oracleapexcom/" data-id="ckkl6u23s00c701r38b199zd3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/12/oracleapexcom/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -318,7 +366,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/11/logger-survey/" data-id="ckkl5byef009q01ppa9d3gn6q" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/11/logger-survey/" data-id="ckkl6u23z00cb01r3587beudp" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/11/logger-survey/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -368,7 +416,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/10/odtug-elections-please-vote/" data-id="ckkl5bye7009i01ppcem5ba9d" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/10/odtug-elections-please-vote/" data-id="ckkl6u23l00c301r34fxsc27x" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/10/odtug-elections-please-vote/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -414,7 +462,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/10/leaving-it-to-experts/" data-id="ckkl5byem009u01pp5mxp49n1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/10/leaving-it-to-experts/" data-id="ckkl6u23d00bz01r3by8z3v5p" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/10/leaving-it-to-experts/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -458,7 +506,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/09/presenting-at-oracle-open-world-oow/" data-id="ckkl5bye9009k01pp60ho5tau" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/09/presenting-at-oracle-open-world-oow/" data-id="ckkl6u23o00c501r31d598d7b" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/09/presenting-at-oracle-open-world-oow/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -503,61 +551,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/09/logger-with-batch-processes/" data-id="ckkl5byed009o01pp4wb760tw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2013/09/logger-with-batch-processes/" data-id="ckkl6u23600bx01r37a3c1f7a" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2013/09/logger-with-batch-processes/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/logger/" rel="tag">logger</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-apex-oow-2013-meetup" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2013/08/apex-oow-2013-meetup/" class="article-date">
-  <time datetime="2013-08-30T16:32:00.000Z" itemprop="datePublished">2013-08-30</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2013/08/apex-oow-2013-meetup/">APEX OOW 2013 Meetup</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>Each year the Oracle APEX community gets together at Oracle Open World (OOW) to have a few beers and catch up. This is a great informal event and its your chance to network with a lot of people in the APEX community and meet some of the gurus and members of the core APEX development team.</p>
-<p>Normally <a href="http://dgielis.blogspot.ca/" target="_blank" rel="noopener">Dimitri Gielis</a> organizes the meetup, however he is expecting his third child and understandably he will not be coming to OOW. As such I’ve been handed the torch to help organize the event this year. To be honest by “I” I really mean <a href="https://twitter.com/lprezby" target="_blank" rel="noopener">Lauren Prezby</a> at <a href="http://odtug.com/" target="_blank" rel="noopener">ODTUG</a> has done the planning and found our venue for this year :-)</p>
-<p>We’ll be having the annual APEX OOW Meetup at <a href="http://www.johnnyfoleys.com/" target="_blank" rel="noopener">Johnny Foleys</a> on Tuesday at 7:30 onwards.</p>
-<div class="separator" style="clear: both; text-align: center;">[![](http://3.bp.blogspot.com/-UHWSfgZa2yI/UiDIg1Wv3VI/AAAAAAAAEcw/knXK1Qn6AvY/s400/johnnyfoleys.jpg)](http://3.bp.blogspot.com/-UHWSfgZa2yI/UiDIg1Wv3VI/AAAAAAAAEcw/knXK1Qn6AvY/s1600/johnnyfoleys.jpg)</div>
-
-<p><a href="http://goo.gl/zgbr9m" target="_blank" rel="noopener">243 O’Farrell Street</a><br>San Francisco, CA 94102</p>
-<p><a href="http://www.odtug.com/" target="_blank" rel="noopener">ODTUG</a> will also be giving away some cool APEX swag!</p>
-<p>Looking forward to seeing everyone there!</p>
-<p>– Martin</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2013/08/apex-oow-2013-meetup/" data-id="ckkl5byeb009m01ppaijh7naf" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2013/08/apex-oow-2013-meetup/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oow/" rel="tag">oow</a></li></ul>
 
     </footer>
   </div>
@@ -604,7 +603,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">158</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">159</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -641,7 +640,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
