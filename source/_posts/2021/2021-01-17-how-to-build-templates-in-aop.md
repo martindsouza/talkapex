@@ -1,5 +1,5 @@
 ---
-title: How to build templates in APEX Office Print
+title: How to Quickly Build Templates in APEX Office Print
 tags:
   - aop
 date: 2021-01-17 17:24:25
