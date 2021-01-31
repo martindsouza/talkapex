@@ -68,6 +68,66 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-docker-as-a-micro-service" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/04/docker-as-a-micro-service/" class="article-date">
+  <time datetime="2018-04-05T04:41:37.000Z" itemprop="datePublished">2018-04-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/04/docker-as-a-micro-service/">Docker as a Micro Service</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>One thing I really dislike when trying to install new command line (CLI) software is the uninstall process isn’t always very clear. Things can get worse if the software has additional dependencies (Java for example) especially when you need to have two versions of the same tool for different apps.</p>
+<p>Docker solves this problem by keeping everything you need for a specific task in one container. The added bonus is that you’ll probably be able to find a Docker container for just about anything you want and it’s OS independent on <a href="https://hub.docker.com/" target="_blank" rel="noopener">Docker Hub</a>.</p>
+<p>At <a href="https://www.insum.ca/hackathon-opportunity-work-with-new-technology/" target="_blank" rel="noopener">Insum’s 2018 Hackathon</a> we developed skills for <a href="https://alexa.amazon.com" target="_blank" rel="noopener">Amazon Alexa</a>. To help the teams I published a <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Docker image</a> that has both the <a href="https://aws.amazon.com/cli/" target="_blank" rel="noopener">AWS CLI</a> and <a href="https://developer.amazon.com/docs/smapi/quick-start-alexa-skills-kit-command-line-interface.html" target="_blank" rel="noopener">Alexa Skills Kit (ASK) CLI</a>. </p>
+<p>Most of the demos I’ve seen for containers that are used for CLI tools looked like this:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker run -it \</span><br><span class="line">  ...</span><br><span class="line">  doccker_prefs</span><br><span class="line">  my_tool.sh -some -parameters</span><br></pre></td></tr></table></figure>
+
+<p>Though these containers are helpful it’s not really useful for end users (i.e. developers) since the command can be tough to remember and the containers may exist after running the tool (i.e. you may need to manually delete them.</p>
+<p>When building the <a href="https://hub.docker.com/r/martindsouza/amazon-ask-cli/" target="_blank" rel="noopener">Amazon ASK CLI container</a> I wanted to avoid these issues to make it as easy as possible for developers to use. I did the following tricks:</p>
+<h2 id="alias-the-docker-run-command"><a href="#alias-the-docker-run-command" class="headerlink" title="alias the docker run command"></a><code>alias</code> the <code>docker run</code> command</h2><p>Instead of having to remember the long <code>docker run</code> command with all the parameters I used an <code>alias</code> command to bundle it all together. Mine looked like this:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">alias</span> alexa=<span class="string">"docker run -it --rm \</span></span><br><span class="line"><span class="string">  -v ~/alexa-demo/ask-config:/home/node/.ask \</span></span><br><span class="line"><span class="string">  -v ~/alexa-demo/aws-config:/home/node/.aws \</span></span><br><span class="line"><span class="string">  -v ~/alexa-demo/app:/home/node/app \</span></span><br><span class="line"><span class="string">  martindsouza/amazon-ask-cli:latest</span></span><br></pre></td></tr></table></figure>
+
+<p>A few key things to note from the above snippet:</p>
+<ul>
+<li><code>alias</code>: This means that anytime I type in <code>alexa</code> in bash it will run everything in the quotes.<ul>
+<li><em>Windows users: <code>alias</code> doesn’t exist in DOS or PowerShell. I’m not aware of any alternatives. If you know of any easy ones please leave a comment and I’ll update this post</em></li>
+</ul>
+</li>
+<li><code>--rm</code> option: Deletes (self destruct) the container after the command is run. This means is that when I run <code>alexa ask init</code> (where <code>ask init</code> is the CLI tool) it’ll <code>run</code> the container, execute <code>ask</code> (with parameter <code>init</code>), then remove the container once <code>ask</code> is done.</li>
+</ul>
+<p>Using the <code>alias</code> and <code>--rm</code> techniques you can easily have all the CLI tools you want without cluttering up your base machine. Of course there may be some minor performance impacts by Dockerizing them. Personally I didn’t notice any slowdowns and will start using this technique for all my future CLI tools.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/04/docker-as-a-micro-service/" data-id="ckkl7m8cb00cn01li5qcv40si" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/04/docker-as-a-micro-service/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-docker-image-for-ords-standalone" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/04/docker-image-for-ords-standalone/" class="article-date">
@@ -106,7 +166,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="ckkl6u2j800gf01r3cyaxepxp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/" data-id="ckkl7m8c500ck01li5iz1d36n" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/04/docker-image-for-ords-standalone/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -186,7 +246,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="ckkl6u2j600gd01r305sbe5x1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="ckkl7m8c200ci01li8nui9stc" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -243,7 +303,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="ckkl6u2iv00g801r3ff6z62ow" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="ckkl7m8c000cg01li6a6t2wc3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/custom-apex-notification-messages/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -317,7 +377,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="ckkl6u2iz00ga01r39lb4desu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="ckkl7m8bt00cb01li5nu309bw" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -363,7 +423,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="ckkl6u2qd00ln01r3g9lzbljh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="ckkl7m8x900im01li8t9t997j" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -410,7 +470,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="ckkl6u2qc00lm01r34faie91n" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="ckkl7m8yc00iu01li3pvj7628" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -475,7 +535,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="ckkl6u2p600k101r3dw8g7jq2" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="ckkl7m8y700is01li3yw2evmq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -526,7 +586,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/reset-authorization-cache/" data-id="ckkl6u2p300jz01r399us0rpo" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/reset-authorization-cache/" data-id="ckkl7m8y100iq01li1ko1gvbv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/reset-authorization-cache/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -588,84 +648,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/" data-id="ckkl6u2p900k301r30zec3f1c" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/" data-id="ckkl7m8or00id01ligzjl07jf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-top-oracle-sql-developer-data-modeler-settings" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/10/top-oracle-sql-developer-data-modeler-settings/" class="article-date">
-  <time datetime="2017-10-23T06:00:00.000Z" itemprop="datePublished">2017-10-23</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/10/top-oracle-sql-developer-data-modeler-settings/">Top Oracle SQL Developer Data Modeler Settings</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>I’ve started to use SQL Developer Data Modeler](<a href="http://www.oracle.com/technetwork/developer-tools/datamodeler/overview/index.html)(SDDM)" target="_blank" rel="noopener">http://www.oracle.com/technetwork/developer-tools/datamodeler/overview/index.html)(SDDM)</a> a lot for a project and realized that pretty much everything is configurable. The problem is that there’s no single area to search all the different settings and even the settings’ search boxes don’t filter for all the options. To get around this (and for my own references) I’ve included some settings that I found very useful. <em>I’ll try to keep this post up to date as I continue to explore SDDM.</em></p>
-<p><strong>Notes</strong></p>
-<ul>
-<li><a href="https://twitter.com/thatjeffsmith" target="_blank" rel="noopener">Jeff Smith</a> has <a href="http://www.thatjeffsmith.com" target="_blank" rel="noopener">blogged</a> about a lot of the different settings. For a more extensive list check out his <a href="http://www.thatjeffsmith.com" target="_blank" rel="noopener">blog</a>.</li>
-<li>When <em>Preferences</em> is mentioned it’s <code>Tools &gt; Preferences</code> in Windows and <code>Oracle Data Modeler &gt; Preferences</code> in Mac.</li>
-<li>I did not include any scripting (design rules, transformations, or DDL transformations) in this list. I’ll write a separate article on that.</li>
-</ul>
-<h2 id="Adding-PROMPT-Statements-in-DDL"><a href="#Adding-PROMPT-Statements-in-DDL" class="headerlink" title="Adding PROMPT Statements in DDL"></a>Adding <code>PROMPT</code> Statements in DDL</h2><p>SDDM can generate DDL statements for you either by clicking the DDL button (1) or synchronizing the model with a schema (2):</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_7.png">
-
-<p>It’s always helpful to have <code>prompt</code> statements before each DDL change to help debug where an issue occurred. To do so open <code>Preferences</code> and check  <code>Include PROMPT Command (for Oracle only)</code>:</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_6.png">
-
-<p>All DDL will then include a <code>prompt</code> statement like:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">PROMPT CREATING TABLE 'MY_TABLE';</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> MY_TABLE ...</span><br></pre></td></tr></table></figure>
-
-<h2 id="12c-Identity-Column-or-Auto-Generate-Sequences"><a href="#12c-Identity-Column-or-Auto-Generate-Sequences" class="headerlink" title="12c Identity Column or Auto Generate Sequences"></a>12c Identity Column or Auto Generate Sequences</h2><p>Depending on your database version you may want to either have sequences automatically generated for you or not. In my case I was using a 12c instance and was going to use <a href="https://oracle-base.com/articles/12c/identity-columns-in-oracle-12cr1" target="_blank" rel="noopener">Identity Columns</a> for primary key IDs. I didn’t want sequences for each table to be automatically generated. To toggle this feature open Preferences and change the options in the image below.</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_8.png">
-
-
-<p>More on the Identity Column settings <a href="http://www.thatjeffsmith.com/archive/2014/01/defining-12c-identity-columns-in-oracle-sql-developer-data-modeler/" target="_blank" rel="noopener">here</a></p>
-<h2 id="DDL-Format-Lowercase-and-Tabs"><a href="#DDL-Format-Lowercase-and-Tabs" class="headerlink" title="DDL Format - Lowercase and Tabs"></a>DDL Format - Lowercase and Tabs</h2><p>If you’re really picky on the format of the DDL that is generated you can modify some of the settings in <code>Preferences &gt; Format</code>:</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_9.png">
-
-
-<h2 id="Naming-Standard-Templates"><a href="#Naming-Standard-Templates" class="headerlink" title="Naming Standard Templates"></a>Naming Standard Templates</h2><p>When adding primary keys (PK) and various other constraints a default name is always generated. You can determine how this name is generated by modifying the design’s properties settings:</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170721_10.png">
-
-<p>More information on different variables can be found <a href="https://kentgraziano.com/2015/12/29/better-data-modeling-discovering-foreign-keys-fk-in-sqldevmodeler-sddm/" target="_blank" rel="noopener">here</a></p>
-<h2 id="Short-Table-Names"><a href="#Short-Table-Names" class="headerlink" title="Short Table Names"></a>Short Table Names</h2><p>In most DB instances all object names are limited to 30 characters (this is changed in 12c but most organizations still haven’t enabled 128 characters). When using naming standards this can cause some issues because just referencing <code>&lt;table_name&gt;</code> may not work as its already 30 characters. Note <code>&lt;table_name&gt;</code> isn’t a real variable in SDDM.</p>
-<p>You can define a short name (SDDM calls it an <code>Abbreviation</code>) for each table via the table properties. Setting the <code>Abbreviation</code> is also very helpful when generating DDL statements or constraints from scripts.</p>
-<img src="/2017/10/top-oracle-sql-developer-data-modeler-settings/Snip20170722_12.png">
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/" data-id="ckkl6u2oz00jx01r35wzb4if8" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a></li></ul>
 
     </footer>
   </div>
@@ -712,7 +700,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">159</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">159</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -749,7 +737,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
