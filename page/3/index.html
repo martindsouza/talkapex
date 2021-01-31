@@ -68,6 +68,71 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-select-an-optional-value" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2020/01/how-to-select-an-optional-value/" class="article-date">
+  <time datetime="2020-01-22T20:21:52.000Z" itemprop="datePublished">2020-01-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2020/01/how-to-select-an-optional-value/">How to Select an Optional Value</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Sometimes in your PL/SQL code you need to query a table which may or may not contain what you’re looking for. This post will cover some different ways of doing it.</p>
+<h2 id="The-problem"><a href="#The-problem" class="headerlink" title="The problem"></a>The problem</h2><p>Suppose you need to find an employee’s ID named <code>SAM</code>. If he doesn’t exist in the table then insert a new employee record.</p>
+<p><em>Side note: Technically you can use a <code>merge</code> statement for this functionality but want to highlight that a row may not be found.</em></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="keyword">select</span> e.empno</span><br><span class="line">  <span class="keyword">into</span> l_empno</span><br><span class="line">  <span class="keyword">from</span> emp e</span><br><span class="line">  <span class="keyword">where</span> e.ename = <span class="string">'SAM'</span>;</span><br><span class="line"></span><br><span class="line">  if l_empno is null then</span><br><span class="line">    <span class="comment">-- ... insert new emp</span></span><br><span class="line">  <span class="keyword">end</span> <span class="keyword">if</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">-- ...</span></span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Errors</span></span><br><span class="line">ORA-01403: no data found</span><br><span class="line">ORA-06512: at line 4</span><br><span class="line">1.     00000 -  "no data found"</span><br></pre></td></tr></table></figure>
+
+<p>An error is raised if the employee (<code>SAM</code> in this case) isn’t found. Here are some options to get around this.</p>
+<h2 id="Explicit-exception-block"><a href="#Explicit-exception-block" class="headerlink" title="Explicit exception block"></a>Explicit exception block</h2><p>This is the most correct way to know if the value exists or not. Some don’t like to use this approach as it can clutter code (due to additional lines of code), on the positive side it is very explicit.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">begin</span></span><br><span class="line">    <span class="keyword">select</span> e.empno</span><br><span class="line">    <span class="keyword">into</span> l_empno</span><br><span class="line">    <span class="keyword">from</span> emp e</span><br><span class="line">    <span class="keyword">where</span> e.ename = <span class="string">'SAM'</span>;</span><br><span class="line">  exception</span><br><span class="line">    when no_data_found then </span><br><span class="line">      l_empno := null;</span><br><span class="line">  <span class="keyword">end</span>;</span><br><span class="line">  </span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+<h2 id="Using-max"><a href="#Using-max" class="headerlink" title="Using max"></a>Using <code>max</code></h2><p>Using an aggregate function will always return a value even if no rows are returned. For example:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> nvl(<span class="keyword">max</span>(dummy), <span class="string">'still returns value'</span>) val</span><br><span class="line"><span class="keyword">from</span> dual</span><br><span class="line"><span class="keyword">where</span> <span class="number">1</span>=<span class="number">2</span> <span class="comment">-- Always false</span></span><br><span class="line">;</span><br><span class="line"></span><br><span class="line">VAL          </span><br><span class="line"><span class="comment">-------------</span></span><br><span class="line">still returns value</span><br></pre></td></tr></table></figure>
+
+<p>Using this logic with the base example we can do:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">select</span> <span class="keyword">max</span>(e.empno)</span><br><span class="line">  <span class="keyword">into</span> l_empno</span><br><span class="line">  <span class="keyword">from</span> emp e</span><br><span class="line">  <span class="keyword">where</span> e.ename = <span class="string">'SAM'</span>;</span><br><span class="line">  </span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+<p>I’ve used this in the past, however it comes with a caveat. If used on a column that isn’t unique it will still return one value. If multiple values are present (ex: all <code>emp</code>s who’s <code>job</code> is <code>MANAGER</code>) it can lead to false positives.</p>
+<h2 id="Using-left-join"><a href="#Using-left-join" class="headerlink" title="Using left join"></a>Using <code>left join</code></h2><p>Similar to the previous option, selecting from <code>dual</code> (always returns a row) we can <code>left join</code> to optionally find the value.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  </span><br><span class="line">  <span class="keyword">select</span> e.empno</span><br><span class="line">  <span class="keyword">into</span> l_empno</span><br><span class="line">  <span class="keyword">from</span> dual</span><br><span class="line">    <span class="keyword">left</span> <span class="keyword">join</span> emp e <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">      <span class="keyword">and</span> e.ename = <span class="string">'SAM'</span>;</span><br><span class="line">    </span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br></pre></td></tr></table></figure>
+
+<p>I prefer this approach compared to the <code>max</code> approach since if multiple values are possible an error is returned (which in most cases we want):</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">declare</span></span><br><span class="line">  l_empno emp.empno%<span class="keyword">type</span>;</span><br><span class="line"><span class="keyword">begin</span></span><br><span class="line">  <span class="keyword">select</span> e.empno</span><br><span class="line">  <span class="keyword">into</span> l_empno</span><br><span class="line">  <span class="keyword">from</span> dual</span><br><span class="line">    <span class="keyword">left</span> <span class="keyword">join</span> emp e <span class="keyword">on</span> <span class="number">1</span>=<span class="number">1</span></span><br><span class="line">     <span class="keyword">and</span> e.job = <span class="string">'MANAGER'</span> <span class="comment">-- Will return multiple values</span></span><br><span class="line">  ;   </span><br><span class="line"><span class="keyword">end</span>;</span><br><span class="line">/</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Error</span></span><br><span class="line">ORA-01422: exact fetch returns more than requested number of rows</span><br><span class="line">ORA-06512: at line 5</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/" data-id="ckkl5bys100he01pp62k4fh5i" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2020/01/how-to-select-an-optional-value/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-how-to-find-matching-sets-of-data-using-sql" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/11/how-to-find-matching-sets-of-data-using-sql/" class="article-date">
@@ -112,7 +177,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ckk2ms1r200ga01pkeavc6raq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/" data-id="ckkl5byrp00h901pp0yqi7x3m" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/11/how-to-find-matching-sets-of-data-using-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -158,7 +223,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ckk2ms1qj00fx01pk4aj9aw73" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/" data-id="ckkl5byre00h501ppb2h2e17a" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/validating-dates-and-numbers-in-oracle-12-2/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -216,7 +281,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="ckk2ms1qn00fz01pk7prchsaq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/" data-id="ckkl5byr800h101ppfxqk4m7b" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/apex-read-only-mode-page-processes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -293,7 +358,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="ckk2ms1qs00g301pkhs7jawm8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/" data-id="ckkl5byrb00h301pp05g9cs9r" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/how-to-refresh-a-report-only-once-with-multiple-dependant-cascading-lovs/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -355,7 +420,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="ckk2ms1qf00fv01pk24nm9w4w" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/" data-id="ckkl5byr500gz01pp7s3r3z45" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/03/adding-a-refresh-button-for-standard-reports-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -414,7 +479,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="ckk2ms1qc00ft01pk4h1s3sht" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/" data-id="ckkl5byqq00gs01pp5y2866xl" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-execute-queries-in-sql-developer/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -476,7 +541,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="ckk2ms1q400fp01pkfyk0a5wa" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/" data-id="ckkl5byqz00gv01pp9bpo014j" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-disable-an-apex-application-during-a-release/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -525,7 +590,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="ckk2ms1q800fr01pkap6nfto9" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/" data-id="ckkl5byr200gx01pp8nthhpug" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-intercept-interactive-report-save-and-delete-functions-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -576,62 +641,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="ckk2ms1pr00fk01pk9fmwclz4" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/" data-id="ckkl5byqm00gq01pp7tj06nwk" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2019/02/how-to-compile-all-invalid-objects-in-oracle/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/plsql/" rel="tag">plsql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/" rel="tag">sql</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-case-insensitive-sorting-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2019/02/case-insensitive-sorting-in-apex/" class="article-date">
-  <time datetime="2019-02-25T05:16:47.000Z" itemprop="datePublished">2019-02-24</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2019/02/case-insensitive-sorting-in-apex/">Case Insensitive Sorting in APEX</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>By default Oracle does case sensitive sorting, which means that ascending order goes from <code>A-Z</code> then <code>a-z</code>. This is reflected in APEX when creating reports and sorting on them.</p>
-<img src="/2019/02/case-insensitive-sorting-in-apex/before.png" class="">
-
-<p>They’re various workarounds to enable case insensitive sorting. The simplest is to change the entire application by modifying the following setting in <code>Shared Components &gt; Globalization &gt; Character Value Comparison</code> to <code>BINARY_CI</code>:</p>
-<img src="/2019/02/case-insensitive-sorting-in-apex/settings.png" class="">
-
-<p>Once set, all your reports will be sorted case insensitive. The first report now looks like this:</p>
-<img src="/2019/02/case-insensitive-sorting-in-apex/after.png" class="">
-
-<p><em>Thanks to <a href="https://twitter.com/rimblas" target="_blank" rel="noopener">Jorge Rimblas</a> for showing me this!</em></p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/" data-id="ckk2ms1q100fn01pkbk6i3ifm" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2019/02/case-insensitive-sorting-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
 
     </footer>
   </div>
@@ -678,7 +693,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">157</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">158</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -715,7 +730,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

@@ -68,6 +68,86 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-how-to-save-page-data-but-show-errors-in-apex" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2018/03/how-to-save-page-data-but-show-errors-in-apex/" class="article-date">
+  <time datetime="2018-03-29T14:15:48.000Z" itemprop="datePublished">2018-03-29</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2018/03/how-to-save-page-data-but-show-errors-in-apex/">How to Save Page Data but Show Errors in APEX</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>In most cases error messages are shown on an APEX page when the user submits a form and a validation fails. Sometimes (not often) you may need to manually control the validations rather than using the declarative validations section. To do this you can use the <a href="https://docs.oracle.com/database/apex-5.1/AEAPI/APEX_ERROR.htm#AEAPI2209" target="_blank" rel="noopener"><code>apex_error</code></a> API. The following is an example of how to call the API.</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">apex_error.add_error(</span><br><span class="line">  p_message =&gt; 'Custom error from PL/SQL',</span><br><span class="line">  p_display_location =&gt; apex_error.c_inline_in_notification);</span><br></pre></td></tr></table></figure>
+
+<p>This will generate the following on the page:</p>
+<img src="/2018/03/how-to-save-page-data-but-show-errors-in-apex/custom-error.png" class="">
+
+<p><code>apex_error.add_error</code> triggers a rollback and in most cases this is a good thing. In some very specific cases you may not want a rollback to occur. The rest of this article covers how to generate errors without a rollback occurring.</p>
+<h2 id="Edge-Case"><a href="#Edge-Case" class="headerlink" title="Edge Case"></a>Edge Case</h2><p>I recently had a rare edge case for a page submit and errors. The page was used to edit batch staging data. The requirements were:</p>
+<ul>
+<li>User submits page</li>
+<li>All the data is saved (in a staging table)<ul>
+<li>_Since this is staging area, the data must be saved and committed each time regardless of errors _</li>
+</ul>
+</li>
+<li>Do validations against staged data<ul>
+<li>If errors were found, the page would show them (remember the data still needs to be saved)</li>
+<li>If no errors were found, the staged data would be posted and then branch to another page.</li>
+</ul>
+</li>
+</ul>
+<h2 id="The-Solution"><a href="#The-Solution" class="headerlink" title="The Solution"></a>The Solution</h2><p>Given that <code>apex_error.add_error</code> performs a rollback the simple solution is to save the staged data, perform an explicit <code>commit</code>, and then do custom validations. Unfortunately this was not possible due to additional requirements that I left out of this article.</p>
+<p><em>The following relies on the fact that you know about the <code>apex.message</code> API. If you do not please read <a href="/2018/03/custom-apex-notification-messages/" title="this article">this article</a>.</em></p>
+<p>This is an overview of the final solution:</p>
+<ul>
+<li>On Submit PL/SQL page process that:<ul>
+<li>Saved all the page’s data</li>
+<li>Called a custom validation function that returned a JSON object. If no errors were found this function would return <code>null</code>. The results of this function were stored in the page item <code>P1_ERR_JSON</code>.</li>
+</ul>
+</li>
+<li>Created an <code>onPageLoad</code> Dynamic Action to display errors using the <code>apex.message</code> API</li>
+</ul>
+<p>The following pseudo code summarizes the above description:</p>
+<h3 id="Page-Process"><a href="#Page-Process" class="headerlink" title="Page Process"></a>Page Process</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- ...</span></span><br><span class="line"><span class="comment">-- Save staging data</span></span><br><span class="line"><span class="comment">-- ...</span></span><br><span class="line"><span class="comment">-- Validations:</span></span><br><span class="line">l_err_json := null;</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">sum</span>(salary)</span><br><span class="line"><span class="keyword">into</span> l_salary_total</span><br><span class="line"><span class="keyword">from</span> my_stage_table;</span><br><span class="line"></span><br><span class="line">if l_salary_total &gt; 1000 then</span><br><span class="line">  <span class="comment">-- Produce JSON error like:</span></span><br><span class="line">  <span class="comment">-- &#123;</span></span><br><span class="line">  <span class="comment">--   "errMsg": "Total salary must be less than $1000"</span></span><br><span class="line">  <span class="comment">-- &#125;</span></span><br><span class="line">  apex_json.initialize_clob_output;</span><br><span class="line">  apex_json.open_object;</span><br><span class="line">  apex_json.write('errMsg', 'Total salary must be less than $1000');</span><br><span class="line">  apex_json.close_object;</span><br><span class="line"></span><br><span class="line">  l_err_json := apex_json.get_clob_output;</span><br><span class="line">  apex_json.free_output;</span><br><span class="line"><span class="keyword">end</span> <span class="keyword">if</span>;</span><br><span class="line"></span><br><span class="line">apex_util.set_session_state('P1_ERR_JSON', l_err_json, false);</span><br></pre></td></tr></table></figure>
+
+<h3 id="onPageLoad-Dynamic-Action"><a href="#onPageLoad-Dynamic-Action" class="headerlink" title="onPageLoad Dynamic Action"></a><code>onPageLoad</code> Dynamic Action</h3><figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">err = apex.item(<span class="string">'P1_ERR_JSON'</span>).getValue();</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (err.length &gt; <span class="number">0</span>) &#123;</span><br><span class="line">  err = <span class="built_in">JSON</span>.parse(err);</span><br><span class="line"></span><br><span class="line">  apex.message.clearErrors();</span><br><span class="line">  apex.message.showErrors([</span><br><span class="line">    &#123;</span><br><span class="line">      type: apex.message.TYPE.ERROR,</span><br><span class="line">      location: [<span class="string">"page"</span>],</span><br><span class="line">      message: err.errMsg,</span><br><span class="line">      unsafe: <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">  ]);</span><br><span class="line">&#125;<span class="comment">// end if</span></span><br></pre></td></tr></table></figure>
+
+<p>When an error occurred, the page looked like:</p>
+<img src="/2018/03/how-to-save-page-data-but-show-errors-in-apex/total-error.png" class="">
+
+<h2 id="Wrapping-Up"><a href="#Wrapping-Up" class="headerlink" title="Wrapping Up"></a>Wrapping Up</h2><p>This solution is a summary of the final code. You can easily expand it to handle multiple error messages, associate with page items, etc.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/" data-id="ckkl5bypp00g601ppgkfc827q" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2018/03/how-to-save-page-data-but-show-errors-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-custom-apex-notification-messages" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2018/03/custom-apex-notification-messages/" class="article-date">
@@ -111,7 +191,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="ckk2ms1z000le01pk6oluaiad" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/custom-apex-notification-messages/" data-id="ckkl5bype00fz01ppeh71gizx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/custom-apex-notification-messages/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -185,7 +265,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="ckk2ms1ts00ho01pkhfxq6d0u" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/" data-id="ckkl5bypa00fx01pp4080g0j0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2018/03/what-a-bag-of-frozen-blueberries-can-teach-you-about-software-development/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -231,7 +311,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="ckk2ms1dh00c601pk8x390ez1" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/" data-id="ckkl5byhd00b401pph1zd34bn" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-develop-with-multiple-apex-developer-tabs-in-firefox/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -278,7 +358,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="ckk2ms1er00cu01pkgwecb065" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/" data-id="ckkl5byht00bf01ppfiz31ku7" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-setup-multiple-apex-environments-using-docker-and-oracle-12c/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -343,7 +423,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="ckk2ms1dt00ce01pk6bi8b7v8" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/" data-id="ckkl5byhp00bb01pph6wuhmdx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/11/how-to-convert-dec-to-any-base-in-sql/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -394,7 +474,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/reset-authorization-cache/" data-id="ckk2ms1dq00cb01pk0rwkamsc" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/reset-authorization-cache/" data-id="ckkl5byh400b101pp61fibxwd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/reset-authorization-cache/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -456,7 +536,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/" data-id="ckk2ms1dn00c901pk9cv7ex12" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/" data-id="ckkl5byh200az01ppf72z30s8" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/listagg-for-ir-column-break-report/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -528,7 +608,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/" data-id="ckk2ms1d000bz01pkg0dra2km" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/" data-id="ckkl5byhh00b801ppdmtb9s12" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/top-oracle-sql-developer-data-modeler-settings/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -702,87 +782,12 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/docker-oracle-and-apex/" data-id="ckk2ms1de00c401pk9lb560tt" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2017/10/docker-oracle-and-apex/" data-id="ckkl5bygt00ar01pp6yar8j7w" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2017/10/docker-oracle-and-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/oracle/" rel="tag">oracle</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-how-to-setup-oracle-db-12-2-docker-container" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/10/how-to-setup-oracle-db-12-2-docker-container/" class="article-date">
-  <time datetime="2017-10-11T05:39:44.000Z" itemprop="datePublished">2017-10-10</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/10/how-to-setup-oracle-db-12-2-docker-container/">How to Setup Oracle DB 12.2 Docker Container</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p><em>Update: I’ve moved my setup process to Dockerize Oracle and APEX to Github. It will be maintained with the latest steps I’m using it. The repository is <a href="https://github.com/martindsouza/docker-oracle-setup" target="_blank" rel="noopener">docker-oracle-setup</a>.</em></p>
-<p>I recently had a need to do a Proof of Concept (POC) on a new feature released in Oracle 12c R2 (12.2). My first instinct was to go to my DBAs and ask them to give me access to a 12.2 environment. Thankfully I was at the <a href="http://www.oracle.com/technetwork/community/oracle-ace/index.html" target="_blank" rel="noopener">Oracle ACE</a> annual Oracle Open World dinner and <a href="https://twitter.com/geraldvenzl?lang=en" target="_blank" rel="noopener">Gerald Venzl</a> (aka Mr.Oracle-Docker) was there and convinced me otherwise. I must thank Gerald for both pushing me to start using Docker again and also for some support when I ran into issues.</p>
-<p>The following post will cover how to get a 12.2 instance up and running using the Oracle Container Registry for your own personal instances</p>
-<h1 id="Background"><a href="#Background" class="headerlink" title="Background"></a>Background</h1><ul>
-<li>If you haven’t already done so, go install <a href="https://www.docker.com" target="_blank" rel="noopener">Docker</a>. If you’ve never heard of Docker before I suggest reading a bit about it so you have some understanding of what is and how it works.</li>
-<li>Go to <a href="https://container-registry.oracle.com" target="_blank" rel="noopener">container-registry.oracle.com</a> and use your Oracle Technology Network (OTN) login and register.<ul>
-<li>One logged in go to <code>Database &gt; Enterprise</code> and read and if you agree to the Terms and Conditions click the <code>Accept</code> button</li>
-</ul>
-</li>
-</ul>
-<h1 id="Docker"><a href="#Docker" class="headerlink" title="Docker"></a>Docker</h1><p>The following steps will pull the appropriate image(s) and setup your docker instance. I’ve added inline comments to describe each step. <em>If you’re new to Docker please read my comments rather than blindly running the code.</em></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Some Docker versions may complain about login credentials when calling the pull command</span></span><br><span class="line"><span class="comment"># If you aren't auto prompted for login credentials run the following and use your OTN credentials</span></span><br><span class="line"><span class="comment"># docker login container-registry.oracle.com</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># They're various docker 12c images. To help reduce the number (and size) of images on my laptop I only needed the 12.2 version</span></span><br><span class="line"><span class="comment"># This will take a while to run as the image size is around 3.5 GB</span></span><br><span class="line">docker pull container-registry.oracle.com/database/enterprise:12.2.0.1</span><br><span class="line"></span><br><span class="line"><span class="comment"># For all the examples below the name "OracleDB" was used.</span></span><br><span class="line"><span class="comment"># You can use any name you want or just use the docker container ID to reference it</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To run the image the documentation says to just use the -P option for something like:</span></span><br><span class="line"><span class="comment"># docker run -d -it --name OracleDB -P container-registry.oracle.com/database/enterprise:12.2.0.1</span></span><br><span class="line"><span class="comment"># This will auto map a local port on your laptop to the container's Oracle 1521 port.</span></span><br><span class="line"><span class="comment"># The problem with this approach is that each time you stop and start the container you may get a new local port</span></span><br><span class="line"><span class="comment"># To get around this restriction you can use the the "-p" option for a statically defined port.</span></span><br><span class="line"><span class="comment"># In this example I chose 32711</span></span><br><span class="line">docker run -d -it --name OracleDB -p 32711:1521 container-registry.oracle.com/database/enterprise:12.2.0.1</span><br><span class="line"></span><br><span class="line"><span class="comment"># It takes some time for the Oracle container to fully boot up. Before trying to connect to it check the container status by running:</span></span><br><span class="line">docker ps</span><br><span class="line"></span><br><span class="line"><span class="comment"># Look in the STATUS column for the container. During "boot" time it will say "... (health: starting)".</span></span><br><span class="line"><span class="comment"># Wait until it says (healthy) before trying anything else.</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To review/confirm the port mapping run:</span></span><br><span class="line">docker port OracleDB</span><br><span class="line"><span class="comment"># Should result in something like: 1521/tcp -&gt; 0.0.0.0:32711</span></span><br></pre></td></tr></table></figure>
-
-<p>Your docker container should now be running. The following code shows how to connect to the instance using <a href="http://www.oracle.com/technetwork/developer-tools/sqlcl/overview/index.html" target="_blank" rel="noopener">SQLcl</a> along with creating a test account on the PDB. You can take the connection strings in the SQLcl demos and apply to <a href="http://www.oracle.com/technetwork/developer-tools/sql-developer/overview/index.html" target="_blank" rel="noopener">SQL Developer</a>.</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Note on my laptop I renamed "sql" to "sqlcl". Adjust the scripts accordingly or call sqlplus</span></span><br><span class="line"><span class="comment"># The difference between : and / at the end of the connection strings is :SID /SERVICE_NAME</span></span><br><span class="line"><span class="comment"># Note: Oradoc_db1 is the default password for the image</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To connect to the CDB (you probably won't need to do this)</span></span><br><span class="line"><span class="comment"># sqlcl sys/Oradoc_db1@localhost:32711:orclcdb as sysdba</span></span><br><span class="line"><span class="comment"># You'd then need to connect to PDB in SQL: alter session set container = orclpdb1;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># To connect to the PDB to create schema to develop with</span></span><br><span class="line">sqlcl sys/Oradoc_db1@localhost:32711/orclpdb1.localdomain as sysdba</span><br></pre></td></tr></table></figure>
-
-<p>In <code>SQL&gt;</code>:</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Create account to develop with</span></span><br><span class="line">define new_user = 'martin'</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">user</span> &amp;new_user. <span class="keyword">identified</span> <span class="keyword">by</span> &amp;new_user. <span class="keyword">container</span> = <span class="keyword">current</span>;</span><br><span class="line"><span class="keyword">grant</span> <span class="keyword">connect</span>, <span class="keyword">resource</span>, <span class="keyword">create</span> <span class="keyword">any</span> <span class="keyword">context</span> <span class="keyword">to</span> &amp;new_user;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> &amp;new_user <span class="keyword">quota</span> <span class="keyword">unlimited</span> <span class="keyword">on</span> <span class="keyword">users</span>;</span><br><span class="line"></span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
-
-<p>Connect to the PDB</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlcl martin/martin@localhost:32711/orclpdb1.localdomain</span><br></pre></td></tr></table></figure>
-
-<p>Note: In SQL Developer this connection looks like:</p>
-<img src="/2017/10/how-to-setup-oracle-db-12-2-docker-container/docker-sql-developer.png" class="">
-
-<p>In <code>SQL&gt;</code></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Create the emp and dept tables (<span class="doctag">note:</span> only works in SQLcl / SQL Dev. Not SQL*Plus)</span></span><br><span class="line">@https://raw.githubusercontent.com/OraOpenSource/OXAR/master/oracle/emp_dept.sql</span><br><span class="line"><span class="keyword">commit</span>;</span><br><span class="line">exit;</span><br></pre></td></tr></table></figure>
-
-<p>You can now do/test whatever you want to do in your PDB!</p>
-<h1 id="Common-docker-commands"><a href="#Common-docker-commands" class="headerlink" title="Common docker commands"></a>Common docker commands</h1><p>So now that you’ve started your Docker instance, and established a working connection to the PDB how do you manage the Docker container? Here are some useful Docker commands:</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># See all containers (running or otherwise)</span></span><br><span class="line">docker ps -a</span><br><span class="line"></span><br><span class="line"><span class="comment"># Stop the docker image</span></span><br><span class="line"><span class="comment"># docker stop OracleDB</span></span><br><span class="line"><span class="comment"># From Gerald Venzl: By default docker will kill the container after just 10 seconds.</span></span><br><span class="line"><span class="comment"># That usually means that your database will die and has to run through recovery when it restarts.</span></span><br><span class="line"><span class="comment"># I always do a "docker stop -t 100 &lt;container name&gt;". That gives it a minute and 40 secs.</span></span><br><span class="line"><span class="comment"># It won't need that, usually 30 - 40 secs is enough.</span></span><br><span class="line"><span class="comment"># Docker will shutdown as soon as the database is down as well.</span></span><br><span class="line">docker stop -t 100 OracleDB</span><br><span class="line"></span><br><span class="line"><span class="comment"># Start the docker image</span></span><br><span class="line">docker start OracleDB</span><br><span class="line"></span><br><span class="line"><span class="comment"># *** Cleanup ***</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete container</span></span><br><span class="line">docker rm OracleDB</span><br><span class="line"></span><br><span class="line"><span class="comment"># Delete Image</span></span><br><span class="line">docker rmi container-registry.oracle.com/database/enterprise:12.2.0.1</span><br></pre></td></tr></table></figure>
-
-<h1 id="Final-Thoughts"><a href="#Final-Thoughts" class="headerlink" title="Final Thoughts"></a>Final Thoughts</h1><p>I’ve just started to use the Docker 12.2 image and may launch a 12.1 container as well (will blog instructions if I do it).</p>
-<p>If I run into any issues doing my tests and “learning” development (i.e. kicking the 12.2 tires) I’ll write another article and link below. I also plan to look into upgrading APEX on the 12.2 container along with creating a simple web server container to test APEX with some 12.2 features. If I get this working I’ll blog about it.</p>
-<p>*<em>Update: *</em> <a href="https://twitter.com/RoelH" target="_blank" rel="noopener">Role Hartman</a> wrote a followup <a href="http://roelhartman.blogspot.ca/2017/10/dockerize-your-apex-development.html" target="_blank" rel="noopener">post</a> to this article that I highly suggest reading. I will update this article with some of his suggestions on how he sets up his Docker Oracle DB container.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/" data-id="ckk2ms1d700c101pk2b5d7hyl" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2017/10/how-to-setup-oracle-db-12-2-docker-container/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/docker/" rel="tag">docker</a></li></ul>
 
     </footer>
   </div>
@@ -829,7 +834,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">157</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">158</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -866,7 +871,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
