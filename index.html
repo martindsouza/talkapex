@@ -109,7 +109,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/how-to-find-which-item-has-been-changed-in-apex/" data-id="ckkl9azsd00iv01pd6lrwd5nd" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/how-to-find-which-item-has-been-changed-in-apex/" data-id="ckkmme2hu00hr01qx7qila1kw" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/how-to-find-which-item-has-been-changed-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -159,7 +159,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/apex-warn-on-unsaved-changes/" data-id="ckkl9azrx00iq01pdb6h07iuq" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/apex-warn-on-unsaved-changes/" data-id="ckkmme2hi00hn01qx2g7ecrb3" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/apex-warn-on-unsaved-changes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -209,7 +209,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/" data-id="ckkl9azsf00ix01pddw39a6aj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/" data-id="ckkmme2hl00hp01qx2ask07um" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -245,7 +245,8 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Let’s start with a little quiz. Without checking, what do you think happens/returns running the following query:</p>
+        <p><em>There’s been some feedback I’ve received on this so read all the way through</em></p>
+<p>Let’s start with a little quiz. Without checking, what do you think happens/returns running the following query:</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Note the two digit year</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">to_date</span>(<span class="string">'24-Jan-21'</span>, <span class="string">'DD-MON-YYYY'</span>)</span><br><span class="line"><span class="keyword">from</span> dual;</span><br></pre></td></tr></table></figure>
 
 <p>I recently <a href="https://twitter.com/martindsouza/status/1353550672919023617" target="_blank" rel="noopener">asked this same question</a> on Twitter and the results were quite interesting given that this <em>should</em> be a very straight forward answer. Over 50% of the people got it wrong:</p>
@@ -261,11 +262,20 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">to_date</span>(<span class="string">'24-Jan-21'</span>, <span class="string">'DD-MON-YYYY'</span>)</span><br><span class="line"><span class="keyword">from</span> dual;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Returns</span></span><br><span class="line">24-jan-2021</span><br></pre></td></tr></table></figure>
 
 <p>The nice thing about using the <code>RRRR</code> format is you can still display years as four digits but users can enter them in as two digits with expected results. If users are entering past dates (ex: cataloging old library books) I suggest you read the <a href="https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Format-Models.html#GUID-6C75461E-2E18-4C35-9EB4-038A7E1C9C1F" target="_blank" rel="noopener">documentation</a> to see if the <code>RRRR</code> format is the right setting for your application.</p>
+<p><strong>Update</strong></p>
+<p>Based on some <a href="https://twitter.com/AndrewSayer_/status/1355887019977826304" target="_blank" rel="noopener">Twitter feedback</a> by <a href="https://twitter.com/AndrewSayer_" target="_blank" rel="noopener">Andy Sayer</a> he pointed out that we could use the <code>FX</code> option in the date format to enforce <code>format exact</code>. Some examples:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">to_date</span>(<span class="string">'24-Jan-21'</span>, <span class="string">'FXDD-MON-YYYY'</span>)</span><br><span class="line"><span class="keyword">from</span> dual;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Error</span></span><br><span class="line">ORA-01862: the numeric value does not match the length of the format item</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">to_date</span>(<span class="string">'24-Jan-2021'</span>, <span class="string">'FXDD-MON-YYYY'</span>)</span><br><span class="line"><span class="keyword">from</span> dual;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Returns</span></span><br><span class="line">24-jan-2021</span><br><span class="line"></span><br><span class="line"><span class="comment">-- But not including a "0" prefix for the day number will also result in an error</span></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">to_date</span>(<span class="string">'4-Jan-2021'</span>, <span class="string">'FXDD-MON-YYYY'</span>)</span><br><span class="line"><span class="keyword">from</span> dual;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Error</span></span><br><span class="line">ORA-01862: the numeric value does not match the length of the format item</span><br></pre></td></tr></table></figure>
+
+<p>As you can see they’re some pros and cons to this approach. Documentation on the <code>FX</code> modifier can be found <a href="https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Format-Models.html#GUID-A4CCA8BD-1679-432E-96BA-22FB46FF23E0" target="_blank" rel="noopener">here</a></p>
+<p>There was also some discussion about using the <code>FM</code> modifier in conjunction with the <code>FX</code> modifier to resolve the day padding problem. This doesn’t solve our two digit year problem as it will just be padded with <code>0</code>s which means we’re back to our original problem as shown below. Documentation on <code>FM</code> modifier can be found <a href="https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Format-Models.html#GUID-A4CCA8BD-1679-432E-96BA-22FB46FF23E0" target="_blank" rel="noopener">here</a>.</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">to_date</span>(<span class="string">'24-Jan-21'</span>, <span class="string">'FXFMDD-MON-YYYY'</span>)</span><br><span class="line"><span class="keyword">from</span> dual;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- Returns</span></span><br><span class="line">24-jan-0021</span><br></pre></td></tr></table></figure>
+
+
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/" data-id="ckkl9azsh00iz01pd4qi0210n" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/" data-id="ckkmme2lk00ky01qx3cumhgtf" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -316,7 +326,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/" data-id="ckkl9azs000it01pd78eu1g32" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/" data-id="ckkmme2i100hu01qx2i7geruu" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -497,7 +507,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/" data-id="ckkl9azrs00io01pdecra66yu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/" data-id="ckkmme2hc00hi01qxbuci6tdh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -549,7 +559,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/" data-id="ckkl9b04d00kt01pd53vaad4y" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/" data-id="ckkmme2de00fg01qxf36la3e0" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -600,7 +610,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/" data-id="ckkl9b04t00kv01pd5y1i40kh" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/" data-id="ckkmme2d800fb01qxahlmago8" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -653,7 +663,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/apex-at-home/" data-id="ckkl9b03y00kn01pd8pcp7ebn" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/03/apex-at-home/" data-id="ckkmme2ct00f401qxaczsfbso" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/03/apex-at-home/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -713,7 +723,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/apex-19-form-pl-sql-processing/" data-id="ckkl9b04900kr01pd7cgv5oyl" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/03/apex-19-form-pl-sql-processing/" data-id="ckkmme2dc00fe01qxg5kw1nhr" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/03/apex-19-form-pl-sql-processing/#disqus_thread" class="article-comment-link">Comments</a>
       
