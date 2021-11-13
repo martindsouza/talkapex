@@ -68,6 +68,57 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-sqldeveloper-on-macos-monterey" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2021/11/sqldeveloper-on-macos-monterey/" class="article-date">
+  <time datetime="2021-11-13T09:53:30.000Z" itemprop="datePublished">2021-11-13</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2021/11/sqldeveloper-on-macos-monterey/">SQLDeveloper on macOS Monterey</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>If you’ve upgraded to macOS Monterey and try to use <a href="https://www.oracle.com/database/technologies/appdev/sqldeveloper-landing.html" target="_blank" rel="noopener">Oracle SQL Developer</a> you may experience an issue that it starts and then closes after a few minutes. After some research I found that it’s a Java 11 issue with the latest version of macOS. </p>
+<p>With the help of a few people on <a href="https://twitter.com/martindsouza/status/1458421332811534342" target="_blank" rel="noopener">Twitter</a> and <a href="https://twitter.com/VitoDCampanelli" target="_blank" rel="noopener">Vito Campanelli</a> I was able to get it working by doing the following steps:</p>
+<h2 id="Upgrade-Install-Java-17"><a href="#Upgrade-Install-Java-17" class="headerlink" title="Upgrade / Install Java 17"></a>Upgrade / Install Java 17</h2><p>I got the following instructions from <a href="https://knasmueller.net/how-to-install-java-openjdk-17-on-macos-big-sur" target="_blank" rel="noopener">this</a> blog post.</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Download file</span></span><br><span class="line"><span class="comment"># Can download from https://jdk.java.net/17/ or use curl (below)</span></span><br><span class="line">curl -O https://download.java.net/java/GA/jdk17.0.1/2a2082e5a09d4267845be086888add4f/12/GPL/openjdk-17.0.1_macos-x64_bin.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># Uncompress and "install" java17</span></span><br><span class="line">sudo mv openjdk-17.0.1_macos-x64_bin.tar.gz /Library/Java/JavaVirtualMachines/</span><br><span class="line"><span class="built_in">cd</span> /Library/Java/JavaVirtualMachines/</span><br><span class="line">sudo tar -xzf openjdk-17.0.1_macos-x64_bin.tar.gz</span><br><span class="line">sudo rm openjdk-17.0.1_macos-x64_bin.tar.gz</span><br><span class="line"></span><br><span class="line"><span class="comment"># Register Java17 home:</span></span><br><span class="line">/usr/libexec/java_home -v17 /Library/Java/JavaVirtualMachines/jdk-17.0.1.jdk/Contents/Home</span><br><span class="line"></span><br><span class="line"><span class="comment"># Can verify that it's in your JavaHome by running: (optional)</span></span><br><span class="line">/usr/libexec/java_home -V</span><br></pre></td></tr></table></figure>
+
+<h2 id="Define-SetJavaHome-in-SQL-Developer-configuration"><a href="#Define-SetJavaHome-in-SQL-Developer-configuration" class="headerlink" title="Define SetJavaHome in SQL Developer configuration"></a>Define <code>SetJavaHome</code> in SQL Developer configuration</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> ~/.sqldeveloper/</span><br><span class="line"></span><br><span class="line"><span class="comment"># List your versions of SQL Developer</span></span><br><span class="line">ls</span><br><span class="line"></span><br><span class="line"><span class="comment"># Find the most recent one (mine is 21.2.1) and open that directory</span></span><br><span class="line"><span class="built_in">cd</span> 21.2.1</span><br><span class="line"></span><br><span class="line"><span class="comment"># Add the following to the file:</span></span><br><span class="line"><span class="comment"># Can manually open file and edit or just run below and it'll add it to the bottom of the file</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"SetJavaHome /Library/Java/JavaVirtualMachines/jdk-17.0.1.jdk/Contents/Home"</span> &gt;&gt; product.conf</span><br></pre></td></tr></table></figure>
+
+<h2 id="Start-SQL-Developer"><a href="#Start-SQL-Developer" class="headerlink" title="Start SQL Developer"></a>Start SQL Developer</h2><p>When you start SQL Deeveloper a new warning message will appear that states <code>You are attempting to run with Java 17.0.1 ...</code> (screenshot below). Click <code>Yes</code> to accept and continue.</p>
+<img src="/2021/11/sqldeveloper-on-macos-monterey/sqldev-java17-warning.png" class="">
+
+<h2 id="Summary"><a href="#Summary" class="headerlink" title="Summary"></a>Summary</h2><p>I’ve only tried this for a day now and everything seems to be stable. That said there’s a warning message for a reason and I and hope there’s a Java 11 update soon that resolves the issue.</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2021/11/sqldeveloper-on-macos-monterey/" data-id="ckvx8rjjv00hf01q54hio5kks" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2021/11/sqldeveloper-on-macos-monterey/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/macos/" rel="tag">macos</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-how-to-insert-nothing-into-a-table-in-oracle" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2021/03/how-to-insert-nothing-into-a-table-in-oracle/" class="article-date">
@@ -110,7 +161,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/03/how-to-insert-nothing-into-a-table-in-oracle/" data-id="ckpzsrxib00ik01kd81yyg0wy" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/03/how-to-insert-nothing-into-a-table-in-oracle/" data-id="ckvx8rjix00ha01q5abq6aij8" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/03/how-to-insert-nothing-into-a-table-in-oracle/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -165,7 +216,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/how-to-find-which-item-has-been-changed-in-apex/" data-id="ckpzsrxi000ib01kd9m0khri7" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/how-to-find-which-item-has-been-changed-in-apex/" data-id="ckvx8rjhd00h301q5gnhxfsse" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/how-to-find-which-item-has-been-changed-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -215,7 +266,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/apex-warn-on-unsaved-changes/" data-id="ckpzsrxhs00i501kdaevc2r24" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/apex-warn-on-unsaved-changes/" data-id="ckvx8rji600h501q505vlbeyv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/apex-warn-on-unsaved-changes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -265,7 +316,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/" data-id="ckpzsrxi900ii01kdb4cwgxyu" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/" data-id="ckvx8rjgu00h101q5guix9zr6" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/connecting-to-oracle-cloud-database-ora-28759-failure-to-open-file/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -331,7 +382,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/" data-id="ckpzsrxi500ig01kd5ducag3r" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/" data-id="ckvx8rjjn00hd01q588816moa" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/the-biggest-hidden-bug-in-your-apex-application/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -382,7 +433,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/" data-id="ckpzsrxi300ie01kd3nwm7cy0" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/" data-id="ckvx8rjim00h801q57fbi02xg" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/inline-function-in-dynamic-action-javascript-expression-in-apex/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -563,7 +614,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/" data-id="ckpzsrxhx00i901kddxr8hl9y" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/" data-id="ckvx8rjgg00gw01q5hyhcdryz" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2021/01/how-to-build-templates-in-aop/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -615,7 +666,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/" data-id="ckpzsrxhv00i701kdf5rfch9q" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/" data-id="ckvx8rk4s00lr01q588535rxh" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/11/sqldeveloper-in-macos-big-sur/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -666,7 +717,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/" data-id="ckpzsrxhq00i301kdb0j7cubw" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/" data-id="ckvx8rk2g00lp01q54x1jdnjx" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2020/04/screenshots-in-macos-and-continuity-markup/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -680,64 +731,11 @@
 
 
   
-    <article id="post-apex-at-home" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2020/03/apex-at-home/" class="article-date">
-  <time datetime="2020-03-26T23:33:18.000Z" itemprop="datePublished">2020-03-26</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2020/03/apex-at-home/">APEX@Home</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <img src="/2020/03/apex-at-home/apex-at-home-banner.jpeg" class="">
-
-<p>Aside from the obvious, it’s been disappointing for a lot of people in our community seeing all the canceled conferences. Conferences are a great time to learn and meet new people. I was recently talking about this to <a href="https://twitter.com/fuzziebrain" target="_blank" rel="noopener">Adrian Png</a> and <a href="https://twitter.com/trentschafer" target="_blank" rel="noopener">Trent Schafer</a> and we decided to create a one-day mini conference called <a href="http://apexatho.me" target="_blank" rel="noopener">APEX@Home</a>. Since our initial discussion others have gotten involved (<a href="https://twitter.com/joelkallman" target="_blank" rel="noopener">Joel Kallman</a>, <a href="https://twitter.com/shakeeb" target="_blank" rel="noopener">Shakeeb Rahman</a>, <a href="https://twitter.com/peterraganitsch" target="_blank" rel="noopener">Peter Raganitsch</a>, and <a href="https://twitter.com/nielsdb" target="_blank" rel="noopener">Niels de Bruijn</a>) and it’s blown up into a full one day 24-hour conference - for FREE!</p>
-<p><a href="http://apexatho.me" target="_blank" rel="noopener">APEX@Home</a> will be a bit different from normal webinars in the sense that everyone will be presenting from the comfort and safety of their homes (thus the name, <a href="http://apexatho.me" target="_blank" rel="noopener">APEX@Home</a>). We can expect some interruptions from kids, pets, etc. and we’ll make the most of it.</p>
-<p>Everything you need to know:</p>
-<ul>
-<li><strong>When</strong>: Thursday April 16th starting at 00:01am EDT  going until 23:59pm EDT </li>
-<li><strong>Where</strong>: Subscribe at <a href="https://apex.oracle.com/officehours" target="_blank" rel="noopener">apex.oracle.com/officehours</a> so you can receive reminders for this special event.</li>
-<li><strong>Format</strong>: Each talk will begin on the hour. They will be 45 mins followed by a moderated 10min Q&amp;A then a 5 min break where the speakers will change.</li>
-</ul>
-<p>The full schedule and links to talk can be found <a href="http://apexatho.me" target="_blank" rel="noopener">here</a>. The schedule includes a link to add each talk that you want to attend to your calendar.</p>
-<p><a href="http://apexatho.me" target="_blank" rel="noopener">APEX@Home</a> is for the community, by the community. Please help spread the word to your friends, colleagues, schools, clients, etc!</p>
-<p>- Adrian, Martin, and Trent</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2020/03/apex-at-home/" data-id="ckpzsrxhk00hx01kdef32htnu" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2020/03/apex-at-home/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
     
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/32/">32</a><a class="extend next" rel="next" href="/page/2/">Next &amp;raquo;</a>
   </nav>
 
 </section>
@@ -772,7 +770,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">161</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">161</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -809,7 +807,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 

@@ -68,6 +68,145 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-custom-authentication-status" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2009/03/custom-authentication-status/" class="article-date">
+  <time datetime="2009-03-22T16:27:00.000Z" itemprop="datePublished">2009-03-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2009/03/custom-authentication-status/">Custom Authentication Status</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>When writing custom authentication scheme I noticed that invalid logins weren’t showing up properly in the apex logs (apex_workspace_access_log).</p>
+<p>Here’s how to re-create the problem along with the fix.</p>
+<p>First let’s create a custom authentication function:</p>
+<pre class="brush: sql;">
+CREATE OR REPLACE FUNCTION blog_cust_auth (
+  p_username IN VARCHAR2,
+  p_password IN VARCHAR2
+)
+  RETURN BOOLEAN
+AS
+BEGIN
+  IF     LOWER (p_username) = 'pass'
+     AND LOWER (p_password) = '123' THEN
+    RETURN TRUE;
+  ELSE
+    RETURN FALSE;
+  END IF;
+END;
+</pre>
+<p>Let’s set the APEX authentication scheme to use this custom function:</p>
+<p>Shared Components / Authentication Schemes:</p>
+<ul>
+<li><p>Create</p>
+</li>
+<li><p>From Scratch</p>
+</li>
+<li><p>Name: BLOG_TEST</p>
+</li>
+<li><p>Keep hitting “Next” until:</p>
+<ul>
+<li>Credentials Verification Method:<ul>
+<li>return blog_cust_auth</li>
+</ul>
+</li>
+<li>Keep hitting “Next” until the end</li>
+</ul>
+</li>
+<li><p>Change the current authentication scheme to BLOG_TEST</p>
+<ul>
+<li>On the Authentication Schemes page, on the right hand side select “Change Current” and select “BLOG_TEST’</li>
+</ul>
+</li>
+</ul>
+<p>Let’s create a region to always display the authentication statuses:</p>
+<ul>
+<li>Create Page<ul>
+<li>Page Zero</li>
+</ul>
+</li>
+<li>On Page 0 Create a region<ul>
+<li>Report<pre class="brush: sql;">
+SELECT   user_name,
+     authentication_method,
+     access_date,
+     authentication_result,
+     custom_status_text
+FROM apex_workspace_access_log
+WHERE application_id = :APP_ID
+ORDER BY access_date DESC
+</pre>
+Now let’s try to log in using a valid username and password:</li>
+</ul>
+</li>
+<li>username: pass, password: 123</li>
+</ul>
+<p>If things worked well you’re now on P1, and the “AUTHENITCATION_RESULT” is flagged as “AUTH_SUCCESS”</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s1600-h/01_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZntp_wliI/AAAAAAAADnQ/PRaOCMBcJsc/s400/01_cust_auth_status.bmp" alt=""></a></p>
+<p>Now logout and try to login with invalid credentials</p>
+<ul>
+<li>username: pass, password: fail</li>
+</ul>
+<p>You’ll notice that the login failed, however it still logged it as a successful login attempt:</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s1600-h/02_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZn4N5ScYI/AAAAAAAADnY/T6KZdkpFqyE/s400/02_cust_auth_status.bmp" alt=""></a></p>
+<p>Let’s update our authentication function to use the 2 authentication result customizations:<br>apex_util.set_authentication_result and apex_util.set_custom_auth_status</p>
+<pre class="brush: sql;">
+CREATE OR REPLACE FUNCTION blog_cust_auth (
+  p_username IN VARCHAR2,
+  p_password IN VARCHAR2
+)
+  RETURN BOOLEAN
+AS
+BEGIN
+  IF     LOWER (p_username) = 'pass'
+     AND LOWER (p_password) = '123' THEN
+    RETURN TRUE;
+  ELSE
+    -- Set APEX authentication Codes
+    apex_util.set_authentication_result (p_code => 3);
+    -- Set our own APEX custom text
+    apex_util.set_custom_auth_status (p_status => 'Bad Username');
+    RETURN FALSE;
+  END IF;
+END;
+</pre>
+<p>Let’s now see what happens when we now login with invalid credentials:</p>
+<p><a href="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s1600-h/03_cust_auth_status.bmp" target="_blank" rel="noopener"><img src="http://3.bp.blogspot.com/_33EF80fk9sM/ScZoFSUVHOI/AAAAAAAADng/rusi5Cp0TTc/s400/03_cust_auth_status.bmp" alt=""></a></p>
+<p>Notice that we now have proper error information in the logs? Here’s a list of some codes you can use for apex_util.set_authentication_result, taken from the view apex_workspace_access_log:</p>
+<p>0, ‘AUTH_SUCCESS’,<br>1, ‘AUTH_UNKNOWN_USER’,<br>2, ‘AUTH_ACCOUNT_LOCKED’,<br>3, ‘AUTH_ACCOUNT_EXPIRED’,<br>4, ‘AUTH_PASSWORD_INCORRECT’,<br>5, ‘AUTH_PASSWORD_FIRST_USE’,<br>6, ‘AUTH_ATTEMPTS_EXCEEDED’,<br>7, ‘AUTH_INTERNAL_ERROR’,    </p>
+<p>Of course you can use your own codes but I’d suggest sticking with these codes to utilize the APEX views. You can supplement the codes with the custom authentication status text (apex_util.set_custom_auth_status)</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://www.talkapex.com/2009/03/custom-authentication-status/" data-id="ckvx8rj9k00cz01q57gpl8kmm" class="article-share-link">Share</a>
+      
+        <a href="http://www.talkapex.com/2009/03/custom-authentication-status/#disqus_thread" class="article-comment-link">Comments</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-invalid-set-of-rows-requested-source" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2009/03/invalid-set-of-rows-requested-source/" class="article-date">
@@ -110,7 +249,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/" data-id="ckpzsrwxo000w01kdf08a44o3" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/" data-id="ckvx8rj9q00d301q5esstbp47" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/invalid-set-of-rows-requested-source/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -179,7 +318,7 @@ END;</pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="ckpzsrwxg000n01kd0mor4p3m" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/" data-id="ckvx8rja500d701q5h09t6qbv" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/q-function-escape-single-quotes/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -229,7 +368,7 @@ END;</pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="ckpzsrwx6000k01kd2n6w6u4g" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/03/test-data-in-production-applications/" data-id="ckvx8rj9t00d501q52sxc1qon" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/03/test-data-in-production-applications/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -277,7 +416,7 @@ END;</pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/02/application-id-reserved-fix/" data-id="ckpzsrwxk000r01kd386vcgzp" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/02/application-id-reserved-fix/" data-id="ckvx8rj9b00ct01q5eftv894q" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/02/application-id-reserved-fix/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -375,7 +514,7 @@ Please note there may be better/faster ways to implement the SQL code etc.</li>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/" data-id="ckpzsrwxd000l01kden6j7zmj" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/" data-id="ckvx8rj9h00cx01q5gvr05apd" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2009/01/apex-report-with-checkboxes-advanced/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -422,7 +561,7 @@ Please note there may be better/faster ways to implement the SQL code etc.</li>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/" data-id="ckpzsrwwy000e01kd148qdjzy" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/" data-id="ckvx8ril6001001q524drd1uq" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/12/how-to-access-images-in-apex-on-linux/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -474,7 +613,7 @@ Please note there may be better/faster ways to implement the SQL code etc.</li>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/" data-id="ckpzsrwx2000i01kddopjag4y" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/" data-id="ckvx8rij3000b01q5b8f62esj" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/12/jquery-calendar-and-application-date/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -527,7 +666,7 @@ from apex_dictionary
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/11/how-to-list-apex-dictionary-views-using/" data-id="ckpzsrwwx000d01kdf5nr7j9m" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/11/how-to-list-apex-dictionary-views-using/" data-id="ckvx8rijc000e01q5cbrx60qw" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/11/how-to-list-apex-dictionary-views-using/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -571,7 +710,7 @@ from apex_dictionary
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/11/css-specificity/" data-id="ckpzsrwx0000g01kd551f89df" class="article-share-link">Share</a>
+      <a data-url="http://www.talkapex.com/2008/11/css-specificity/" data-id="ckvx8rijw000i01q5ba5j75fa" class="article-share-link">Share</a>
       
         <a href="http://www.talkapex.com/2008/11/css-specificity/#disqus_thread" class="article-comment-link">Comments</a>
       
@@ -585,255 +724,11 @@ from apex_dictionary
 
 
   
-    <article id="post-manually-creating-tabular-form" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2008/08/manually-creating-tabular-form/" class="article-date">
-  <time datetime="2008-08-01T03:11:00.000Z" itemprop="datePublished">2008-07-31</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2008/08/manually-creating-tabular-form/">Manually Creating a Tabular Form</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>When I first started developing in APEX (back when it was called HTMLDB) I had a requirement for a tabular form. I tried to use the standard tabular forms but it was very limited and I couldn’t customize it to meet my requirements. I had poked around on the APEX forum, but wasn’t able to find a reasonable solution.</p>
-<p>After several iterations, I have come up with a process that works extremely well. It is slightly labor intensive but it has met all the requirements each time. Please note that Patrick Wolf, <a href="http://www.inside-oracle-apex.com/" target="_blank" rel="noopener">http://www.inside-oracle-apex.com/</a>, has developed an open source framework to handle customized tabular forms. Though it is very good it does not allow for complete access. Marcie Young did a presentation at ODTUG 2008 which outlined a very similar method, this example is taking it a step further. A working example is available here: <a href="http://apex.oracle.com/pls/otn/f?p=20195:200" target="_blank" rel="noopener">http://apex.oracle.com/pls/otn/f?p=20195:200</a></p>
-<p>The process below will not only build a customized tabular form, but also handle the errors etc.</p>
-<p><span style="font-weight: bold;">Overview</span><br>Here’s an overview of the overall methodology</p>
-<ul>
-<li>Create 2 collections. One will handle data: <span style="font-style: italic;">DATA_COLLECTION</span> and one will handle the errors: <span style="font-style: italic;">ERROR_COLLECTION</span>.</li>
-<li>The <span style="font-style: italic;">DATA_COLLECTION</span> will be loaded on the first viewing of the page and will only be refreshed from the database when the changes have been sent to the database.</li>
-<li>The <span style="font-style: italic;">ERROR_COLLECTION</span> will contain errors specific for the corresponding entry in the <span style="font-style: italic;">DATA_COLLECTION</span>. We could keep this in the same collection, but I like to keep them separate. It makes things easier if we need to add or remove columns.</li>
-<li>In the <span style="font-style: italic;">ERROR_COLLECTION</span> I keep column 50 reserved for the row error. An example of when you’d need a row error is when you have a start and end date and the end date is before the start date.</li>
-<li>This application will allow users to modify the emp.ename and emp.salary fields</li>
-<li>In the data collection I keep column 1 reserved for the sequence id (seq_id). Note though I won’t use it in this example, it has come in handy (especially when hiding/delete rows in the front end then submitting the page)</li>
-</ul>
-<p><span style="font-weight: bold;">Getting Started</span></p>
-<p>Step 1: Create a PL/SQL Process <span style="font-style: italic;">On Load Before Header</span> called <span style="font-style:italic;">Create Collection</span></p>
-<pre class="brush: sql;">
-DECLARE
-BEGIN
-   IF NVL (:p200_reload_flag, 'N') = 'N'
-   THEN
-      -- IF error collection exists, delete
-      IF apex_collection.collection_exists
-                                     (p_collection_name      => 'ERROR_COLLECTION')
-      THEN
-         apex_collection.delete_collection
-                                     (p_collection_name      => 'ERROR_COLLECTION');
-      END IF;
-
-      -- Create New Collection
-      apex_collection.create_or_truncate_collection ('DATA_COLLECTION');
-
-      FOR rec IN (SELECT   e.empno, e.ename, e.sal
-                      FROM emp e
-                  ORDER BY e.ename)
-      LOOP
-         apex_collection.add_member (p_collection_name      => 'DATA_COLLECTION',
-                                     p_generate_md5         => 'NO',
-                                     p_c002                 => rec.empno,
-                                     p_c003                 => rec.ename,
-                                     p_c004                 => TO_CHAR
-                                                                      (rec.sal),
-                                     -- Remember the collection is only text
-                                     p_c049                 => 'Y',
-                                     -- Modifiable Flag
-                                     p_c050                 => 'U'
-                                    -- SQL Action (Insert, Update, Delete)
-                                    );
-      END LOOP;
-   --
-   END IF;
-
--- Create Extra rows (if we wanted to add a new employee
-   FOR i IN 1 .. NVL (:p200_num_extra_rows, 0)
-   LOOP
-      apex_collection.add_member (p_collection_name      => 'DATA_COLLECTION',
-                                  p_generate_md5         => 'NO',
-                                  p_c002                 => -1,
-                                  -- use negative numbers for new employees
-                                  p_c049                 => 'Y',
-                                  p_c050                 => 'I'
-                                 );
-   END LOOP;
-
-   -- Insert seq_id
-   FOR rec IN (SELECT ac.seq_id
-                 FROM apex_collections ac
-                WHERE ac.collection_name = 'DATA_COLLECTION')
-   LOOP
-      apex_collection.update_member_attribute
-                                   (p_collection_name      => 'DATA_COLLECTION',
-                                    p_seq                  => rec.seq_id,
-                                    p_attr_number          => 1,
-                                    p_attr_value           => rec.seq_id
-                                   );
-   END LOOP;
-END;
-</pre>
-<p>Step 2: Create a <span style="font-style:italic;">Report / SQL Report</span> region for our custom tabular form called <span style="font-style:italic;">Employee Data</span></p>
-<pre class="brush: sql;">
-SELECT
-   -- Notice how I'm keeping the idx value the same as the column value in the collection. This helps to keep things organized
-   -- I also apply an id to each entry
-   -- I append the error value to the empname and sal
-   -- The Seq_id. Usefull when hiding rows (for delete) and then submitting from
-   apex_item.hidden(1,x.seq_id, null, x.seq_id || '_seq_id') ||
-   -- The Primary Key of the column
-   apex_item.hidden(2, x.empno, null, x.seq_id || '_empno_id') || x.empno empno,
-   -- Employee Name
-   apex_item.text(3,x.empname,null, null, null, x.seq_id || '_empname_id') || err.empname employee_name,
-   -- Employee Salary
-   apex_item.text(4,x.sal, null, null, null, x.seq_id || '_sal_id') || err.sal ||
-   -- Store the sql action type as well.
-   apex_item.hidden(50,x.sql_action_typ, null, x.seq_id || '_sql_action_typ_id') sal,
-   -- Last but not least the row error
-   err.row_error
-FROM   (SELECT  ac.c001 seq_id,
-                ac.c002 empno,
-                ac.c003 empname,
-                ac.c004 sal,
-                ac.c049 modifiable_flag,
-                ac.c050 sql_action_typ
-       FROM     apex_collections ac
-       WHERE    ac.collection_name = 'DATA_COLLECTION'
-       ORDER BY ac.seq_id) x,
-
-      -- Error Collection
-      (SELECT   ac.seq_id seq_id,
-                ac.c002 empno,
-                ac.c003 empname,
-                ac.c004 sal,
-                ac.c050 row_error -- Useful when individual data is correct, however the row of data is not. Ex: start/end dates
-       FROM     apex_collections ac
-       WHERE    ac.collection_name = 'ERROR_COLLECTION'
-       ORDER BY ac.seq_id) err
-WHERE x.seq_id = err.seq_id(+)         
-</pre>
-<p>Step 3: Add Region items and buttons</p>
-<p>All items/buttons should be added to the report region<br>Create Buttons:<br><span style="font-style:italic;">ADD</span>, submit page. Branch to <span style="font-style:italic;">&amp;APP_PAGE_ID.</span><br><span style="font-style:italic;">SUBMIT</span>, submit page. Branch to <span style="font-style:italic;">201</span><br>Note: Page <span style="font-style:italic;">201</span> is a simple sql report for <pre class="brush: sql;"><br>SELECT *<br>FROM EMP<br></pre><br>Create <span style="font-style:italic;">Hidden and Protected</span> Items:<br><span style="font-style:italic;">P200_DISPLAY_ROW_ERROR_FLAG</span></p>
-<ul>
-<li>Source value or expression: N</li>
-<li>Comment: Used to determine if the error column should be displayed<br><span style="font-style:italic;">P200_NUM_EXTRA_ROWS</span></li>
-<li>Source value or expression: 1</li>
-<li>Comment: Number of extra rows to add to the tabular form<br><span style="font-style:italic;">P200_RELOAD_FLAG</span></li>
-<li>Comment: If Y then we won’t refresh the collection with database values</li>
-</ul>
-<p>Computations (After Submit)<br><span style="font-style:italic;">P200_NUM_EXTRA_ROWS</span><br>Static: 1<br>Condition: Request = ADD</p>
-<p><span style="font-style:italic;">P200_NUM_EXTRA_ROWS</span><br>Static: 0<br>Condition: Request != ADD</p>
-<p><span style="font-style:italic;">P200_RELOAD_FLAG</span><br>Static: Y<br>Condition: None</p>
-<p><span style="font-style:italic;">P200_DISPLAY_ROW_ERROR_FLAG</span><br>Static: N<br>Condition: None</p>
-<p>Step 4: Store Collection<br>After submit, this will store the data from the form into the collection. No data validation is performed at this point</p>
-<p>Process: <span style="font-style:italic;">Store Collection</span><br>Type: PL/SQL Anonymous Block<br>Processing Point: On Submit: Before Computation and Validations<br>Source:</p>
-<pre class="brush: sql;">
-DECLARE
-BEGIN
- FOR i IN 1 .. apex_application.g_f01.COUNT LOOP
-   apex_collection.update_member (p_collection_name            => 'DATA_COLLECTION',
--- I know some of you are still wondering why were are still wondering why I stored the seq_id as a collection attribute. This is why. If you had hidden the row (i.e. let the user "delete" it) then it would not show up on this and your collection synchronization wouldn't be correct.
-          p_seq                        => apex_application.g_f01 (i), -- Sequence ID
-                                  p_c001                       => apex_application.g_f01 (i), -- Sequence ID
-                                  p_c002                       => apex_application.g_f02 (i), -- Empno
-                                  p_c003                       => apex_application.g_f03 (i), -- Empname
-                                  p_c004                       => apex_application.g_f04 (i), -- Sal
-                                  p_c049                       => 'Y',   -- Modifiable Flag
-                                  p_c050                       => UPPER(apex_application.g_f50 (i))
-                                 );
- END LOOP;
-END;
-</pre>
-<p>Step 5: Validation</p>
-<p>Type: Page Level Validation<br>Type: PL/SQL - Function returning Error Text<br>Name: Validate Collection<br>Condition: When Button Pressed - SUBMIT<br>Validation Expression:</p>
-<pre class="brush: sql;">
-DECLARE
-   v_err_msg   VARCHAR2 (255);
-BEGIN
-   -- IF error collection exists, truncate. Else Create
-   IF apex_collection.collection_exists
-                                     (p_collection_name      => 'ERROR_COLLECTION')
-   THEN
-      apex_collection.truncate_collection
-                                     (p_collection_name      => 'ERROR_COLLECTION');
-   ELSE
-      -- Create Error Collection
-      apex_collection.create_or_truncate_collection ('ERROR_COLLECTION');
-   END IF;
-
-   -- Basic Check. Make sure the emp name is more than 5 chars long
-   FOR x IN (SELECT ac.c003 empname, ac.c004 sal, ac.seq_id
-               FROM apex_collections ac
-              WHERE ac.collection_name = 'DATA_COLLECTION')
-   LOOP
-      -- Always add a blank error
-      apex_collection.add_member (p_collection_name => 'ERROR_COLLECTION');
-
-      IF LENGTH (x.empname) < 5
-      THEN
-         apex_collection.update_member
-            (p_collection_name      => 'ERROR_COLLECTION',
-             p_seq                  => x.seq_id,
-             p_c003                 => '
-<span style="color:red">Name must be 5 Chars</span>'
-            );
-         v_err_msg := 'Error Occured';
-      END IF;
-
-      -- Add a "row level" check for demo purposes
-      IF LENGTH (x.empname) = LENGTH (x.sal)
-      THEN
-         apex_collection.update_member
-             (p_collection_name      => 'ERROR_COLLECTION',
-              p_seq                  => x.seq_id,
-              p_c050                 => '
-<span style="color:red">Row Level Error</span>'
-             );
-         apex_util.set_session_state (p_name       => 'P200_DISPLAY_ROW_ERROR_FLAG',
-                                      p_value      => 'Y'
-                                     );
-         v_err_msg := 'Error Occured';
-      END IF;
-   END LOOP;
-
-   RETURN v_err_msg;
-END;
-</pre>
-<p>Step 6: Finishing it off</p>
-<p>As you notice there’s a column called: <span style="font-style:italic;">row_error</span>. Set the condition where item: <span style="font-style:italic;">P200_DISPLAY_ROW_ERROR_FLAG = Y</span>.</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://www.talkapex.com/2008/08/manually-creating-tabular-form/" data-id="ckpzsrwt5000b01kdh9fj16nk" class="article-share-link">Share</a>
-      
-        <a href="http://www.talkapex.com/2008/08/manually-creating-tabular-form/#disqus_thread" class="article-comment-link">Comments</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/apex/" rel="tag">apex</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
 
 
   <nav id="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/30/">&amp;laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="page-number" href="/page/30/">30</a><span class="page-number current">31</span>
+    <a class="extend prev" rel="prev" href="/page/30/">&amp;laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="page-number" href="/page/30/">30</a><span class="page-number current">31</span><a class="page-number" href="/page/32/">32</a><a class="extend next" rel="next" href="/page/32/">Next &amp;raquo;</a>
   </nav>
 
 </section>
@@ -868,7 +763,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">161</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">Docker</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/aop/" rel="tag">aop</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex/" rel="tag">apex</a><span class="tag-list-count">161</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-19/" rel="tag">apex-19</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5/" rel="tag">apex-5</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-5-1/" rel="tag">apex-5.1</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/apex-plugin/" rel="tag">apex-plugin</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/best-practice/" rel="tag">best-practice</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/checkbox/" rel="tag">checkbox</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/chrome/" rel="tag">chrome</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/css/" rel="tag">css</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/design/" rel="tag">design</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/docker/" rel="tag">docker</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/dynamic-actions/" rel="tag">dynamic-actions</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/git/" rel="tag">git</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/interactive-report/" rel="tag">interactive-report</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/iot/" rel="tag">iot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/javascript/" rel="tag">javascript</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/jquery/" rel="tag">jquery</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/kscope/" rel="tag">kscope</a><span class="tag-list-count">21</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/logger/" rel="tag">logger</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/macos/" rel="tag">macos</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/meta/" rel="tag">meta</a><span class="tag-list-count">19</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oci/" rel="tag">oci</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/odtug/" rel="tag">odtug</a><span class="tag-list-count">25</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oos-utils/" rel="tag">oos-utils</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oow/" rel="tag">oow</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/open-source/" rel="tag">open-source</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle/" rel="tag">oracle</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-12c/" rel="tag">oracle-12c</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/oracle-18c/" rel="tag">oracle-18c</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ords/" rel="tag">ords</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/plsql/" rel="tag">plsql</a><span class="tag-list-count">28</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/security/" rel="tag">security</a><span class="tag-list-count">10</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql/" rel="tag">sql</a><span class="tag-list-count">20</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-data-modeler/" rel="tag">sql-data-modeler</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sql-developer/" rel="tag">sql-developer</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlcl/" rel="tag">sqlcl</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/sqlplus/" rel="tag">sqlplus</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/tabular-form/" rel="tag">tabular-form</a><span class="tag-list-count">3</span></li></ul>
     </div>
   </div>
 
@@ -905,7 +800,7 @@ END;
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">7</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2021/">2021</a><span class="archive-list-count">8</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2020/">2020</a><span class="archive-list-count">19</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/">2019</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2018/">2018</a><span class="archive-list-count">11</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/">2017</a><span class="archive-list-count">22</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/">2016</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2015/">2015</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2014/">2014</a><span class="archive-list-count">17</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2013/">2013</a><span class="archive-list-count">35</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2012/">2012</a><span class="archive-list-count">25</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2011/">2011</a><span class="archive-list-count">27</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2010/">2010</a><span class="archive-list-count">40</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2009/">2009</a><span class="archive-list-count">51</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2008/">2008</a><span class="archive-list-count">5</span></li></ul>
     </div>
   </div>
 
